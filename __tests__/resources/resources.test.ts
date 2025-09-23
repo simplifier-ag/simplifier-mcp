@@ -19,13 +19,5 @@ describe('Resources', () => {
   });
 
   // TODO: Add tests for individual resources when they are implemented:
-  // - test simplifier://connectors resource
-  // - test simplifier://connectors/{id} resource
   // - test simplifier://business-objects resource
-  // - test simplifier://business-objects/{id} resource
-  // - test simplifier://api-docs resource
-  // - test simplifier://templates/connector resource
-  // - test simplifier://templates/business-object resource
-  // - test simplifier://system/status resource
-  // - test simplifier://schemas resource
 });

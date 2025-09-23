@@ -79,7 +79,7 @@ The server requires the following environment configuration:
 
 ```env
 # Required: Base URL for Simplifier REST API
-SIMPLIFIER_BASE_URL=https://your-simplifier-instance.com/api
+SIMPLIFIER_BASE_URL=https://your-simplifier-instance.com
 
 # Optional: Development environment setting
 NODE_ENV=development
@@ -94,7 +94,7 @@ NODE_ENV=development
 
 - **Daily Token Refresh**: Users will need to obtain a SimplifierToken each day
 - **Session-like Behavior**: The token acts as a session key with limited lifetime
-- **Manual Configuration**: Users will configure the token in environment variables before starting the MCP server
+- **Manual Configuration**: Users will configure the token in environment variables in env file
 - **Automatic Handling**: The client will include the token in API request headers
 
 ## Installation & Setup
@@ -137,72 +137,3 @@ NODE_ENV=development
 - `npm run lint` - Check code style with ESLint
 - `npm run lint:fix` - Fix linting issues automatically
 
-### Testing Strategy
-
-The project follows a comprehensive testing approach:
-
-- **Unit Tests**: Test individual modules and functions in isolation
-- **Integration Tests**: Test MCP protocol flow and component interactions
-- **Mocked API**: External API calls are mocked for reliable testing
-- **Type Safety**: TypeScript ensures type correctness across the codebase
-
-## Current Status
-
-**Initial Setup Phase** - The project is currently set up with:
-
-✅ **Complete Infrastructure**:
-- TypeScript configuration with strict typing
-- Jest testing framework with full coverage setup
-- ESLint for code quality
-- Environment configuration with validation
-- Comprehensive project structure
-
-✅ **MCP Server Foundation**:
-- Basic MCP server with protocol handling
-- Empty capabilities arrays (tools, resources, prompts)
-- Proper MCP message routing and error handling
-
-✅ **API Client Structure**:
-- REST client for Simplifier platform
-- Type definitions for Connectors and BusinessObjects
-- Placeholder for SimplifierToken authentication
-
-✅ **Testing Foundation**:
-- Unit tests for all modules
-- Integration test structure
-- Mocked external dependencies
-
-## Planned Capabilities
-
-### Tools (Future Implementation)
-- `create_connector` - Create a new Simplifier Connector
-- `update_connector` - Update an existing Connector
-- `delete_connector` - Delete a Connector
-- `list_connectors` - List all available Connectors
-- `create_business_object` - Create a new BusinessObject
-- `update_business_object` - Update an existing BusinessObject
-- `delete_business_object` - Delete a BusinessObject
-- `list_business_objects` - List all available BusinessObjects
-- `execute_business_object` - Execute a BusinessObject with parameters
-- `get_connector_status` - Check the status of a Connector
-- `validate_business_object` - Validate BusinessObject JavaScript code
-
-### Resources (Future Implementation)
-- `simplifier://connectors` - List of all connectors with metadata
-- `simplifier://connectors/{id}` - Specific connector details
-- `simplifier://business-objects` - List of all business objects
-- `simplifier://business-objects/{id}` - Specific business object with source
-- `simplifier://api-docs` - Simplifier REST API documentation
-- `simplifier://templates/*` - Configuration and code templates
-- `simplifier://system/status` - Platform health information
-
-### Prompts (Future Implementation)
-- `create_connector_guide` - Step-by-step connector creation
-- `business_object_template` - Generate BusinessObject templates
-- `troubleshoot_connector` - Help diagnose connector issues
-- `optimize_business_object` - Performance optimization suggestions
-- `security_review` - Security best practices guidance
-
-## License
-
-MIT

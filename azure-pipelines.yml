@@ -1,0 +1,93 @@
+# Azure DevOps CI Pipeline for Simplifier MCP Server
+# Runs unit tests and publishes test results
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+  paths:
+    exclude:
+      - README.md
+      - CLAUDE.md
+      - .gitignore
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - README.md
+      - CLAUDE.md
+      - .gitignore
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  nodeVersion: '18.x'
+
+jobs:
+- job: Build_and_Test
+  displayName: 'Build and Test'
+
+  steps:
+  - task: NodeTool@0
+    displayName: 'Install Node.js'
+    inputs:
+      versionSpec: $(nodeVersion)
+
+  - task: Cache@2
+    displayName: 'Cache npm dependencies'
+    inputs:
+      key: 'npm | "$(Agent.OS)" | package-lock.json'
+      restoreKeys: |
+        npm | "$(Agent.OS)"
+      path: ~/.npm
+
+  - script: |
+      npm ci
+    displayName: 'Install dependencies'
+
+  - script: |
+      npm run build
+    displayName: 'Build TypeScript'
+
+  - script: |
+      npm test -- --ci --coverage --testResultsProcessor=jest-junit
+    displayName: 'Run unit tests'
+    env:
+      JEST_JUNIT_OUTPUT_DIR: $(Agent.TempDirectory)/test-results
+      JEST_JUNIT_OUTPUT_NAME: test-results.xml
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '$(Agent.TempDirectory)/test-results/test-results.xml'
+      failTaskOnFailedTests: true
+      testRunTitle: 'Unit Tests'
+
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage'
+    condition: succeededOrFailed()
+    inputs:
+      codeCoverageTool: 'Cobertura'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/coverage/lcov-report'
+
+  - script: |
+      echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
+    displayName: 'Test MCP Server functionality'
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish build artifacts'
+    condition: succeeded()
+    inputs:
+      PathtoPublish: 'dist'
+      ArtifactName: 'dist'
+      publishLocation: 'Container'

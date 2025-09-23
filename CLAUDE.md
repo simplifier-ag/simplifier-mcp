@@ -13,20 +13,20 @@ This is a Model Context Protocol (MCP) server for the Simplifier Low Code Platfo
 
 ### Authentication
 - Simplifier uses **SimplifierToken** (not API keys)
-- Token has session-like behavior and needs daily refresh
+- Token has session-like behavior and needs daily refresh (depending on token settings of Simplifier)
 - User must obtain token daily and configure it in environment variables
 - Implementation is planned for future stories - currently has TODO comments
 
 ### Configuration
-- Base URL configured via `SIMPLIFIER_BASE_URL` environment variable
-- Default development URL: `http://localhost:8087/api` (matches user's Simplifier server port)
+- Base URL of Simplifiers REST API configured via `SIMPLIFIER_BASE_URL` environment variable
+- Default development URL: `http://localhost:8080` (matches user's Simplifier server port)
 - Configuration validation in `src/config.ts`
 
 ### Current Status
 - **Infrastructure**: ✅ Complete (TypeScript, Jest, ESM, build system)
 - **MCP Server**: ✅ Basic server with empty capabilities
 - **API Client**: ✅ Structure in place with authentication placeholders
-- **Tests**: ✅ All 34 tests passing
+- **Tests**: ✅ All tests passing
 - **Capabilities**: ❌ Empty arrays - tools, resources, prompts need implementation
 
 ### Testing
