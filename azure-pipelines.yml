@@ -84,10 +84,10 @@ jobs:
       echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
     displayName: 'Test MCP Server functionality'
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish build artifacts'
-    condition: succeeded()
-    inputs:
-      PathtoPublish: 'dist'
-      ArtifactName: 'dist'
-      publishLocation: 'Container'
+  # - task: PublishBuildArtifacts@1
+  #   displayName: 'Publish build artifacts'
+  #   condition: succeeded()
+  #   inputs:
+  #     PathtoPublish: 'dist'
+  #     ArtifactName: 'dist'
+  #     publishLocation: 'Container'
