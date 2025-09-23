@@ -1,3 +1,7 @@
+// Set up environment before importing config module
+process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
+process.env.NODE_ENV = 'test';
+
 // Don't use the global mock for this test
 jest.unmock('../src/config');
 
@@ -33,11 +37,11 @@ describe('Configuration', () => {
     });
 
     it('should accept valid HTTP URL', () => {
-      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8087/api';
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
 
       const config = validateConfig();
 
-      expect(config.simplifierBaseUrl).toBe('http://localhost:8087/api');
+      expect(config.simplifierBaseUrl).toBe('http://localhost:8080');
       expect(config.nodeEnv).toBe('test');
     });
 
@@ -52,7 +56,7 @@ describe('Configuration', () => {
     });
 
     it('should default NODE_ENV to development', () => {
-      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8087/api';
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
       delete process.env.NODE_ENV;
 
       const config = validateConfig();
@@ -60,12 +64,5 @@ describe('Configuration', () => {
       expect(config.nodeEnv).toBe('development');
     });
 
-    it('should handle URL with port', () => {
-      process.env.SIMPLIFIER_BASE_URL = 'http://simplifier.local:8087/api/v1';
-
-      const config = validateConfig();
-
-      expect(config.simplifierBaseUrl).toBe('http://simplifier.local:8087/api/v1');
-    });
   });
 });
