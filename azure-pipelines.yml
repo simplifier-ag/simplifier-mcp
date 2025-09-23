@@ -46,9 +46,10 @@ jobs:
       key: 'npm | "$(Agent.OS)" | package-lock.json'
       restoreKeys: |
         npm | "$(Agent.OS)"
-      path: ~/.npm
+      path: $(Pipeline.Workspace)/.npm
 
   - script: |
+      npm config set cache $(Pipeline.Workspace)/.npm
       npm ci
     displayName: 'Install dependencies'
 
@@ -73,14 +74,6 @@ jobs:
       testResultsFiles: '$(Agent.TempDirectory)/test-results/test-results.xml'
       failTaskOnFailedTests: true
       testRunTitle: 'Unit Tests'
-
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish code coverage'
-    condition: succeededOrFailed()
-    inputs:
-      codeCoverageTool: 'Cobertura'
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/coverage/lcov-report'
 
   - script: |
       echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
