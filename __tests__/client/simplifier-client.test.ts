@@ -61,4 +61,40 @@ describe('SimplifierClient', () => {
     });
 
   });
+
+  describe('get server business object details', () => {
+    it('should call getBusinessObjectDetails endpoint with object name', async () => {
+      const mockResponse = {
+        success: true,
+        result: {
+          id: 'TestObject',
+          name: 'Test Business Object',
+          script: 'return "details";',
+          description: 'A test business object',
+          parameters: [{ name: 'input', type: 'string', required: true }]
+        },
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.getServerBusinessObjectDetails('TestObject');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://some.test/UserInterface/api/businessobjects/server/TestObject",
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+        })
+      );
+
+      expect(result).toEqual(mockResponse.result);
+    });
+
+  });
 });

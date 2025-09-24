@@ -75,6 +75,9 @@ export class SimplifierClient {
     return this.makeRequest("/UserInterface/api/businessobjects/server", { method: "GET" })
   }
 
+  async getServerBusinessObjectDetails(objectName: string): Promise<SimplifierBusinessObject> {
+    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}`, { method: "GET" })
+  }
 
 
 }

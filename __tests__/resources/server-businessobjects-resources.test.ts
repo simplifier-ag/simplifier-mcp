@@ -25,6 +25,7 @@ describe('Server Business Objects Tools', () => {
     // Create mock client
     mockClient = {
       getServerBusinessObjects: jest.fn(),
+      getServerBusinessObjectDetails: jest.fn(),
     } as any;
 
     // Get the mocked wrapResourceResult
@@ -43,8 +44,8 @@ describe('Server Business Objects Tools', () => {
     jest.clearAllMocks();
   });
 
-  describe('registerServerBusinessObjectTools', () => {
-    it('should register business object resource with correct parameters', () => {
+  describe('registerServerBusinessObjectResources', () => {
+    it('should register business object list resource with correct parameters', () => {
       registerServerBusinessObjectResources(mockServer, mockClient);
 
       expect(mockServer.resource).toHaveBeenCalledWith(
@@ -53,35 +54,46 @@ describe('Server Business Objects Tools', () => {
         {
           title: 'Business Objects',
           mimeType: 'application/json',
-          description: expect.stringContaining('Get all server side Business Objects'),
+          description: 'Get all server side Business Object Details at once',
         },
         expect.any(Function)
       );
     });
 
-    it('should register resource with correct description', () => {
+    it('should register business object details resource with correct parameters', () => {
       registerServerBusinessObjectResources(mockServer, mockClient);
 
-      const call = mockServer.resource.mock.calls[0];
-      const resourceConfig = call[2];
-
-      expect(resourceConfig.description).toContain('Get all server side Business Objects');
-      expect(resourceConfig.description).toContain('Provides the list of all Business Objects from the Simplifier appserver.');
+      expect(mockServer.resource).toHaveBeenCalledWith(
+        'businessobject-details',
+        expect.any(Object), // ResourceTemplate
+        {
+          title: 'Business Object Details',
+          mimeType: 'application/json',
+          description: 'Get details on a particular server side Business Object',
+        },
+        expect.any(Function)
+      );
     });
 
-    describe('resource handler', () => {
-      let resourceHandler: any;
+    it('should register both resources', () => {
+      registerServerBusinessObjectResources(mockServer, mockClient);
+
+      expect(mockServer.resource).toHaveBeenCalledTimes(2);
+    });
+
+    describe('business object list handler', () => {
+      let listResourceHandler: any;
 
       beforeEach(() => {
         registerServerBusinessObjectResources(mockServer, mockClient);
-        resourceHandler = mockServer.resource.mock.calls[0][3];
+        listResourceHandler = mockServer.resource.mock.calls[0][3]; // First resource (list)
       });
 
       it('should call wrapResourceResult with correct parameters', async () => {
         const testUri = new URL('simplifier://serverbusinessobjects');
         mockWrapResourceResult.mockResolvedValue({ contents: [] });
 
-        await resourceHandler(testUri, {}, createMockExtra());
+        await listResourceHandler(testUri, {}, createMockExtra());
 
         expect(mockWrapResourceResult).toHaveBeenCalledWith(
           testUri,
@@ -117,7 +129,7 @@ describe('Server Business Objects Tools', () => {
           };
         });
 
-        const result = await resourceHandler(testUri, {}, createMockExtra());
+        const result = await listResourceHandler(testUri, {}, createMockExtra());
 
         expect(mockClient.getServerBusinessObjects).toHaveBeenCalled();
         expect(result.contents[0].text).toContain('Test BO');
@@ -152,7 +164,7 @@ describe('Server Business Objects Tools', () => {
           }
         });
 
-        const result = await resourceHandler(testUri, {}, createMockExtra());
+        const result = await listResourceHandler(testUri, {}, createMockExtra());
 
         expect(mockClient.getServerBusinessObjects).toHaveBeenCalled();
         expect(result.contents[0].text).toContain('Could not get data!');
@@ -163,7 +175,7 @@ describe('Server Business Objects Tools', () => {
         const testUri = new URL('simplifier://serverbusinessobjects?param=value');
         mockWrapResourceResult.mockResolvedValue({ contents: [] });
 
-        await resourceHandler(testUri, {}, createMockExtra());
+        await listResourceHandler(testUri, {}, createMockExtra());
 
         expect(mockWrapResourceResult).toHaveBeenCalledWith(
           testUri,
@@ -176,6 +188,98 @@ describe('Server Business Objects Tools', () => {
         expect(passedUri.searchParams.get('param')).toBe('value');
       });
     });
+
+    describe('business object details handler', () => {
+      let detailsResourceHandler: any;
+
+      beforeEach(() => {
+        registerServerBusinessObjectResources(mockServer, mockClient);
+        detailsResourceHandler = mockServer.resource.mock.calls[1][3]; // Second resource (details)
+      });
+
+      it('should call wrapResourceResult with correct parameters', async () => {
+        const testUri = new URL('simplifier://businessobjects/TestObject');
+        const variables = { objectName: 'TestObject' };
+        mockWrapResourceResult.mockResolvedValue({ contents: [] });
+
+        await detailsResourceHandler(testUri, variables, createMockExtra());
+
+        expect(mockWrapResourceResult).toHaveBeenCalledWith(
+          testUri,
+          expect.any(Function)
+        );
+      });
+
+      it('should call getServerBusinessObjectDetails through the wrapper', async () => {
+        const testUri = new URL('simplifier://businessobjects/MyBusinessObject');
+        const variables = { objectName: 'MyBusinessObject' };
+        const mockBusinessObject: SimplifierBusinessObject = {
+          id: 'MyBusinessObject',
+          name: 'My Business Object',
+          script: 'return "detailed info";',
+          parameters: [{ name: 'param1', type: 'string', required: true }],
+          status: 'active',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        mockClient.getServerBusinessObjectDetails.mockResolvedValue(mockBusinessObject);
+
+        // Mock wrapResourceResult to call the function and return the result
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await detailsResourceHandler(testUri, variables, createMockExtra());
+
+        expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('MyBusinessObject');
+        expect(result.contents[0].text).toContain('My Business Object');
+        expect(result.contents[0].mimeType).toBe('application/json');
+      });
+
+      it('should handle errors through wrapResourceResult', async () => {
+        const testUri = new URL('simplifier://businessobjects/NonExistentObject');
+        const variables = { objectName: 'NonExistentObject' };
+        const testError = new Error('Object not found');
+
+        mockClient.getServerBusinessObjectDetails.mockRejectedValue(testError);
+
+        // Mock wrapResourceResult to handle errors
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          try {
+            await fn();
+            return {
+              contents: [{
+                uri: uri.href,
+                text: JSON.stringify({error: 'Should not reach here'}),
+                mimeType: 'application/json'
+              }]
+            };
+          } catch (e) {
+            return {
+              contents: [{
+                uri: uri.href,
+                text: JSON.stringify({error: `Could not get data! ${e}`}),
+                mimeType: 'application/json'
+              }]
+            };
+          }
+        });
+
+        const result = await detailsResourceHandler(testUri, variables, createMockExtra());
+
+        expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('NonExistentObject');
+        expect(result.contents[0].text).toContain('Could not get data!');
+        expect(result.contents[0].text).toContain('Object not found');
+      });
+    });
   });
 
   describe('integration with real data', () => {
@@ -184,7 +288,7 @@ describe('Server Business Objects Tools', () => {
       mockClient.getServerBusinessObjects.mockResolvedValue([]);
 
       registerServerBusinessObjectResources(mockServer, mockClient);
-      const resourceHandler = mockServer.resource.mock.calls[0][3];
+      const listResourceHandler = mockServer.resource.mock.calls[0][3];
 
       // Mock wrapResourceResult to simulate real behavior
       mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
@@ -198,7 +302,7 @@ describe('Server Business Objects Tools', () => {
         };
       });
 
-      const result = await resourceHandler(testUri, {}, createMockExtra());
+      const result = await listResourceHandler(testUri, {}, createMockExtra());
 
       expect(mockClient.getServerBusinessObjects).toHaveBeenCalled();
       expect(result.contents[0].text).toBe('[]');
@@ -235,7 +339,7 @@ describe('Server Business Objects Tools', () => {
       mockClient.getServerBusinessObjects.mockResolvedValue([complexBusinessObject]);
 
       registerServerBusinessObjectResources(mockServer, mockClient);
-      const resourceHandler = mockServer.resource.mock.calls[0][3];
+      const listResourceHandler = mockServer.resource.mock.calls[0][3];
 
       mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
         const result = await fn();
@@ -248,13 +352,61 @@ describe('Server Business Objects Tools', () => {
         };
       });
 
-      const result = await resourceHandler(testUri, {}, createMockExtra());
+      const result = await listResourceHandler(testUri, {}, createMockExtra());
 
       expect(mockClient.getServerBusinessObjects).toHaveBeenCalled();
       const resultData = JSON.parse(result.contents[0].text as string);
       expect(resultData[0].name).toBe('Complex Business Object');
       expect(resultData[0].parameters).toHaveLength(2);
       expect(resultData[0].parameters[0].name).toBe('input');
+    });
+
+    it('should handle business object details retrieval', async () => {
+      const testUri = new URL('simplifier://businessobjects/DetailedObject');
+      const variables = { objectName: 'DetailedObject' };
+      const detailedBusinessObject: SimplifierBusinessObject = {
+        id: 'detailed-bo-1',
+        name: 'Detailed Business Object',
+        description: 'A detailed business object for testing',
+        script: 'function execute(data) { return processSpecialData(data); }',
+        parameters: [
+          {
+            name: 'data',
+            type: 'object',
+            required: true,
+            description: 'The data to process'
+          }
+        ],
+        returnType: 'object',
+        status: 'active',
+        createdAt: new Date('2023-01-01'),
+        updatedAt: new Date('2023-01-02')
+      };
+
+      mockClient.getServerBusinessObjectDetails.mockResolvedValue(detailedBusinessObject);
+
+      registerServerBusinessObjectResources(mockServer, mockClient);
+      const detailsResourceHandler = mockServer.resource.mock.calls[1][3];
+
+      mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+        const result = await fn();
+        return {
+          contents: [{
+            uri: uri.href,
+            text: JSON.stringify(result, null, 2),
+            mimeType: 'application/json'
+          }]
+        };
+      });
+
+      const result = await detailsResourceHandler(testUri, variables, createMockExtra());
+
+      expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('DetailedObject');
+      const resultData = JSON.parse(result.contents[0].text as string);
+      expect(resultData.name).toBe('Detailed Business Object');
+      expect(resultData.description).toBe('A detailed business object for testing');
+      expect(resultData.parameters).toHaveLength(1);
+      expect(resultData.parameters[0].name).toBe('data');
     });
   });
 });
