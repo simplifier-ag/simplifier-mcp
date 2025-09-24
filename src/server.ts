@@ -1,8 +1,8 @@
 import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js';
-import {SimplifierClient} from "./client/simplifier-client";
-import {registerTools} from "./tools";
+import {SimplifierClient} from "./client/simplifier-client.js";
+import {registerTools} from "./tools/index.js";
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
-import {registerResources} from "./resources";
+import {registerResources} from "./resources/index.js";
 
 export class SimplifierMCPServer {
   private server: McpServer;

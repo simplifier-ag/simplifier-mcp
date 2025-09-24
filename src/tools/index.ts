@@ -1,4 +1,4 @@
-import {SimplifierClient} from "../client/simplifier-client";
+import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**

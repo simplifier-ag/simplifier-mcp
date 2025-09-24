@@ -1,7 +1,7 @@
 
-import {SimplifierClient} from "../client/simplifier-client";
+import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
-import {wrapResourceResult} from "./resourcesresult";
+import {wrapResourceResult} from "./resourcesresult.js";
 
 
 export function registerServerBusinessObjectResources(server: McpServer, simplifier: SimplifierClient): void {

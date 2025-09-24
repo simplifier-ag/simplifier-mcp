@@ -3,7 +3,7 @@ import {
   SimplifierApiResponse
 } from './types.js';
 import {config} from '../config.js';
-import {login} from "./basicauth";
+import {login} from "./basicauth.js";
 
 /**
  * Client for interacting with Simplifier Low Code Platform REST API
