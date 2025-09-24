@@ -26,7 +26,7 @@ export interface BOParameter {
 
 export interface SimplifierApiResponse<T = unknown> {
   success: boolean;
-  data?: T;
+  result?: T;
   error?: string;
   message?: string;
 }

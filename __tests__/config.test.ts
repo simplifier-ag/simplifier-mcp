@@ -1,6 +1,7 @@
 // Set up environment before importing config module
 process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
 process.env.NODE_ENV = 'test';
+process.env.SIMPLIFIER_TOKEN = 'test-token';
 
 // Don't use the global mock for this test
 jest.unmock('../src/config');
@@ -13,6 +14,8 @@ describe('Configuration', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
+    // Set required environment variables for tests
+    process.env.SIMPLIFIER_TOKEN = 'test-token';
   });
 
   afterAll(() => {
@@ -62,6 +65,48 @@ describe('Configuration', () => {
       const config = validateConfig();
 
       expect(config.nodeEnv).toBe('development');
+    });
+
+    it('should require either SIMPLIFIER_TOKEN or SIMPLIFIER_CREDENTIALS_FILE', () => {
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
+      delete process.env.SIMPLIFIER_TOKEN;
+      delete process.env.SIMPLIFIER_CREDENTIALS_FILE;
+
+      expect(() => validateConfig()).toThrow(
+        'Either variable SIMPLIFIER_TOKEN with an actual token or SIMPLIFIER_CREDENTIALS_FILE pointing to a valid credentials file must be set!'
+      );
+    });
+
+    it('should accept SIMPLIFIER_TOKEN when set', () => {
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
+      process.env.SIMPLIFIER_TOKEN = 'test-token-123';
+      delete process.env.SIMPLIFIER_CREDENTIALS_FILE;
+
+      const config = validateConfig();
+
+      expect(config.simplifierToken).toBe('test-token-123');
+      expect(config.credentialsFile).toBeUndefined();
+    });
+
+    it('should accept SIMPLIFIER_CREDENTIALS_FILE when set', () => {
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
+      delete process.env.SIMPLIFIER_TOKEN;
+      process.env.SIMPLIFIER_CREDENTIALS_FILE = '/path/to/credentials.json';
+
+      const config = validateConfig();
+
+      expect(config.credentialsFile).toBe('/path/to/credentials.json');
+      expect(config.simplifierToken).toBeUndefined();
+    });
+
+    it('should reject when both SIMPLIFIER_TOKEN and SIMPLIFIER_CREDENTIALS_FILE are set', () => {
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
+      process.env.SIMPLIFIER_TOKEN = 'test-token-123';
+      process.env.SIMPLIFIER_CREDENTIALS_FILE = '/path/to/credentials.json';
+
+      expect(() => validateConfig()).toThrow(
+        'Cannot set both SIMPLIFIER_TOKEN and SIMPLIFIER_CREDENTIALS_FILE. Please use only one authentication method.'
+      );
     });
 
   });

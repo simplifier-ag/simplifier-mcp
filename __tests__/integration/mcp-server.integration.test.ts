@@ -1,3 +1,22 @@
+// Mock config for this test
+jest.mock('../../src/config', () => ({
+  config: {
+    simplifierBaseUrl: 'http://localhost:8080',
+    nodeEnv: 'test',
+    simplifierToken: 'test-token'
+  }
+}));
+
+// Mock registerTools function
+jest.mock('../../src/tools/index', () => ({
+  registerTools: jest.fn()
+}));
+
+// Mock registerResources function
+jest.mock('../../src/resources/index', () => ({
+  registerResources: jest.fn()
+}));
+
 import { SimplifierMCPServer } from '../../src/server';
 
 describe('MCP Server Integration', () => {

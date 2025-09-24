@@ -2,7 +2,8 @@ import {
   SimplifierBusinessObject,
   SimplifierApiResponse
 } from './types.js';
-import { config } from '../config.js';
+import {config} from '../config.js';
+import {login} from "./basicauth";
 
 /**
  * Client for interacting with Simplifier Low Code Platform REST API
@@ -20,50 +21,60 @@ import { config } from '../config.js';
  */
 export class SimplifierClient {
   private baseUrl: string;
+  private simplifierToken?: string | undefined;
 
   constructor() {
     this.baseUrl = config.simplifierBaseUrl;
   }
 
-  // TODO: Add authentication headers when SimplifierToken is implemented
-  private async makeRequest<T>(
-    endpoint: string,
+  private async getSimplifierToken(): Promise<string> {
+    if (!this.simplifierToken) {
+      if (config.simplifierToken) {
+        this.simplifierToken = config.simplifierToken;
+      } else if (config.credentialsFile) {
+        this.simplifierToken = await login();
+      }
+    }
+    return this.simplifierToken!;
+  }
+
+
+  async makeRequest<T>(
+    urlPath: string,
     options: RequestInit = {}
-  ): Promise<SimplifierApiResponse<T>> {
-    const url = `${this.baseUrl}${endpoint}`;
-
-    const defaultHeaders = {
-      'Content-Type': 'application/json',
-      // TODO: Add SimplifierToken header when implemented
-      // 'Authorization': `Bearer ${config.simplifierToken}`,
-    };
-
+  ): Promise<T> {
+    const url = `${this.baseUrl}${urlPath}`;
+    const simplifierToken = await this.getSimplifierToken()
     try {
-      const response = await fetch(url, {
+      const response: Response = await fetch(url, {
         ...options,
         headers: {
-          ...defaultHeaders,
+          'Content-Type': 'application/json',
+          'SimplifierToken': simplifierToken,
           ...options.headers,
         },
       });
-
       if (!response.ok) {
-        // TODO: Handle specific authentication errors when SimplifierToken is implemented
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-
-      return await response.json() as SimplifierApiResponse<T>;
+      const oResponse = await response.json() as SimplifierApiResponse<T>;
+      if (!oResponse.success) {
+        throw new Error(`Received error: ${oResponse.error}`);
+      }
+      return (oResponse.result) as T
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Failed to make request to ${url}: ${error.message}`);
+        throw new Error(`Failed request ${options.method || "GET"} ${url}: ${error.message}`);
       }
       throw error;
     }
   }
 
-  // BusinessObject methods TODO implement - this was made up by claude
-  async getBusinessObjects(): Promise<SimplifierApiResponse<SimplifierBusinessObject[]>> {
-    return this.makeRequest<SimplifierBusinessObject[]>('/businessobjects');
+
+  async getServerBusinessObjects(): Promise<SimplifierBusinessObject[]> {
+    return this.makeRequest("/UserInterface/api/businessobjects/server", { method: "GET" })
   }
+
+
 
 }

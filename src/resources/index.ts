@@ -1,11 +1,10 @@
-import { Resource } from '@modelcontextprotocol/sdk/types.js';
+import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
+import {SimplifierClient} from "../client/simplifier-client";
+import {registerServerBusinessObjectResources} from "./server-businessobject-resources";
 
 /**
  * Resources for Simplifier Low Code Platform integration
- *
- * Currently empty - resources will be implemented in future stories
  */
-
-export const resources: Resource[] = [
-  // will be implemented in future stories
-];
+export function registerResources(server: McpServer, simplifier: SimplifierClient) {
+  registerServerBusinessObjectResources(server, simplifier);
+}

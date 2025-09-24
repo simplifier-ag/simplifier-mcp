@@ -1,11 +1,11 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import {SimplifierClient} from "../client/simplifier-client";
+import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
- * Tools for Simplifier Low Code Platform integration
- *
- * Currently empty - tools will be implemented in future stories
+ * Register Tools for Simplifier Low Code Platform integration
  */
+export function registerTools(_server: McpServer, _simplifier: SimplifierClient) {
 
-export const tools: Tool[] = [
-  // will be implemented in future stories
-];
+}
+
+

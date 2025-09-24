@@ -1,8 +1,9 @@
 // Mock config for this test
 jest.mock('../../src/config', () => ({
   config: {
-    simplifierBaseUrl: 'http://localhost:8080/api',
-    nodeEnv: 'test'
+    simplifierBaseUrl: 'http://some.test',
+    nodeEnv: 'test',
+    simplifierToken: 'test-token'
   }
 }));
 
@@ -31,11 +32,11 @@ describe('SimplifierClient', () => {
   });
 
 
-  describe('business object methods', () => {
+  describe('list all server business objects', () => {
     it('should call getBusinessObjects endpoint', async () => {
       const mockResponse = {
         success: true,
-        data: [{ id: '1', name: 'Test BO', script: 'return "hello";' }],
+        result: [{ id: '1', name: 'Test BO', script: 'return "hello";' }],
       };
 
       mockFetch.mockResolvedValueOnce({
@@ -43,18 +44,20 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getBusinessObjects();
+      const result = await client.getServerBusinessObjects();
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:8080/api/businessobjects',
+        "http://some.test/UserInterface/api/businessobjects/server",
         expect.objectContaining({
+          method: 'GET',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
           }),
         })
       );
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual(mockResponse.result);
     });
 
   });
