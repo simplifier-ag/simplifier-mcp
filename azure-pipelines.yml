@@ -76,12 +76,11 @@ jobs:
       testRunTitle: 'Unit Tests'
 
   - script: |
-      SIMPLIFIER_BASE_URL="http://local.host"
-      SIMPLIFIER_TOKEN=TEST
       echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
     displayName: 'Test MCP Server functionality'
     env:
       SIMPLIFIER_BASE_URL: 'http://localhost:8080'
+      SIMPLIFIER_TOKEN: TEST
       NODE_ENV: 'test'
 
   # - task: PublishBuildArtifacts@1
