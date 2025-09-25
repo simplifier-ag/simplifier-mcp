@@ -28,6 +28,7 @@ describe('SimplifierClient', () => {
   describe('constructor', () => {
     it('should create client with base URL from config', () => {
       expect(client).toBeInstanceOf(SimplifierClient);
+      expect(client.getBaseUrl()).toBe('http://some.test');
     });
   });
 

@@ -22,6 +22,7 @@ interface SimplifierBusinessObjectDependencyRef {
   name: string;
 }
 
+// todo consider enum
 export type SimplifierBusinessObjectRefType = 'connector'|'businessobject'|'plugin';
 
 
@@ -47,7 +48,7 @@ export interface SimplifierCallableParameter {
 }
 
 export interface SimplifierApiResponse<T = unknown> {
-  success: boolean;
+  success?: boolean;
   result?: T;
   error?: string;
   message?: string;

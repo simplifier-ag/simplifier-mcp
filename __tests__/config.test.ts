@@ -1,6 +1,5 @@
 // Set up environment before importing config module
 process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
-process.env.NODE_ENV = 'test';
 process.env.SIMPLIFIER_TOKEN = 'test-token';
 
 // Don't use the global mock for this test
@@ -45,7 +44,6 @@ describe('Configuration', () => {
       const config = validateConfig();
 
       expect(config.simplifierBaseUrl).toBe('http://localhost:8080');
-      expect(config.nodeEnv).toBe('test');
     });
 
     it('should accept valid HTTPS URL', () => {
@@ -55,16 +53,6 @@ describe('Configuration', () => {
       const config = validateConfig();
 
       expect(config.simplifierBaseUrl).toBe('https://example.com/api');
-      expect(config.nodeEnv).toBe('production');
-    });
-
-    it('should default NODE_ENV to development', () => {
-      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
-      delete process.env.NODE_ENV;
-
-      const config = validateConfig();
-
-      expect(config.nodeEnv).toBe('development');
     });
 
     it('should require either SIMPLIFIER_TOKEN or SIMPLIFIER_CREDENTIALS_FILE', () => {

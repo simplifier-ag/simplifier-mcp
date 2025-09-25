@@ -61,8 +61,6 @@ jobs:
       npm test -- --ci --coverage --testResultsProcessor=jest-junit
     displayName: 'Run unit tests'
     env:
-      SIMPLIFIER_BASE_URL: 'http://localhost:8080'
-      NODE_ENV: 'test'
       JEST_JUNIT_OUTPUT_DIR: $(Agent.TempDirectory)/test-results
       JEST_JUNIT_OUTPUT_NAME: test-results.xml
 
@@ -81,7 +79,6 @@ jobs:
     env:
       SIMPLIFIER_BASE_URL: 'http://localhost:8080'
       SIMPLIFIER_TOKEN: TEST
-      NODE_ENV: 'test'
 
   # - task: PublishBuildArtifacts@1
   #   displayName: 'Publish build artifacts'

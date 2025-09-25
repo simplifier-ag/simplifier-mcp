@@ -8,16 +8,11 @@ import {login} from "./basicauth.js";
 /**
  * Client for interacting with Simplifier Low Code Platform REST API
  *
- * TODO: SimplifierToken Authentication
- * This client will need to be enhanced with SimplifierToken authentication.
+ * This client will need to be enhanced with SimplifierToken.
  * The SimplifierToken acts as a session key that needs to be:
  * - Obtained daily by the user
  * - Configured in environment variables
  * - Included in API requests as authentication header
- *
- * Implementation notes for future story:
- * - Add SimplifierToken to request headers
- * - Provide clear error messages for authentication issues
  */
 export class SimplifierClient {
   private baseUrl: string;
@@ -26,6 +21,8 @@ export class SimplifierClient {
   constructor() {
     this.baseUrl = config.simplifierBaseUrl;
   }
+
+  getBaseUrl(): string {return this.baseUrl;}
 
   private async getSimplifierToken(): Promise<string> {
     if (!this.simplifierToken) {
@@ -61,7 +58,7 @@ export class SimplifierClient {
       const json = await response.json();
       const oResponse = json as SimplifierApiResponse<T>;
       if (oResponse.success === false) {
-        throw new Error(`Received error: ${oResponse.error}`);
+        throw new Error(`Received error: ${oResponse.error || ""}${oResponse.message || ""}`);
       }
       return (oResponse.result) as T
     } catch (error) {

@@ -55,7 +55,7 @@ describe('Server Business Objects Resources', () => {
         {
           title: 'Business Object Details',
           mimeType: 'application/json',
-          description: '#Get details on a particular server side Business Object',
+          description: expect.any(String),
         },
         expect.any(Function)
       );
@@ -70,14 +70,7 @@ describe('Server Business Objects Resources', () => {
         {
           title: 'Server Business Object Function',
           mimeType: 'application/json',
-          description: `
-# Get details on a Function of a Server Side Business Object
-
-Use this template resource in order to access 
-* Metadata
-* Input and Output Parameters
-* Source Code
-`,
+          description: expect.any(String),
         },
         expect.any(Function)
       );

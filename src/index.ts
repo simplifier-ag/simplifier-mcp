@@ -10,13 +10,6 @@
  * - BusinessObjects (BOs): Server-side executed JavaScript functions for business logic
  *
  * The server communicates with Simplifier's REST API to perform these operations.
- *
- * Current Status: Initial setup with empty capabilities
- * - Tools: Empty (to be implemented for Connector and BO management)
- * - Resources: Empty (to be implemented for accessing Simplifier entities)
- * - Prompts: Empty (to be implemented for guided operations)
- *
- * Authentication: SimplifierToken-based (to be implemented in future story)
  */
 
 import { SimplifierMCPServer } from './server.js';

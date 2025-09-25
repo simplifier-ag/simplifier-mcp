@@ -4,7 +4,6 @@ dotenv.config();
 
 export interface Config {
   simplifierBaseUrl: string;
-  nodeEnv: string;
   simplifierToken?: string | undefined;
   credentialsFile?: string | undefined;
 }
@@ -31,7 +30,6 @@ export function validateConfig(): Config {
 
   return {
     simplifierBaseUrl,
-    nodeEnv: process.env.NODE_ENV || 'development',
     simplifierToken: process.env.SIMPLIFIER_TOKEN,
     credentialsFile: process.env.SIMPLIFIER_CREDENTIALS_FILE
   };
