@@ -1,6 +1,6 @@
 import {
-  SimplifierBusinessObject,
-  SimplifierApiResponse
+  SimplifierBusinessObjectDetails,
+  SimplifierApiResponse, SimplifierBusinessObjectFunction
 } from './types.js';
 import {config} from '../config.js';
 import {login} from "./basicauth.js";
@@ -57,8 +57,10 @@ export class SimplifierClient {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      const oResponse = await response.json() as SimplifierApiResponse<T>;
-      if (!oResponse.success) {
+
+      const json = await response.json();
+      const oResponse = json as SimplifierApiResponse<T>;
+      if (oResponse.success === false) {
         throw new Error(`Received error: ${oResponse.error}`);
       }
       return (oResponse.result) as T
@@ -71,13 +73,16 @@ export class SimplifierClient {
   }
 
 
-  async getServerBusinessObjects(): Promise<SimplifierBusinessObject[]> {
+  async getServerBusinessObjects(): Promise<SimplifierBusinessObjectDetails[]> {
     return this.makeRequest("/UserInterface/api/businessobjects/server", { method: "GET" })
   }
 
-  async getServerBusinessObjectDetails(objectName: string): Promise<SimplifierBusinessObject> {
+  async getServerBusinessObjectDetails(objectName: string): Promise<SimplifierBusinessObjectDetails> {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}`, { method: "GET" })
   }
 
+  async getServerBusinessObjectFunction(objectName: string, functionName: string): Promise<SimplifierBusinessObjectFunction> {
+    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, { method: "GET" })
+  }
 
 }

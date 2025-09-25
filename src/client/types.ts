@@ -1,27 +1,49 @@
 /**
  * Type definitions for Simplifier Low Code Platform API
- * 
- * TODO fix those - all made up by claude
  */
 
-export interface SimplifierBusinessObject {
-  id: string;
+export interface SimplifierBusinessObjectDetails {
   name: string;
-  description?: string;
-  script: string; // JavaScript code
-  parameters: BOParameter[];
-  returnType?: string;
-  status: 'active' | 'inactive';
-  createdAt: Date;
-  updatedAt: Date;
+  description: string;
+  dependencies: SimplifierBusinessObjectDependencyRef[];
+  functionNames: string[];
+  editable: boolean;
+  deletable: boolean;
+  tags: string[];
+  assignedProperties: {
+    projectsBefore: string[];
+    projectsAfter: string[];
+  };
 }
 
-export interface BOParameter {
+
+interface SimplifierBusinessObjectDependencyRef {
+  refType: SimplifierBusinessObjectRefType;
   name: string;
-  type: 'string' | 'number' | 'boolean' | 'object';
-  required: boolean;
-  description?: string;
-  defaultValue?: unknown;
+}
+
+export type SimplifierBusinessObjectRefType = 'connector'|'businessobject'|'plugin';
+
+
+export interface SimplifierBusinessObjectFunction {
+  businessObjectName: string,
+  name: string,
+  description: string,
+  validateIn: boolean,
+  validateOut: boolean,
+  inputParameters: SimplifierCallableParameter[],
+  outputParameters: SimplifierCallableParameter[],
+  functionType: "JavaScript",
+  code: string
+}
+
+export interface SimplifierCallableParameter {
+  name: string;
+  description: string;
+  alias: string;
+  dataTypeId: string;
+  dataType: any;
+  isOptional: boolean;
 }
 
 export interface SimplifierApiResponse<T = unknown> {
@@ -31,10 +53,3 @@ export interface SimplifierApiResponse<T = unknown> {
   message?: string;
 }
 
-export interface CreateBusinessObjectRequest {
-  name: string;
-  description?: string;
-  script: string;
-  parameters: BOParameter[];
-  returnType?: string;
-}
