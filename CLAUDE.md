@@ -15,7 +15,6 @@ This is a Model Context Protocol (MCP) server for the Simplifier Low Code Platfo
 - Simplifier uses **SimplifierToken** (not API keys)
 - Token has session-like behavior and needs daily refresh (depending on token settings of Simplifier)
 - User must obtain token daily and configure it in environment variables
-- Implementation is planned for future stories - currently has TODO comments
 
 ### Configuration
 - Base URL of Simplifiers REST API configured via `SIMPLIFIER_BASE_URL` environment variable

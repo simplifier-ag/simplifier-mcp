@@ -11,15 +11,64 @@ The Simplifier MCP Server allows AI assistants to interact with the Simplifier L
 - **Execute BusinessObjects**: Run JavaScript functions with parameters and retrieve results
 - **Access platform resources**: Browse connectors, business objects, and system information
 
+
+
+## Usage
+
+### Example configuration for claude code to use the MCP
+
+Add the MCP to **.mcp.json** in claude's working directory:
+```json
+{
+  "mcpServers":  {
+    "simplifier-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["simplifier-mcp-installation-dir/index.js"],
+      "cwd": "simplifier-mcp-installation-dir",
+      "env": {
+        "SIMPLIFIER_BASE_URL": "http://myinstance.simplifier.io",
+        "SIMPLIFIER_TOKEN": "a602920506da20ac9edd5b405daccd78d1f5..."
+      }
+    }
+  }
+}
+```
+
+### Configuration
+
+Basic configuration is provided via environment variables or an optional **.env** file.
+
+#### Environment Variables
+
+**SIMPLIFIER_BASE_URL** -
+The base address of the API on the Simplifier instance to connect to.
+
+**SIMPLIFIER_TOKEN** - A valid session token for the Simplifier Appserver
+
+In order to obtain a Simplifier Token, log in at the instance, then go to the Your user profile and copy
+the current token. This needs to be repeated every day, when you log out or the session expires.
+Please note that all actions on the Simplifier instance are run on behalf of that user.
+
+
+**SIMPLIFIER_CREDENTIALS_FILE** - Log in credentials for the Simplifier instance. The json File must contain valid credentials 
+in the form of 
+```json
+{ "user":  "fritz", "pass":  "5Ecre1" }
+```
+
+**Note**: Either *SIMPLIFIER_TOKEN* or *SIMPLIFIER_CREDENTIALS_FILE* must be set. But not both at once.
+
+
 ## Project Structure
 
 ```
 simplifier-mcp/
-├── package.json              # Project dependencies and scripts
-├── tsconfig.json            # TypeScript configuration
-├── jest.config.js           # Jest testing configuration
-├── .env.example             # Environment configuration template
-├── .env                     # Local environment configuration
+├── package.json            # Project dependencies and scripts
+├── tsconfig.json           # TypeScript configuration
+├── jest.config.js          # Jest testing configuration
+├── .env.example            # Environment configuration template
+├── .env                    # Local environment configuration
 ├── .gitignore              # Git ignore patterns
 ├── README.md               # This documentation
 ├── src/                    # Source code
@@ -27,28 +76,10 @@ simplifier-mcp/
 │   ├── server.ts           # MCP server implementation with protocol handling
 │   ├── config.ts           # Environment configuration with validation
 │   ├── client/             # Simplifier REST API client
-│   │   ├── simplifier-client.ts  # API client with placeholder for SimplifierToken auth
-│   │   └── types.ts        # TypeScript types for Simplifier API entities
 │   ├── tools/              # MCP tools (currently empty)
-│   │   └── index.ts        # Tools for creating/managing connectors and BOs
 │   ├── resources/          # MCP resources (currently empty)
-│   │   └── index.ts        # Resources for accessing platform data
 │   └── prompts/            # MCP prompts (currently empty)
-│       └── index.ts        # Prompts for guided operations
 └── __tests__/              # Test suite
-    ├── setup.ts            # Jest setup and configuration
-    ├── server.test.ts      # MCP server protocol tests
-    ├── config.test.ts      # Configuration validation tests
-    ├── client/             # API client tests
-    │   └── simplifier-client.test.ts  # REST API client tests
-    ├── tools/              # Tools tests
-    │   └── tools.test.ts   # Individual tool tests (placeholder)
-    ├── resources/          # Resources tests
-    │   └── resources.test.ts  # Resource access tests (placeholder)
-    ├── prompts/            # Prompts tests
-    │   └── prompts.test.ts # Prompt generation tests (placeholder)
-    └── integration/        # Integration tests
-        └── mcp-server.integration.test.ts  # Full MCP flow tests
 ```
 
 ## Folder Structure Explanation
@@ -63,39 +94,13 @@ simplifier-mcp/
 - **`types.ts`**: TypeScript type definitions for Simplifier entities (Connectors, BusinessObjects)
 
 ### `/src/tools`, `/src/resources`, `/src/prompts`
-- **Currently empty** - These modules will contain the actual MCP capabilities in future implementations
-- Each module exports arrays that will be populated with MCP tools, resources, and prompts respectively
+ The actual implementation of MCP capabilities
 
 ### `/__tests__`
 - **Comprehensive test suite** covering all modules with unit and integration tests
 - **Follows the same structure as `/src`** for easy navigation and maintenance
 - **Includes placeholder tests** for future functionality to ensure continuous testing
 
-## Configuration
-
-### Environment Variables
-
-The server requires the following environment configuration:
-
-```env
-# Required: Base URL for Simplifier REST API
-SIMPLIFIER_BASE_URL=https://your-simplifier-instance.com
-
-# Optional: Development environment setting
-NODE_ENV=development
-
-# Future: SimplifierToken authentication (to be implemented)
-# SIMPLIFIER_TOKEN=your-daily-token-here
-```
-
-### Authentication (Future Implementation)
-
-**SimplifierToken Authentication** will be added in a future story:
-
-- **Daily Token Refresh**: Users will need to obtain a SimplifierToken each day
-- **Session-like Behavior**: The token acts as a session key with limited lifetime
-- **Manual Configuration**: Users will configure the token in environment variables in env file
-- **Automatic Handling**: The client will include the token in API request headers
 
 ## Installation & Setup
 
