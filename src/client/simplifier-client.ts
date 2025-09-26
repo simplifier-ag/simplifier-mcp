@@ -93,17 +93,26 @@ export class SimplifierClient {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, { method: "GET" })
   }
 
-  async getDataTypes(): Promise<SimplifierDataTypesResponse> {
-    // The datatypes endpoint returns data directly, not wrapped in SimplifierApiResponse
-    try {
-      const response = await this.executeRequest("/UserInterface/api/datatypes?cacheIndex=true", { method: "GET" });
-      return await response.json() as SimplifierDataTypesResponse;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed request GET ${this.baseUrl}/UserInterface/api/datatypes?cacheIndex=true: ${error.message}`);
-      }
-      throw error;
-    }
+  async createServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
+    this.makeRequest(`/UserInterface/api/businessobjects/server`, { method: "POST", body: JSON.stringify(oData) });
+    return `Successfully created Business Object '${oData.name}'`
   }
 
+  async updateServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
+    this.makeRequest(`/UserInterface/api/businessobjects/server/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) });
+    return `Successfully updated Business Object '${oData.name}'`
+  }
+
+    async getDataTypes(): Promise<SimplifierDataTypesResponse> {
+        // The datatypes endpoint returns data directly, not wrapped in SimplifierApiResponse
+        try {
+            const response = await this.executeRequest("/UserInterface/api/datatypes?cacheIndex=true", { method: "GET" });
+            return await response.json() as SimplifierDataTypesResponse;
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed request GET ${this.baseUrl}/UserInterface/api/datatypes?cacheIndex=true: ${error.message}`);
+            }
+            throw error;
+        }
+    }
 }

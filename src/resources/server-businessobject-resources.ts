@@ -1,4 +1,3 @@
-
 import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
@@ -6,68 +5,42 @@ import {wrapResourceResult} from "./resourcesresult.js";
 
 export function registerServerBusinessObjectResources(server: McpServer, simplifier: SimplifierClient): void {
 
-  const businessObjectResourceTemplate = new ResourceTemplate("simplifier://businessobjects/{objectName}", {
-    list: async () => {
-      try {
-        const businessObjects = await simplifier.getServerBusinessObjects();
-        return {
-          resources: businessObjects.map(bo => ({
-            uri: `simplifier://businessobjects/${bo.name}`,
-            name: bo.name,
-            title: `Business Object: ${bo.name}`,
-            description: bo.description,
-            mimeType: "application/json"
-          }))
-        };
-      } catch (error) {
-        return {
-          resources: []
-        };
-      }
-    }
-  });
+  const noListCallback = { list: undefined }
 
-
-  server.resource( "businessobject-details", businessObjectResourceTemplate, {
-      title: "Business Object Details",
+  server.resource( "businessobject-list", "simplifier://businessobjects", {
+      title: "List Business Objects",
       mimeType: "application/json",
-      description: `#Get details on a particular server side Business Object`
+      description: `#Get the list of server side Business Objects`
     },
-    async (uri: URL, {objectName}) => {
-      return wrapResourceResult(uri, () => {
-        return simplifier.getServerBusinessObjectDetails(objectName as string);
+    async (uri: URL) => {
+      return wrapResourceResult(uri, async () => {
+        return (await simplifier.getServerBusinessObjects()).map(bo => ({
+          name: bo.name, uri: `simplifier://businessobjects/${bo.name}`
+        }))
       })
     }
   );
 
-
-  const businessObjectFunctionResourceTemplate = new ResourceTemplate("simplifier://businessobjects/{objectName}/functions/{functionName}", {
-    list: async () => {
-      try {
-        const businessObjects = await simplifier.getServerBusinessObjects();
-        const resources = [];
-
-        for (const bo of businessObjects) {
-          for (const functionName of bo.functionNames) {
-            resources.push({
-              uri: `simplifier://businessobjects/${bo.name}/functions/${functionName}`,
-              name: `${bo.name}.${functionName}`,
-              title: `Function: ${functionName} (${bo.name})`,
-              description: `Function ${functionName} of business object ${bo.name}`,
-              mimeType: "application/json"
-            });
-          }
+  server.resource( "businessobject-details",
+    new ResourceTemplate("simplifier://businessobjects/{objectName}", noListCallback), {
+      title: "Business Object Details",
+      mimeType: "application/json",
+      description: `#Get details of a server side Business Object`
+    },
+    async (uri: URL, {objectName}) => {
+      return wrapResourceResult(uri, async () => {
+        const oDetails = await await simplifier.getServerBusinessObjectDetails(objectName as string)
+        return {
+          ...oDetails,
+          functions: (oDetails.functionNames as string[]).map(fName => {
+            return `simplifier://businessobjects/${objectName}/functions/${fName}`
+          })
         }
-
-        return { resources };
-      } catch (error) {
-        return { resources: [] };
-      }
+      })
     }
-  });
+  );
 
-
-  server.resource( "businessobject-function",  businessObjectFunctionResourceTemplate, {
+  server.resource( "businessobject-function",  new ResourceTemplate("simplifier://businessobjects/{objectName}/functions/{functionName}", noListCallback), {
       title: "Server Business Object Function",
       mimeType: "application/json",
       description: `

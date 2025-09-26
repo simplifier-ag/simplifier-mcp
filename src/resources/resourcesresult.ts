@@ -1,5 +1,7 @@
+import {ReadResourceResult} from "@modelcontextprotocol/sdk/types.js";
 
-export async function wrapResourceResult(uri: URL, fn: () => any) {
+
+export async function wrapResourceResult(uri: URL, fn: () => any): Promise<ReadResourceResult> {
   try {
     const result = await fn()
     return {

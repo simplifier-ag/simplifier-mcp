@@ -46,6 +46,21 @@ describe('Server Business Objects Resources', () => {
   });
 
   describe('registerServerBusinessObjectResources', () => {
+    it('should register business object list resource with correct parameters', () => {
+      registerServerBusinessObjectResources(mockServer, mockClient);
+
+      expect(mockServer.resource).toHaveBeenCalledWith(
+        'businessobject-list',
+        'simplifier://businessobjects',
+        {
+          title: 'List Business Objects',
+          mimeType: 'application/json',
+          description: expect.any(String),
+        },
+        expect.any(Function)
+      );
+    });
+
     it('should register business object details resource with correct parameters', () => {
       registerServerBusinessObjectResources(mockServer, mockClient);
 
@@ -76,20 +91,113 @@ describe('Server Business Objects Resources', () => {
       );
     });
 
-    it('should register all two resources', () => {
+    it('should register all three resources', () => {
       registerServerBusinessObjectResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(2);
+      expect(mockServer.resource).toHaveBeenCalledTimes(3);
     });
 
-    // Note: The business object list handler tests were removed since the businessobject-list resource no longer exists in the refactor
+    describe('business object list handler', () => {
+      let listResourceHandler: any;
+
+      beforeEach(() => {
+        registerServerBusinessObjectResources(mockServer, mockClient);
+        listResourceHandler = mockServer.resource.mock.calls[0][3]; // First resource (list)
+      });
+
+      it('should call wrapResourceResult with correct parameters', async () => {
+        const testUri = new URL('simplifier://businessobjects');
+        mockWrapResourceResult.mockResolvedValue({ contents: [] });
+
+        await listResourceHandler(testUri, createMockExtra());
+
+        expect(mockWrapResourceResult).toHaveBeenCalledWith(testUri, expect.any(Function));
+      });
+
+      it('should return simplified business object list', async () => {
+        const testUri = new URL('simplifier://businessobjects');
+        const mockBusinessObjects = [
+          {
+            name: 'TestObject1',
+            description: 'First test object',
+            dependencies: [],
+            functionNames: ['func1'],
+            editable: true,
+            deletable: true,
+            tags: [],
+            assignedProperties: { projectsBefore: [], projectsAfter: [] }
+          },
+          {
+            name: 'TestObject2',
+            description: 'Second test object',
+            dependencies: [],
+            functionNames: ['func2'],
+            editable: true,
+            deletable: false,
+            tags: [],
+            assignedProperties: { projectsBefore: [], projectsAfter: [] }
+          }
+        ];
+
+        mockClient.getServerBusinessObjects.mockResolvedValue(mockBusinessObjects);
+
+        // Mock wrapResourceResult to call the inner function and return the result
+        mockWrapResourceResult.mockImplementation(async (_uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              type: 'text',
+              text: JSON.stringify(result)
+            }]
+          };
+        });
+
+        const result = await listResourceHandler(testUri, createMockExtra());
+
+        expect(mockClient.getServerBusinessObjects).toHaveBeenCalled();
+
+        // Parse the result to verify the transformed data
+        const resultData = JSON.parse(result.contents[0].text);
+        expect(resultData).toHaveLength(2);
+        expect(resultData[0]).toEqual({
+          name: 'TestObject1',
+          uri: 'simplifier://businessobjects/TestObject1'
+        });
+        expect(resultData[1]).toEqual({
+          name: 'TestObject2',
+          uri: 'simplifier://businessobjects/TestObject2'
+        });
+      });
+
+      it('should handle errors through wrapResourceResult', async () => {
+        const testUri = new URL('simplifier://businessobjects');
+        mockClient.getServerBusinessObjects.mockRejectedValue(new Error('API Error'));
+
+        // Mock wrapResourceResult to call the inner function even when it throws
+        mockWrapResourceResult.mockImplementation(async (_uri: URL, fn: () => any) => {
+          try {
+            await fn();
+          } catch (error) {
+            // The wrapResourceResult should handle the error
+          }
+          return {
+            contents: [{ type: 'text', text: 'Could not get data!' }]
+          };
+        });
+
+        const result = await listResourceHandler(testUri, createMockExtra());
+
+        expect(mockClient.getServerBusinessObjects).toHaveBeenCalled();
+        expect(result.contents[0].text).toBe('Could not get data!');
+      });
+    });
 
     describe('business object details handler', () => {
       let detailsResourceHandler: any;
 
       beforeEach(() => {
         registerServerBusinessObjectResources(mockServer, mockClient);
-        detailsResourceHandler = mockServer.resource.mock.calls[0][3]; // First resource (details)
+        detailsResourceHandler = mockServer.resource.mock.calls[1][3]; // Second resource (details)
       });
 
       it('should call wrapResourceResult with correct parameters', async () => {
@@ -112,7 +220,7 @@ describe('Server Business Objects Resources', () => {
           name: 'My Business Object',
           description: 'Detailed business object for testing',
           dependencies: [{
-            refType: 'businessobject',
+            refType: 'serverbusinessobject',
             name: 'dataProcessor'
           }],
           functionNames: ['processData', 'validateInput'],
@@ -142,7 +250,14 @@ describe('Server Business Objects Resources', () => {
         const result = await detailsResourceHandler(testUri, variables, createMockExtra());
 
         expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('MyBusinessObject');
-        expect(result.contents[0].text).toContain('My Business Object');
+
+        // Parse and verify the result includes the functions array
+        const resultData = JSON.parse(result.contents[0].text);
+        expect(resultData.name).toBe('My Business Object');
+        expect(resultData.functions).toEqual([
+          'simplifier://businessobjects/MyBusinessObject/functions/processData',
+          'simplifier://businessobjects/MyBusinessObject/functions/validateInput'
+        ]);
         expect(result.contents[0].mimeType).toBe('application/json');
       });
 
@@ -188,7 +303,7 @@ describe('Server Business Objects Resources', () => {
 
       beforeEach(() => {
         registerServerBusinessObjectResources(mockServer, mockClient);
-        functionResourceHandler = mockServer.resource.mock.calls[1][3]; // Second resource (function)
+        functionResourceHandler = mockServer.resource.mock.calls[2][3]; // Third resource (function)
       });
 
       it('should call wrapResourceResult with correct parameters', async () => {
@@ -298,7 +413,6 @@ describe('Server Business Objects Resources', () => {
   });
 
   describe('integration with real data', () => {
-    // Note: The first two integration tests were removed since they tested the businessobject-list resource that no longer exists
 
     it('should handle business object details retrieval', async () => {
       const testUri = new URL('simplifier://businessobjects/DetailedObject');
@@ -323,7 +437,7 @@ describe('Server Business Objects Resources', () => {
       mockClient.getServerBusinessObjectDetails.mockResolvedValue(detailedBusinessObject);
 
       registerServerBusinessObjectResources(mockServer, mockClient);
-      const detailsResourceHandler = mockServer.resource.mock.calls[0][3];
+      const detailsResourceHandler = mockServer.resource.mock.calls[1][3];
 
       mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
         const result = await fn();
@@ -344,6 +458,11 @@ describe('Server Business Objects Resources', () => {
       expect(resultData.description).toBe('A detailed business object for comprehensive testing');
       expect(resultData.functionNames).toHaveLength(3);
       expect(resultData.functionNames[0]).toBe('execute');
+      expect(resultData.functions).toEqual([
+        'simplifier://businessobjects/DetailedObject/functions/execute',
+        'simplifier://businessobjects/DetailedObject/functions/preProcess',
+        'simplifier://businessobjects/DetailedObject/functions/postProcess'
+      ]);
     });
 
     it('should handle business object function details retrieval', async () => {
@@ -390,7 +509,7 @@ describe('Server Business Objects Resources', () => {
       mockClient.getServerBusinessObjectFunction.mockResolvedValue(functionDetails);
 
       registerServerBusinessObjectResources(mockServer, mockClient);
-      const functionResourceHandler = mockServer.resource.mock.calls[1][3];
+      const functionResourceHandler = mockServer.resource.mock.calls[2][3];
 
       mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
         const result = await fn();
@@ -416,157 +535,4 @@ describe('Server Business Objects Resources', () => {
     });
   });
 
-  describe('template resource list callbacks', () => {
-    describe('business object details list callback', () => {
-      let detailsResourceTemplate: any;
-
-      beforeEach(() => {
-        registerServerBusinessObjectResources(mockServer, mockClient);
-        detailsResourceTemplate = mockServer.resource.mock.calls[0][1]; // First resource (details) template
-      });
-
-      it('should return list of business objects for discovery', async () => {
-        const mockBusinessObjects: SimplifierBusinessObjectDetails[] = [
-          {
-            name: 'UserManager',
-            description: 'Manages user accounts',
-            dependencies: [{ refType: 'connector', name: 'database' }],
-            functionNames: ['createUser', 'deleteUser'],
-            editable: true,
-            deletable: true,
-            tags: ['user', 'management'],
-            assignedProperties: { projectsBefore: [], projectsAfter: [] }
-          },
-          {
-            name: 'OrderProcessor',
-            description: 'Processes customer orders',
-            dependencies: [{ refType: 'plugin', name: 'payment' }],
-            functionNames: ['processOrder', 'cancelOrder'],
-            editable: true,
-            deletable: false,
-            tags: ['order', 'ecommerce'],
-            assignedProperties: { projectsBefore: ['validate'], projectsAfter: ['notify'] }
-          }
-        ];
-
-        mockClient.getServerBusinessObjects.mockResolvedValue(mockBusinessObjects);
-
-        const result = await detailsResourceTemplate._callbacks.list();
-
-        expect(result.resources).toHaveLength(2);
-        expect(result.resources[0]).toEqual({
-          uri: 'simplifier://businessobjects/UserManager',
-          name: 'UserManager',
-          title: 'Business Object: UserManager',
-          description: 'Manages user accounts',
-          mimeType: 'application/json'
-        });
-        expect(result.resources[1]).toEqual({
-          uri: 'simplifier://businessobjects/OrderProcessor',
-          name: 'OrderProcessor',
-          title: 'Business Object: OrderProcessor',
-          description: 'Processes customer orders',
-          mimeType: 'application/json'
-        });
-      });
-
-      it('should handle errors gracefully in list callback', async () => {
-        mockClient.getServerBusinessObjects.mockRejectedValue(new Error('API Error'));
-
-        const result = await detailsResourceTemplate._callbacks.list();
-
-        expect(result.resources).toEqual([]);
-      });
-    });
-
-    describe('business object function list callback', () => {
-      let functionResourceTemplate: any;
-
-      beforeEach(() => {
-        registerServerBusinessObjectResources(mockServer, mockClient);
-        functionResourceTemplate = mockServer.resource.mock.calls[1][1]; // Second resource (function) template
-      });
-
-      it('should return list of all business object functions for discovery', async () => {
-        const mockBusinessObjects: SimplifierBusinessObjectDetails[] = [
-          {
-            name: 'UserManager',
-            description: 'Manages user accounts',
-            dependencies: [{ refType: 'connector', name: 'database' }],
-            functionNames: ['createUser', 'deleteUser'],
-            editable: true,
-            deletable: true,
-            tags: ['user', 'management'],
-            assignedProperties: { projectsBefore: [], projectsAfter: [] }
-          },
-          {
-            name: 'OrderProcessor',
-            description: 'Processes customer orders',
-            dependencies: [{ refType: 'plugin', name: 'payment' }],
-            functionNames: ['processOrder'],
-            editable: true,
-            deletable: false,
-            tags: ['order', 'ecommerce'],
-            assignedProperties: { projectsBefore: ['validate'], projectsAfter: ['notify'] }
-          }
-        ];
-
-        mockClient.getServerBusinessObjects.mockResolvedValue(mockBusinessObjects);
-
-        const result = await functionResourceTemplate._callbacks.list();
-
-        expect(result.resources).toHaveLength(3);
-        expect(result.resources[0]).toEqual({
-          uri: 'simplifier://businessobjects/UserManager/functions/createUser',
-          name: 'UserManager.createUser',
-          title: 'Function: createUser (UserManager)',
-          description: 'Function createUser of business object UserManager',
-          mimeType: 'application/json'
-        });
-        expect(result.resources[1]).toEqual({
-          uri: 'simplifier://businessobjects/UserManager/functions/deleteUser',
-          name: 'UserManager.deleteUser',
-          title: 'Function: deleteUser (UserManager)',
-          description: 'Function deleteUser of business object UserManager',
-          mimeType: 'application/json'
-        });
-        expect(result.resources[2]).toEqual({
-          uri: 'simplifier://businessobjects/OrderProcessor/functions/processOrder',
-          name: 'OrderProcessor.processOrder',
-          title: 'Function: processOrder (OrderProcessor)',
-          description: 'Function processOrder of business object OrderProcessor',
-          mimeType: 'application/json'
-        });
-      });
-
-      it('should handle business objects with no functions', async () => {
-        const mockBusinessObjects: SimplifierBusinessObjectDetails[] = [
-          {
-            name: 'EmptyBO',
-            description: 'Business object with no functions',
-            dependencies: [],
-            functionNames: [],
-            editable: true,
-            deletable: true,
-            tags: [],
-            assignedProperties: { projectsBefore: [], projectsAfter: [] }
-          }
-        ];
-
-        mockClient.getServerBusinessObjects.mockResolvedValue(mockBusinessObjects);
-
-        const result = await functionResourceTemplate._callbacks.list();
-
-        expect(result.resources).toEqual([]);
-      });
-
-      it('should handle errors gracefully in function list callback', async () => {
-        mockClient.getServerBusinessObjects.mockRejectedValue(new Error('API Error'));
-
-        const result = await functionResourceTemplate._callbacks.list();
-
-        expect(result.resources).toEqual([]);
-      });
-    });
-  });
 });
