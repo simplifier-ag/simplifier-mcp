@@ -1,6 +1,6 @@
 import {
   SimplifierBusinessObjectDetails,
-  SimplifierApiResponse, SimplifierBusinessObjectFunction
+  SimplifierApiResponse, SimplifierBusinessObjectFunction, SimplifierDataTypesResponse
 } from './types.js';
 import {config} from '../config.js';
 import {login} from "./basicauth.js";
@@ -80,6 +80,31 @@ export class SimplifierClient {
 
   async getServerBusinessObjectFunction(objectName: string, functionName: string): Promise<SimplifierBusinessObjectFunction> {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, { method: "GET" })
+  }
+
+  async getDataTypes(): Promise<SimplifierDataTypesResponse> {
+    // The datatypes endpoint returns data directly, not wrapped in SimplifierApiResponse
+    const url = `${this.baseUrl}/UserInterface/api/datatypes?cacheIndex=true`;
+    const simplifierToken = await this.getSimplifierToken()
+    try {
+      const response: Response = await fetch(url, {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+          'SimplifierToken': simplifierToken,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json() as SimplifierDataTypesResponse;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed request GET ${url}: ${error.message}`);
+      }
+      throw error;
+    }
   }
 
 }
