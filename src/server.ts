@@ -12,6 +12,19 @@ export class SimplifierMCPServer {
       {
         name: 'simplifier-mcp',
         version: '1.0.0',
+        description: `Simplifier Low Code Platform MCP Server
+
+This server provides access to Simplifier's REST API for managing connectors, business objects, and data types.
+
+## Available Base Data Types (built-in):
+- **String**: BaseType for strings (operators: ==, !=)
+- **Integer**: BaseType for integer (operators: ==, !=, <, >, <=, >=)
+- **Boolean**: BaseType for boolean (operators: ==, !=)
+- **Date**: BaseType for dates (operators: ==, !=)
+- **Float**: BaseType for floats (operators: ==, !=, <, >, <=, >=)
+- **Any**: BaseType for Any (no operators)
+
+Additional data types (domain, struct, collection) are organized by namespace and accessible via resources.`,
       },
       {
         capabilities: {

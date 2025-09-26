@@ -71,6 +71,7 @@ export interface SimplifierDataTypesResponse {
 export interface SimplifierDataType {
   id: string;
   name: string;
+  nameSpace?: string;
   category: 'base' | 'domain';
   description: string;
   baseType: string;
