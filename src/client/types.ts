@@ -6,7 +6,7 @@ export interface SimplifierBusinessObjectDetails {
   name: string;
   description: string;
   dependencies: SimplifierBusinessObjectDependencyRef[];
-  functionNames: string[];
+  functionNames?: string[];
   editable: boolean;
   deletable: boolean;
   tags: string[];
@@ -17,13 +17,13 @@ export interface SimplifierBusinessObjectDetails {
 }
 
 
-interface SimplifierBusinessObjectDependencyRef {
+export interface SimplifierBusinessObjectDependencyRef {
   refType: SimplifierBusinessObjectRefType;
   name: string;
 }
 
 // todo consider enum
-export type SimplifierBusinessObjectRefType = 'connector'|'businessobject'|'plugin';
+export type SimplifierBusinessObjectRefType = 'connector'|'serverbusinessobject'|'plugin';
 
 
 export interface SimplifierBusinessObjectFunction {

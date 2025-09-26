@@ -82,4 +82,14 @@ export class SimplifierClient {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, { method: "GET" })
   }
 
+  async createServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
+    this.makeRequest(`/UserInterface/api/businessobjects/server`, { method: "POST", body: JSON.stringify(oData) });
+    return `Successfully created Business Object '${oData.name}'`
+  }
+
+  async updateServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
+    this.makeRequest(`/UserInterface/api/businessobjects/server/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) });
+    return `Successfully updated Business Object '${oData.name}'`
+  }
+
 }
