@@ -3,7 +3,7 @@ import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapToolResult} from "./toolresult.js";
 import {z} from "zod";
-import {SimplifierBusinessObjectDetails} from "../client/types";
+import {SimplifierBusinessObjectDetails} from "../client/types.js";
 
 
 export function registerServerBusinessObjectTools(server: McpServer, simplifier: SimplifierClient): void {
