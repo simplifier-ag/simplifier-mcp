@@ -136,10 +136,10 @@ describe('DataTypes Resources (Namespace-based)', () => {
   };
 
   describe('registerDataTypesResources', () => {
-    it('should register two namespace-based datatypes resources', () => {
+    it('should register three namespace-based datatypes resources', () => {
       registerDataTypesResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(2);
+      expect(mockServer.resource).toHaveBeenCalledTimes(3);
 
       // Check datatypes-namespaces resource
       expect(mockServer.resource).toHaveBeenCalledWith(
@@ -153,12 +153,24 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect.any(Function)
       );
 
+      // Check datatypes-root-namespace resource
+      expect(mockServer.resource).toHaveBeenCalledWith(
+        'datatypes-root-namespace',
+        expect.any(Object), // ResourceTemplate
+        {
+          title: 'Root Namespace DataTypes',
+          mimeType: 'application/json',
+          description: expect.any(String),
+        },
+        expect.any(Function)
+      );
+
       // Check datatypes-by-namespace resource
       expect(mockServer.resource).toHaveBeenCalledWith(
         'datatypes-by-namespace',
         expect.any(Object), // ResourceTemplate
         {
-          title: 'DataTypes by Namespace',
+          title: 'DataTypes by Specific Namespace',
           mimeType: 'application/json',
           description: expect.any(String),
         },
@@ -210,17 +222,16 @@ describe('DataTypes Resources (Namespace-based)', () => {
       });
     });
 
-    describe('namespace filtering handler', () => {
-      let namespaceHandler: any;
+    describe('root namespace handler', () => {
+      let rootNamespaceHandler: any;
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        namespaceHandler = mockServer.resource.mock.calls[1][3]; // Second resource (by namespace)
+        rootNamespaceHandler = mockServer.resource.mock.calls[1][3]; // Second resource (root namespace)
       });
 
-      it('should return root namespace data when namespace is empty', async () => {
+      it('should return root namespace data', async () => {
         const testUri = new URL('simplifier://datatypes/namespace/');
-        const variables = { namespace: '' };
         mockClient.getDataTypes.mockResolvedValue(mockDataTypesResponse);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
@@ -234,7 +245,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
           };
         });
 
-        const result = await namespaceHandler(testUri, variables, createMockExtra());
+        const result = await rootNamespaceHandler(testUri, {}, createMockExtra());
 
         expect(mockClient.getDataTypes).toHaveBeenCalled();
         const resultData = JSON.parse(result.contents[0].text as string);
@@ -244,6 +255,16 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(resultData.domainTypes).toHaveLength(1); // Email without namespace
         expect(resultData.totalTypes).toBeGreaterThan(0);
       });
+    });
+
+    describe('specific namespace filtering handler', () => {
+      let namespaceHandler: any;
+
+      beforeEach(() => {
+        registerDataTypesResources(mockServer, mockClient);
+        namespaceHandler = mockServer.resource.mock.calls[2][3]; // Third resource (by namespace)
+      });
+
 
       it('should return specific namespace data', async () => {
         const testUri = new URL('simplifier://datatypes/namespace/con/TestConnector');
@@ -354,20 +375,18 @@ describe('DataTypes Resources (Namespace-based)', () => {
       });
     });
 
-    describe('namespace filtering list callback', () => {
-      let namespaceResourceTemplate: any;
+    describe('root namespace list callback', () => {
+      let rootNamespaceResourceTemplate: any;
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        namespaceResourceTemplate = mockServer.resource.mock.calls[1][1]; // Second resource template
+        rootNamespaceResourceTemplate = mockServer.resource.mock.calls[1][1]; // Second resource template
       });
 
-      it('should return namespace entries for discovery', async () => {
-        mockClient.getDataTypes.mockResolvedValue(mockDataTypesResponse);
+      it('should return root namespace entry for discovery', async () => {
+        const result = await rootNamespaceResourceTemplate._callbacks.list();
 
-        const result = await namespaceResourceTemplate._callbacks.list();
-
-        expect(result.resources).toHaveLength(4); // root + 3 namespaces
+        expect(result.resources).toHaveLength(1);
 
         expect(result.resources[0]).toEqual({
           uri: 'simplifier://datatypes/namespace/',
@@ -377,8 +396,33 @@ describe('DataTypes Resources (Namespace-based)', () => {
           mimeType: 'application/json'
         });
       });
+    });
 
-      it('should handle errors gracefully in namespace list callback', async () => {
+    describe('specific namespace list callback', () => {
+      let namespaceResourceTemplate: any;
+
+      beforeEach(() => {
+        registerDataTypesResources(mockServer, mockClient);
+        namespaceResourceTemplate = mockServer.resource.mock.calls[2][1]; // Third resource template
+      });
+
+      it('should return specific namespace entries for discovery', async () => {
+        mockClient.getDataTypes.mockResolvedValue(mockDataTypesResponse);
+
+        const result = await namespaceResourceTemplate._callbacks.list();
+
+        expect(result.resources).toHaveLength(3); // 3 namespaces (no root)
+
+        expect(result.resources[0]).toEqual({
+          uri: 'simplifier://datatypes/namespace/con/TestConnector',
+          name: 'con/TestConnector',
+          title: 'Namespace: con/TestConnector',
+          description: 'Datatypes in con/TestConnector',
+          mimeType: 'application/json'
+        });
+      });
+
+      it('should handle errors gracefully in specific namespace list callback', async () => {
         mockClient.getDataTypes.mockRejectedValue(new Error('API Error'));
 
         const result = await namespaceResourceTemplate._callbacks.list();

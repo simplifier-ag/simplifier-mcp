@@ -140,21 +140,62 @@ Base types are available in the root namespace (empty namespace).`
     }
   );
 
-  // Resource for getting datatypes by namespace
-  const namespaceResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespace/{namespace?}", {
+  // Resource for root namespace (empty namespace)
+  const rootNamespaceResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespace/", {
     list: async () => {
-      try {
-        const dataTypes = await simplifier.getDataTypes();
-        const resources = [];
-
-        // Add root namespace entry
-        resources.push({
+      return {
+        resources: [{
           uri: `simplifier://datatypes/namespace/`,
           name: "root",
           title: `Root Namespace`,
           description: "All datatypes without namespace + base types",
           mimeType: "application/json"
-        });
+        }]
+      };
+    }
+  });
+
+  server.resource("datatypes-root-namespace", rootNamespaceResourceTemplate, {
+      title: "Root Namespace DataTypes",
+      mimeType: "application/json",
+      description: `# Get DataTypes in Root Namespace (no namespace)
+
+Returns all datatypes that don't belong to any specific namespace, plus all base types:
+- **Base Types**: String, Integer, Boolean, Date, Float, Any (hardcoded)
+- **Domain Types**: Custom types without namespace
+- **Struct Types**: Structured types without namespace
+- **Collection Types**: Collection types without namespace`
+    },
+    async (uri: URL) => {
+      return wrapResourceResult(uri, async () => {
+        const dataTypes = await simplifier.getDataTypes();
+
+        // Root namespace: return types without namespace + base types
+        const rootTypes = [
+          ...BASE_TYPES,
+          ...dataTypes.domainTypes.filter(dt => !dt.nameSpace),
+          ...dataTypes.structTypes.filter(st => !st.nameSpace),
+          ...dataTypes.collectionTypes.filter(ct => !ct.nameSpace)
+        ];
+
+        return {
+          namespace: "(root - no namespace)",
+          baseTypes: BASE_TYPES,
+          domainTypes: dataTypes.domainTypes.filter(dt => !dt.nameSpace),
+          structTypes: dataTypes.structTypes.filter(st => !st.nameSpace),
+          collectionTypes: dataTypes.collectionTypes.filter(ct => !ct.nameSpace),
+          totalTypes: rootTypes.length
+        };
+      });
+    }
+  );
+
+  // Resource for getting datatypes by specific namespace
+  const namespaceResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespace/{+namespace}", {
+    list: async () => {
+      try {
+        const dataTypes = await simplifier.getDataTypes();
+        const resources = [];
 
         // Add all namespaces
         for (const namespace of dataTypes.nameSpaces) {
@@ -175,52 +216,37 @@ Base types are available in the root namespace (empty namespace).`
   });
 
   server.resource("datatypes-by-namespace", namespaceResourceTemplate, {
-      title: "DataTypes by Namespace",
+      title: "DataTypes by Specific Namespace",
       mimeType: "application/json",
-      description: `# Get DataTypes filtered by namespace
+      description: `# Get DataTypes filtered by specific namespace
 
-Returns all datatypes for a specific namespace:
-- **Empty namespace** (root): Returns all datatypes without namespace + base types
-- **Specific namespace**: Returns datatypes belonging to that namespace only
+Returns datatypes belonging to a specific namespace:
+- **Domain Types**: Custom types in this namespace
+- **Struct Types**: Structured types in this namespace
+- **Collection Types**: Collection types in this namespace
 
-Base types are always included when requesting the root namespace.`
+Base types are not included as they don't belong to any namespace.`
     },
-    async (uri: URL, {namespace}) => {
+    async (uri: URL, _variables) => {
       return wrapResourceResult(uri, async () => {
         const dataTypes = await simplifier.getDataTypes();
-        const requestedNamespace = namespace as string || "";
+        // Extract namespace from URI path, handling forward slashes
+        const pathParts = uri.pathname.split('/');
+        const namespaceIndex = pathParts.findIndex(part => part === 'namespace');
+        const requestedNamespace = pathParts.slice(namespaceIndex + 1).join('/');
 
-        if (requestedNamespace === "") {
-          // Root namespace: return types without namespace + base types
-          const rootTypes = [
-            ...BASE_TYPES,
-            ...dataTypes.domainTypes.filter(dt => !dt.nameSpace),
-            ...dataTypes.structTypes.filter(st => !st.nameSpace),
-            ...dataTypes.collectionTypes.filter(ct => !ct.nameSpace)
-          ];
+        // Specific namespace: return only types in that namespace
+        const namespaceDomain = dataTypes.domainTypes.filter(dt => dt.nameSpace === requestedNamespace);
+        const namespaceStruct = dataTypes.structTypes.filter(st => st.nameSpace === requestedNamespace);
+        const namespaceCollection = dataTypes.collectionTypes.filter(ct => ct.nameSpace === requestedNamespace);
 
-          return {
-            namespace: "(root - no namespace)",
-            baseTypes: BASE_TYPES,
-            domainTypes: dataTypes.domainTypes.filter(dt => !dt.nameSpace),
-            structTypes: dataTypes.structTypes.filter(st => !st.nameSpace),
-            collectionTypes: dataTypes.collectionTypes.filter(ct => !ct.nameSpace),
-            totalTypes: rootTypes.length
-          };
-        } else {
-          // Specific namespace: return only types in that namespace
-          const namespaceDomain = dataTypes.domainTypes.filter(dt => dt.nameSpace === requestedNamespace);
-          const namespaceStruct = dataTypes.structTypes.filter(st => st.nameSpace === requestedNamespace);
-          const namespaceCollection = dataTypes.collectionTypes.filter(ct => ct.nameSpace === requestedNamespace);
-
-          return {
-            namespace: requestedNamespace,
-            domainTypes: namespaceDomain,
-            structTypes: namespaceStruct,
-            collectionTypes: namespaceCollection,
-            totalTypes: namespaceDomain.length + namespaceStruct.length + namespaceCollection.length
-          };
-        }
+        return {
+          namespace: requestedNamespace,
+          domainTypes: namespaceDomain,
+          structTypes: namespaceStruct,
+          collectionTypes: namespaceCollection,
+          totalTypes: namespaceDomain.length + namespaceStruct.length + namespaceCollection.length
+        };
       });
     }
   );
