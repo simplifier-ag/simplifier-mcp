@@ -35,35 +35,46 @@ export class SimplifierClient {
     return this.simplifierToken!;
   }
 
+  /**
+   * Private method to execute HTTP request with common setup
+   * Returns raw Response object for different processing approaches
+   */
+  private async executeRequest(urlPath: string, options: RequestInit = {}): Promise<Response> {
+    const url = `${this.baseUrl}${urlPath}`;
+    const simplifierToken = await this.getSimplifierToken();
+
+    const response: Response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'SimplifierToken': simplifierToken,
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response;
+  }
 
   async makeRequest<T>(
     urlPath: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseUrl}${urlPath}`;
-    const simplifierToken = await this.getSimplifierToken()
     try {
-      const response: Response = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'SimplifierToken': simplifierToken,
-          ...options.headers,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      const response = await this.executeRequest(urlPath, options);
 
       const json = await response.json();
       const oResponse = json as SimplifierApiResponse<T>;
       if (oResponse.success === false) {
         throw new Error(`Received error: ${oResponse.error || ""}${oResponse.message || ""}`);
       }
-      return (oResponse.result) as T
+      return (oResponse.result) as T;
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Failed request ${options.method || "GET"} ${url}: ${error.message}`);
+        throw new Error(`Failed request ${options.method || "GET"} ${this.baseUrl}${urlPath}: ${error.message}`);
       }
       throw error;
     }
@@ -84,24 +95,12 @@ export class SimplifierClient {
 
   async getDataTypes(): Promise<SimplifierDataTypesResponse> {
     // The datatypes endpoint returns data directly, not wrapped in SimplifierApiResponse
-    const url = `${this.baseUrl}/UserInterface/api/datatypes?cacheIndex=true`;
-    const simplifierToken = await this.getSimplifierToken()
     try {
-      const response: Response = await fetch(url, {
-        method: "GET",
-        headers: {
-          'Content-Type': 'application/json',
-          'SimplifierToken': simplifierToken,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
+      const response = await this.executeRequest("/UserInterface/api/datatypes?cacheIndex=true", { method: "GET" });
       return await response.json() as SimplifierDataTypesResponse;
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Failed request GET ${url}: ${error.message}`);
+        throw new Error(`Failed request GET ${this.baseUrl}/UserInterface/api/datatypes?cacheIndex=true: ${error.message}`);
       }
       throw error;
     }
