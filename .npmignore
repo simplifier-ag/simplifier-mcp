@@ -1,0 +1,49 @@
+# Source files (compiled to dist/)
+src/
+__tests__/
+
+# Development and testing
+coverage/
+test-results/
+*.log
+
+# Configuration files
+.env*
+tsconfig.json
+jest.config.js
+.eslintrc.*
+azure-pipelines.yml
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+.claude/
+
+# Git
+.git/
+.gitignore
+
+# Temporary and cache files
+node_modules/
+*.tmp
+*.temp
+
+# Documentation files (keep README.md)
+CLAUDE.md
+README_DEV.md
+
+# API and data files (development only)
+api.yaml
+credentials.json
+datatypes_*.json
+datatypes_*.md
+simplifier-mcp.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NPM
+npm-debug.log*
+.npm
