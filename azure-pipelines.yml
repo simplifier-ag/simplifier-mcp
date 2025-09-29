@@ -95,7 +95,9 @@ jobs:
   displayName: 'Publish to NPM'
   dependsOn: Build_and_Test
   condition: and(succeeded(), eq(variables.isNotPR, true))
-#  condition: and(succeeded(), eq(variables.isMainBranch, true), eq(variables.isNotPR, true))
+  # NOTE: Publishing happens on all branches (not just main) to allow testing
+  # TODO To restrict to main branch only, uncomment the line below:
+  # condition: and(succeeded(), eq(variables.isMainBranch, true), eq(variables.isNotPR, true))
 
   steps:
   - checkout: self
@@ -135,24 +137,32 @@ jobs:
       git config --global user.name "Azure Pipelines"
     displayName: 'Configure git for version tagging'
 
+  # NOTE: Using [skip ci] in commit message to prevent infinite pipeline loop
+  # When we push the updated package.json back to git, [skip ci] prevents
+  # the pipeline from triggering again on that version bump commit
   - script: |
-      npm version patch --no-git-tag-version
+      npm version patch -m "chore: bump version to %s [skip ci]"
       echo "##vso[task.setvariable variable=packageVersion]$(node -p "require('./package.json').version")"
-    displayName: 'Bump patch version'
+    displayName: 'Bump patch version with [skip ci]'
 
   - script: |
       npm publish --dry-run
+# TODO uncomment below, for real pushing
 #      npm publish --access public
     displayName: 'Publish to NPM'
     env:
       NPM_TOKEN: $(NPM_TOKEN)
 
+  # Push version commit and tag to Azure Repos
+  # The version commit includes [skip ci] so it won't trigger another pipeline run
   - script: |
+      echo "Pushing version bump commit (with [skip ci]) to Azure Repos"
+      git push origin
       echo "Creating git tag v$(packageVersion)"
       git tag "v$(packageVersion)"
       echo "Pushing tag to Azure Repos"
       git push origin "v$(packageVersion)"
-    displayName: 'Create and push git tag to Azure Repos'
+    displayName: 'Push version commit and tag to Azure Repos'
     condition: succeeded()
 
   - script: |
