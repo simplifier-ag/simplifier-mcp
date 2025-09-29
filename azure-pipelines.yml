@@ -1,4 +1,4 @@
-# Azure DevOps CI/CD Pipeline for Simplifier MCP Serverr
+# Azure DevOps CI/CD Pipeline for Simplifier MCP Server
 # Runs unit tests, publishes test results, and publishes to npm
 
 trigger:
@@ -140,10 +140,11 @@ jobs:
   # NOTE: Using [skip ci] in commit message to prevent infinite pipeline loop
   # When we push the updated package.json back to git, [skip ci] prevents
   # the pipeline from triggering again on that version bump commit
+  # force is needed, because .npmrc has been changed by pipeline
   - script: |
       git status
       echo "--"
-      npm version patch -m "chore: bump version to %s [skip ci]"
+      npm version --force patch -m "chore: bump version to %s [skip ci]"
       echo "##vso[task.setvariable variable=packageVersion]$(node -p "require('./package.json').version")"
     displayName: 'Bump patch version with [skip ci]'
 
