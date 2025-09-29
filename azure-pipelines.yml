@@ -141,6 +141,8 @@ jobs:
   # When we push the updated package.json back to git, [skip ci] prevents
   # the pipeline from triggering again on that version bump commit
   - script: |
+      git status
+      echo "--"
       npm version patch -m "chore: bump version to %s [skip ci]"
       echo "##vso[task.setvariable variable=packageVersion]$(node -p "require('./package.json').version")"
     displayName: 'Bump patch version with [skip ci]'
