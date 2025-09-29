@@ -159,8 +159,12 @@ jobs:
   # Push version commit and tag to Azure Repos
   # The version commit includes [skip ci] so it won't trigger another pipeline run
   - script: |
+      echo "Current branch info:"
+      echo "  Build.SourceBranch: $(Build.SourceBranch)"
+      echo "  Build.SourceBranchName: $(Build.SourceBranchName)"
       echo "Pushing version bump commit (with [skip ci]) to Azure Repos"
-      git push origin
+      # Push from detached HEAD to the source branch
+      git push origin HEAD:$(Build.SourceBranchName)
       echo "Creating git tag v$(packageVersion)"
       git tag "v$(packageVersion)"
       echo "Pushing tag to Azure Repos"
