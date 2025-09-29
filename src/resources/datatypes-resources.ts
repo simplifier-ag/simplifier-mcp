@@ -87,39 +87,10 @@ const BASE_TYPES: SimplifierDataType[] = [
 
 export function registerDataTypesResources(server: McpServer, simplifier: SimplifierClient): void {
 
+  const noListCallback = { list: undefined }
+
   // Resource for listing all available namespaces
-  const namespacesResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespaces", {
-    list: async () => {
-      try {
-        const dataTypes = await simplifier.getDataTypes();
-        const resources = [];
-
-        // Add root namespace (empty namespace)
-        resources.push({
-          uri: `simplifier://datatypes/namespace/`,
-          name: "root",
-          title: `Root Namespace (no namespace)`,
-          description: "All datatypes without a specific namespace, including base types",
-          mimeType: "application/json"
-        });
-
-        // Add all other namespaces
-        for (const namespace of dataTypes.nameSpaces) {
-          resources.push({
-            uri: `simplifier://datatypes/namespace/${namespace}`,
-            name: namespace,
-            title: `Namespace: ${namespace}`,
-            description: `All datatypes in namespace ${namespace}`,
-            mimeType: "application/json"
-          });
-        }
-
-        return { resources };
-      } catch (error) {
-        return { resources: [] };
-      }
-    }
-  });
+  const namespacesResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespaces", noListCallback);
 
   server.resource("datatypes-namespaces", namespacesResourceTemplate, {
       title: "Simplifier DataType Namespaces",
@@ -141,19 +112,7 @@ Base types are available in the root namespace (empty namespace).`
   );
 
   // Resource for root namespace (empty namespace)
-  const rootNamespaceResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespace/", {
-    list: async () => {
-      return {
-        resources: [{
-          uri: `simplifier://datatypes/namespace/`,
-          name: "root",
-          title: `Root Namespace`,
-          description: "All datatypes without namespace + base types",
-          mimeType: "application/json"
-        }]
-      };
-    }
-  });
+  const rootNamespaceResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespace/", noListCallback);
 
   server.resource("datatypes-root-namespace", rootNamespaceResourceTemplate, {
       title: "Root Namespace DataTypes",
@@ -191,29 +150,7 @@ Returns all datatypes that don't belong to any specific namespace, plus all base
   );
 
   // Resource for getting datatypes by specific namespace
-  const namespaceResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespace/{+namespace}", {
-    list: async () => {
-      try {
-        const dataTypes = await simplifier.getDataTypes();
-        const resources = [];
-
-        // Add all namespaces
-        for (const namespace of dataTypes.nameSpaces) {
-          resources.push({
-            uri: `simplifier://datatypes/namespace/${namespace}`,
-            name: namespace,
-            title: `Namespace: ${namespace}`,
-            description: `Datatypes in ${namespace}`,
-            mimeType: "application/json"
-          });
-        }
-
-        return { resources };
-      } catch (error) {
-        return { resources: [] };
-      }
-    }
-  });
+  const namespaceResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespace/{+namespace}", noListCallback);
 
   server.resource("datatypes-by-namespace", namespaceResourceTemplate, {
       title: "DataTypes by Specific Namespace",

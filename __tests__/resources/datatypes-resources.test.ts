@@ -331,104 +331,17 @@ describe('DataTypes Resources (Namespace-based)', () => {
     });
   });
 
-  describe('template resource list callbacks', () => {
-    describe('namespaces list callback', () => {
-      let namespacesResourceTemplate: any;
+  describe('template resource configuration', () => {
+    it('should register all datatype resources successfully', () => {
+      registerDataTypesResources(mockServer, mockClient);
 
-      beforeEach(() => {
-        registerDataTypesResources(mockServer, mockClient);
-        namespacesResourceTemplate = mockServer.resource.mock.calls[0][1]; // First resource template
-      });
+      // Verify that all three resources are registered
+      expect(mockServer.resource).toHaveBeenCalledTimes(3);
 
-      it('should return list of all namespaces for discovery', async () => {
-        mockClient.getDataTypes.mockResolvedValue(mockDataTypesResponse);
-
-        const result = await namespacesResourceTemplate._callbacks.list();
-
-        expect(result.resources).toHaveLength(4); // root + 3 namespaces
-
-        // Check root namespace
-        expect(result.resources[0]).toEqual({
-          uri: 'simplifier://datatypes/namespace/',
-          name: 'root',
-          title: 'Root Namespace (no namespace)',
-          description: 'All datatypes without a specific namespace, including base types',
-          mimeType: 'application/json'
-        });
-
-        // Check first specific namespace
-        expect(result.resources[1]).toEqual({
-          uri: 'simplifier://datatypes/namespace/con/TestConnector',
-          name: 'con/TestConnector',
-          title: 'Namespace: con/TestConnector',
-          description: 'All datatypes in namespace con/TestConnector',
-          mimeType: 'application/json'
-        });
-      });
-
-      it('should handle errors gracefully in namespaces list callback', async () => {
-        mockClient.getDataTypes.mockRejectedValue(new Error('API Error'));
-
-        const result = await namespacesResourceTemplate._callbacks.list();
-
-        expect(result.resources).toEqual([]);
-      });
-    });
-
-    describe('root namespace list callback', () => {
-      let rootNamespaceResourceTemplate: any;
-
-      beforeEach(() => {
-        registerDataTypesResources(mockServer, mockClient);
-        rootNamespaceResourceTemplate = mockServer.resource.mock.calls[1][1]; // Second resource template
-      });
-
-      it('should return root namespace entry for discovery', async () => {
-        const result = await rootNamespaceResourceTemplate._callbacks.list();
-
-        expect(result.resources).toHaveLength(1);
-
-        expect(result.resources[0]).toEqual({
-          uri: 'simplifier://datatypes/namespace/',
-          name: 'root',
-          title: 'Root Namespace',
-          description: 'All datatypes without namespace + base types',
-          mimeType: 'application/json'
-        });
-      });
-    });
-
-    describe('specific namespace list callback', () => {
-      let namespaceResourceTemplate: any;
-
-      beforeEach(() => {
-        registerDataTypesResources(mockServer, mockClient);
-        namespaceResourceTemplate = mockServer.resource.mock.calls[2][1]; // Third resource template
-      });
-
-      it('should return specific namespace entries for discovery', async () => {
-        mockClient.getDataTypes.mockResolvedValue(mockDataTypesResponse);
-
-        const result = await namespaceResourceTemplate._callbacks.list();
-
-        expect(result.resources).toHaveLength(3); // 3 namespaces (no root)
-
-        expect(result.resources[0]).toEqual({
-          uri: 'simplifier://datatypes/namespace/con/TestConnector',
-          name: 'con/TestConnector',
-          title: 'Namespace: con/TestConnector',
-          description: 'Datatypes in con/TestConnector',
-          mimeType: 'application/json'
-        });
-      });
-
-      it('should handle errors gracefully in specific namespace list callback', async () => {
-        mockClient.getDataTypes.mockRejectedValue(new Error('API Error'));
-
-        const result = await namespaceResourceTemplate._callbacks.list();
-
-        expect(result.resources).toEqual([]);
-      });
+      // Verify resource names
+      expect(mockServer.resource).toHaveBeenCalledWith('datatypes-namespaces', expect.any(Object), expect.any(Object), expect.any(Function));
+      expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
+      expect(mockServer.resource).toHaveBeenCalledWith('datatypes-by-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
     });
   });
 });
