@@ -1,4 +1,4 @@
-# Azure DevOps CI/CD Pipeline for Simplifier MCP Server
+# Azure DevOps CI/CD Pipeline for Simplifier MCP Serverr
 # Runs unit tests, publishes test results, and publishes to npm
 
 trigger:
