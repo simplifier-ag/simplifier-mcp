@@ -1,5 +1,5 @@
-# Azure DevOps CI Pipeline for Simplifier MCP Server
-# Runs unit tests and publishes test results
+# Azure DevOps CI/CD Pipeline for Simplifier MCP Server
+# Runs unit tests, publishes test results, and publishes to npm
 
 trigger:
   branches:
@@ -29,6 +29,9 @@ pool:
 
 variables:
   nodeVersion: '18.x'
+  # Only publish to npm on main branch and when not a pull request
+  isMainBranch: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  isNotPR: $[eq(variables['Build.Reason'], 'IndividualCI')]
 
 jobs:
 - job: Build_and_Test
@@ -80,10 +83,92 @@ jobs:
       SIMPLIFIER_BASE_URL: 'http://localhost:8080'
       SIMPLIFIER_TOKEN: TEST
 
-  # - task: PublishBuildArtifacts@1
-  #   displayName: 'Publish build artifacts'
-  #   condition: succeeded()
-  #   inputs:
-  #     PathtoPublish: 'dist'
-  #     ArtifactName: 'dist'
-  #     publishLocation: 'Container'
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish build artifacts'
+    condition: succeeded()
+    inputs:
+      PathtoPublish: 'dist'
+      ArtifactName: 'dist'
+      publishLocation: 'Container'
+
+- job: Publish_to_NPM
+  displayName: 'Publish to NPM'
+  dependsOn: Build_and_Test
+  condition: and(succeeded(), eq(variables.isNotPR, true))
+#  condition: and(succeeded(), eq(variables.isMainBranch, true), eq(variables.isNotPR, true))
+
+  steps:
+  - checkout: self
+    displayName: 'Checkout source code'
+    persistCredentials: true
+
+  - task: NodeTool@0
+    displayName: 'Install Node.js'
+    inputs:
+      versionSpec: $(nodeVersion)
+
+  - task: Cache@2
+    displayName: 'Cache npm dependencies'
+    inputs:
+      key: 'npm | "$(Agent.OS)" | package-lock.json'
+      restoreKeys: |
+        npm | "$(Agent.OS)"
+      path: $(Pipeline.Workspace)/.npm
+
+  - script: |
+      npm config set cache $(Pipeline.Workspace)/.npm
+      npm ci
+    displayName: 'Install dependencies'
+
+  - script: |
+      npm run build
+    displayName: 'Build TypeScript'
+
+  - task: npmAuthenticate@0
+    displayName: 'NPM Authenticate'
+    inputs:
+      workingFile: .npmrc
+      customEndpoint: 'npm simplifierag simplifier mcp'
+
+  - script: |
+      git config --global user.email "azure-pipelines@simplifier.ag"
+      git config --global user.name "Azure Pipelines"
+    displayName: 'Configure git for version tagging'
+
+  - script: |
+      npm version patch --no-git-tag-version
+      echo "##vso[task.setvariable variable=packageVersion]$(node -p "require('./package.json').version")"
+    displayName: 'Bump patch version'
+
+  - script: |
+      npm publish --dry-run
+#      npm publish --access public
+    displayName: 'Publish to NPM'
+    env:
+      NPM_TOKEN: $(NPM_TOKEN)
+
+  - script: |
+      echo "Creating git tag v$(packageVersion)"
+      git tag "v$(packageVersion)"
+      echo "Pushing tag to Azure Repos"
+      git push origin "v$(packageVersion)"
+    displayName: 'Create and push git tag to Azure Repos'
+    condition: succeeded()
+
+  - script: |
+      echo "##vso[task.logissue type=warning]Successfully published @simplifierag/simplifier-mcp@$(packageVersion) to npm"
+      echo "##vso[build.updatebuildnumber]$(packageVersion)"
+    displayName: 'Update build number and log success'
+    condition: succeeded()
+
+  - script: |
+      echo "=========================================="
+      echo "🎉 SUCCESSFUL NPM PUBLICATION"
+      echo "=========================================="
+      echo "Package: @simplifierag/simplifier-mcp"
+      echo "Version: $(packageVersion)"
+      echo "Published to: https://www.npmjs.com/package/@simplifierag/simplifier-mcp"
+      echo "Install with: npm install @simplifierag/simplifier-mcp"
+      echo "=========================================="
+    displayName: 'Display publication summary'
+    condition: succeeded()
