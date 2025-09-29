@@ -100,6 +100,19 @@ This resource provides the entry point for discovering all available datatypes o
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
         const dataTypes = await simplifier.getDataTypes();
+        const allNamespaceResources = [
+          {
+            uri: "simplifier://datatypes/namespace/",
+            name: "root",
+            description: "Root namespace - contains base types and datatypes without namespace"
+          },
+          ...dataTypes.nameSpaces.map(ns => ({
+            uri: `simplifier://datatypes/namespace/${ns}`,
+            name: ns,
+            description: `Datatypes in namespace ${ns}`
+          }))
+        ];
+
         return {
           rootNamespace: {
             uri: "simplifier://datatypes/namespace/",
@@ -109,7 +122,8 @@ This resource provides the entry point for discovering all available datatypes o
             name: ns,
             uri: `simplifier://datatypes/namespace/${ns}`
           })),
-          availableResources: [
+          availableResources: allNamespaceResources,
+          resourcePatterns: [
             "simplifier://datatypes/namespace/ - Root namespace datatypes",
             "simplifier://datatypes/namespace/{namespace} - Datatypes by specific namespace"
           ]
@@ -190,8 +204,7 @@ Returns datatypes belonging to a specific namespace:
 - **Domain Types**: Custom types in this namespace
 - **Struct Types**: Structured types in this namespace
 - **Collection Types**: Collection types in this namespace
-
-Base types are not included as they don't belong to any namespace.`
+`
     },
     async (uri: URL, _variables) => {
       return wrapResourceResult(uri, async () => {
