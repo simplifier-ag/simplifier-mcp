@@ -142,3 +142,89 @@ The actual implementation of MCP capabilities
 - `npm run lint` - Check code style with ESLint
 - `npm run lint:fix` - Fix linting issues automatically
 
+---
+
+# CI/CD Pipeline Documentation
+
+This section describes the Continuous Integration and Continuous Deployment (CI/CD) pipeline for the Simplifier MCP Server.
+
+## Pipeline Overview
+
+The Azure DevOps pipeline (`azure-pipelines.yml`) implements a two-stage process:
+
+1. **Build_and_Test** - Validates code quality and functionality
+2. **Publish_to_NPM** - Automatically publishes to npmjs.com with version management
+
+## Pipeline Triggers
+
+### Automatic Triggers
+- **Branches**: `main`, `develop`, `feature/*`
+- **Excluded Files**: README.md, CLAUDE.md, .gitignore
+
+## Build and Test Stage
+
+### What It Does
+1. **Environment Setup**
+   - Node.js 18.x installation
+   - npm dependency caching for faster builds
+   - npm ci for clean dependency installation
+
+2. **Code Validation**
+   - TypeScript compilation (`npm run build`)
+   - Unit test execution with coverage (`npm test`)
+   - MCP server functionality test
+
+3. **Artifacts**
+   - Publishes test results (JUnit format)
+   - Creates build artifacts from `dist/` folder
+
+### Test Requirements
+- All unit tests must pass
+- MCP server must respond to basic protocol commands
+
+## Publish to NPM Stage
+
+### Conditional Execution
+The publish stage only runs when:
+- ✅ Build and test stage succeeded
+- ✅ Not a pull request (`isNotPR = true`)
+- ⚠️ Currently runs on all branches (not just main - TODO change this when done...)
+
+### Version Management Process
+
+#### Automatic Version Bumping
+1. **Version Patch**: `npm version --force patch -m "chore: bump version to %s [skip ci]"`
+   - Increments patch version (e.g., 0.9.10 → 0.9.11)
+   - `--force` flag handles modified files (like .npmrc)
+   - Commit message includes `[skip ci]` to prevent pipeline loops
+
+2. **Git Operations**:
+   - Commits version change to package.json
+   - Creates version tag (e.g., `v0.9.11`)
+   - Pushes commit and tag to Azure Repos
+
+3. **NPM Publication**:
+   - Currently in dry-run mode (`npm publish --dry-run`)
+   - To enable real publishing, uncomment line 154 in pipeline
+
+### Git Push Strategy
+
+Due to Azure Pipeline's detached HEAD state, we use:
+```bash
+git push origin HEAD:$(Build.SourceBranch)
+```
+
+This explicitly pushes from the current HEAD to the source branch that triggered the build.
+
+## NPM Publishing Configuration
+
+### Authentication
+- Uses service connection: `npm simplifierag simplifier mcp` to authenticate at mpmjs.com 
+- see also: https://pass.simplifier.io/app/passwords/view/6496bcb8-a8ec-4a3f-ae5a-ff7c947b10ca
+- `.npmrc` file configured for registry authentication
+
+### Package Configuration
+- **Name**: `@simplifierag/simplifier-mcp`
+- **Scope**: `@simplifierag` (organization scope)
+- **Access**: Public (`--access public`)
+- **Registry**: https://registry.npmjs.org/
