@@ -139,7 +139,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
     it('should register three namespace-based datatypes resources', () => {
       registerDataTypesResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(3);
+      expect(mockServer.resource).toHaveBeenCalledTimes(4);
 
       // Check datatypes-namespaces resource
       expect(mockServer.resource).toHaveBeenCalledWith(
@@ -183,7 +183,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        namespacesHandler = mockServer.resource.mock.calls[0][3]; // First resource (namespaces)
+        namespacesHandler = mockServer.resource.mock.calls[1][3]; // Second resource (namespaces template)
       });
 
       it('should call wrapResourceResult with correct parameters', async () => {
@@ -227,7 +227,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        rootNamespaceHandler = mockServer.resource.mock.calls[1][3]; // Second resource (root namespace)
+        rootNamespaceHandler = mockServer.resource.mock.calls[2][3]; // Third resource (root namespace)
       });
 
       it('should return root namespace data', async () => {
@@ -262,7 +262,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        namespaceHandler = mockServer.resource.mock.calls[2][3]; // Third resource (by namespace)
+        namespaceHandler = mockServer.resource.mock.calls[3][3]; // Fourth resource (by namespace)
       });
 
 
@@ -336,7 +336,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
       registerDataTypesResources(mockServer, mockClient);
 
       // Verify that all three resources are registered
-      expect(mockServer.resource).toHaveBeenCalledTimes(3);
+      expect(mockServer.resource).toHaveBeenCalledTimes(4);
 
       // Verify resource names
       expect(mockServer.resource).toHaveBeenCalledWith('datatypes-namespaces', expect.any(Object), expect.any(Object), expect.any(Function));

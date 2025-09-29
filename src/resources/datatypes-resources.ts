@@ -89,7 +89,36 @@ export function registerDataTypesResources(server: McpServer, simplifier: Simpli
 
   const noListCallback = { list: undefined }
 
-  // Resource for listing all available namespaces
+  // Main discoverable datatypes resource - shows up in resources/list
+  server.resource("datatypes-list", "simplifier://datatypes", {
+      title: "List DataTypes",
+      mimeType: "application/json",
+      description: `# Get the list of DataType namespaces and access patterns
+
+This resource provides the entry point for discovering all available datatypes organized by namespaces.`
+    },
+    async (uri: URL) => {
+      return wrapResourceResult(uri, async () => {
+        const dataTypes = await simplifier.getDataTypes();
+        return {
+          rootNamespace: {
+            uri: "simplifier://datatypes/namespace/",
+            description: "Root namespace - contains base types and datatypes without namespace"
+          },
+          namespaces: dataTypes.nameSpaces.map(ns => ({
+            name: ns,
+            uri: `simplifier://datatypes/namespace/${ns}`
+          })),
+          availableResources: [
+            "simplifier://datatypes/namespace/ - Root namespace datatypes",
+            "simplifier://datatypes/namespace/{namespace} - Datatypes by specific namespace"
+          ]
+        };
+      });
+    }
+  );
+
+  // Resource for listing all available namespaces (template, not listed globally)
   const namespacesResourceTemplate = new ResourceTemplate("simplifier://datatypes/namespaces", noListCallback);
 
   server.resource("datatypes-namespaces", namespacesResourceTemplate, {
