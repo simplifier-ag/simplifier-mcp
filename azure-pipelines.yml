@@ -164,7 +164,7 @@ jobs:
       echo "  Build.SourceBranchName: $(Build.SourceBranchName)"
       echo "Pushing version bump commit (with [skip ci]) to Azure Repos"
       # Push from detached HEAD to the source branch
-      git push origin HEAD:$(Build.SourceBranchName)
+      git push origin HEAD:$(Build.SourceBranch)
       echo "Creating git tag v$(packageVersion)"
       git tag "v$(packageVersion)"
       echo "Pushing tag to Azure Repos"
