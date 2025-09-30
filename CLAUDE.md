@@ -41,12 +41,18 @@ This is a Model Context Protocol (MCP) server for the Simplifier Low Code Platfo
 - `src/client/` - API client with placeholder authentication
 - `__tests__/` - Comprehensive test suite covering all modules
 
+## Implemented Features
+
+### ✅ Business Object Management
+- **businessobject-update**: Create or update Business Objects
+- **businessobject-function-update**: Create or update Business Object functions
+- **businessobject-function-test**: Execute and test Business Object functions
+
 ## Next Development Steps
 
-1. **Implement Tools**: Add actual MCP tools for Connector and BusinessObject management
-2. **Add Authentication**: Implement SimplifierToken handling in API client
-3. **Add Resources**: Provide access to Simplifier platform data
-4. **Add Prompts**: Create guided operations for users
+1. **Add Authentication**: Implement SimplifierToken handling in API client
+2. **Add Resources**: Provide access to Simplifier platform data
+3. **Add Prompts**: Create guided operations for users
 
 ## Development Commands
 
@@ -66,8 +72,8 @@ npm start
 # Development mode
 npm run dev
 
-# Test MCP server
-echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
+# Test MCP server (with environment variables)
+export SIMPLIFIER_BASE_URL=http://localhost:8087 && export SIMPLIFIER_CREDENTIALS_FILE=credentials.json && echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
 ```
 
 ## Important Notes for Claude

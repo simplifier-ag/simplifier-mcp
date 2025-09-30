@@ -29,13 +29,13 @@ export type SimplifierBusinessObjectRefType = 'connector'|'serverbusinessobject'
 export interface SimplifierBusinessObjectFunction {
   businessObjectName: string,
   name: string,
-  description: string,
+  description?: string,
   validateIn: boolean,
   validateOut: boolean,
   inputParameters: SimplifierCallableParameter[],
   outputParameters: SimplifierCallableParameter[],
   functionType: "JavaScript",
-  code: string
+  code?: string
 }
 
 export interface SimplifierCallableParameter {
@@ -124,5 +124,29 @@ export interface SimplifierDataTypeField {
 export interface SimplifierDataTypeProperty {
   name: string;
   value: string;
+}
+
+/**
+ * Business Object Function Testing Types
+ */
+export interface BusinessObjectTestRequest {
+  parameters: BusinessObjectTestParameter[];
+}
+
+export interface BusinessObjectTestParameter {
+  name: string;
+  value: unknown;
+  description?: string;
+  dataTypeId: string;
+  dataType?: any;
+  optional: boolean;
+  transfer: boolean;
+}
+
+export interface BusinessObjectTestResponse {
+  success: boolean;
+  result?: any;
+  error?: string;
+  message?: string;
 }
 

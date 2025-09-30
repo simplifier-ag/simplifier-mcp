@@ -1,6 +1,7 @@
 import {
   SimplifierBusinessObjectDetails,
-  SimplifierApiResponse, SimplifierBusinessObjectFunction, SimplifierDataTypesResponse
+  SimplifierApiResponse, SimplifierBusinessObjectFunction, SimplifierDataTypesResponse,
+  BusinessObjectTestRequest, BusinessObjectTestResponse
 } from './types.js';
 import {config} from '../config.js';
 import {login} from "./basicauth.js";
@@ -91,6 +92,53 @@ export class SimplifierClient {
 
   async getServerBusinessObjectFunction(objectName: string, functionName: string): Promise<SimplifierBusinessObjectFunction> {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, { method: "GET" })
+  }
+
+  async getServerBusinessObjectFunctions(objectName: string): Promise<SimplifierBusinessObjectFunction[]> {
+    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions`, { method: "GET" })
+  }
+
+  async createServerBusinessObjectFunction(objectName: string, functionData: SimplifierBusinessObjectFunction): Promise<string> {
+    await this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions`, {
+      method: "POST",
+      body: JSON.stringify(functionData)
+    });
+    return `Successfully created function '${functionData.name}' in Business Object '${objectName}'`;
+  }
+
+  async updateServerBusinessObjectFunction(objectName: string, functionName: string, functionData: SimplifierBusinessObjectFunction): Promise<string> {
+    await this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}`, {
+      method: "PUT",
+      body: JSON.stringify(functionData)
+    });
+    return `Successfully updated function '${functionName}' in Business Object '${objectName}'`;
+  }
+
+  async testServerBusinessObjectFunction(objectName: string, functionName: string, testRequest: BusinessObjectTestRequest): Promise<BusinessObjectTestResponse> {
+    try {
+      const response = await this.executeRequest(`/UserInterface/api/businessobjecttest/${objectName}/methods/${functionName}`, {
+        method: "POST",
+        body: JSON.stringify(testRequest)
+      });
+
+      const result = await response.json() as BusinessObjectTestResponse;
+      return result;
+    } catch (error) {
+      if (error instanceof Error) {
+        // Enhanced error handling for specific HTTP status codes
+        const errorMessage = error.message;
+        if (errorMessage.includes('HTTP 404')) {
+          throw new Error(`Business Object '${objectName}' or function '${functionName}' not found`);
+        } else if (errorMessage.includes('HTTP 400')) {
+          throw new Error(`Invalid parameters for function '${functionName}': ${errorMessage}`);
+        } else if (errorMessage.includes('HTTP 500')) {
+          throw new Error(`Function '${functionName}' execution failed: ${errorMessage}`);
+        } else {
+          throw new Error(`Failed to test function '${objectName}.${functionName}': ${errorMessage}`);
+        }
+      }
+      throw error;
+    }
   }
 
   async createServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
