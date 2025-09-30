@@ -41,12 +41,27 @@ This is a Model Context Protocol (MCP) server for the Simplifier Low Code Platfo
 - `src/client/` - API client with placeholder authentication
 - `__tests__/` - Comprehensive test suite covering all modules
 
+## Implemented Features
+
+### ✅ Business Object Management
+- **businessobject-update**: Create or update Business Objects
+- **businessobject-function-update**: Create or update Business Object functions
+- **businessobject-function-test**: Execute and test Business Object functions
+
+### ✅ Data Type Support
+All common base data types with their IDs:
+- String: `22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52`
+- Integer: `B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D`
+- Boolean: `2788FB5AA776C62635F156C820190D0FD3D558765201881A77382093F7248B39`
+- Date: `06A9841478D7BE17C423F11C38CD6829E372093DBEC144F2A85FC7165BE8CD80`
+- Float: `C09139C72F5A8A7E0036BA66CE301748BD617F463683EE03F92EDAAAA4AF8BC7`
+- Any: `D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB`
+
 ## Next Development Steps
 
-1. **Implement Tools**: Add actual MCP tools for Connector and BusinessObject management
-2. **Add Authentication**: Implement SimplifierToken handling in API client
-3. **Add Resources**: Provide access to Simplifier platform data
-4. **Add Prompts**: Create guided operations for users
+1. **Add Authentication**: Implement SimplifierToken handling in API client
+2. **Add Resources**: Provide access to Simplifier platform data
+3. **Add Prompts**: Create guided operations for users
 
 ## Development Commands
 

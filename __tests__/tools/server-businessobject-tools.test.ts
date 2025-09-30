@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SimplifierClient } from "../../src/client/simplifier-client.js";
 import { registerServerBusinessObjectTools } from "../../src/tools/server-businessobject-tools.js";
 import { wrapToolResult } from "../../src/tools/toolresult.js";
-import { SimplifierBusinessObjectDetails, SimplifierBusinessObjectFunction } from "../../src/client/types.js";
+import { SimplifierBusinessObjectDetails, SimplifierBusinessObjectFunction, BusinessObjectTestRequest, BusinessObjectTestResponse } from "../../src/client/types.js";
 
 // Mock the wrapToolResult function
 jest.mock("../../src/tools/toolresult.js", () => ({
@@ -27,7 +27,8 @@ describe('registerServerBusinessObjectResources', () => {
       createServerBusinessObject: jest.fn(),
       getServerBusinessObjectFunction: jest.fn(),
       createServerBusinessObjectFunction: jest.fn(),
-      updateServerBusinessObjectFunction: jest.fn()
+      updateServerBusinessObjectFunction: jest.fn(),
+      testServerBusinessObjectFunction: jest.fn()
     } as any;
 
     // Get the mocked wrapToolResult
@@ -38,10 +39,10 @@ describe('registerServerBusinessObjectResources', () => {
   });
 
   describe('function registration', () => {
-    it('should register both businessobject-update and businessobject-function-update tools', () => {
+    it('should register all three business object tools', () => {
       registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
 
-      expect(mockServer.tool).toHaveBeenCalledTimes(2);
+      expect(mockServer.tool).toHaveBeenCalledTimes(3);
 
       // Check first tool (businessobject-update)
       expect(mockServer.tool).toHaveBeenNthCalledWith(1,
@@ -83,6 +84,25 @@ describe('registerServerBusinessObjectResources', () => {
           destructiveHint: false,
           idempotentHint: false,
           openWorldHint: true
+        }),
+        expect.any(Function)
+      );
+
+      // Check third tool (businessobject-function-test)
+      expect(mockServer.tool).toHaveBeenNthCalledWith(3,
+        "businessobject-function-test",
+        expect.any(String),
+        expect.objectContaining({
+          businessObjectName: expect.any(Object),
+          functionName: expect.any(Object),
+          inputParameters: expect.any(Object)
+        }),
+        expect.objectContaining({
+          title: "Test a Business Object Function",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
         }),
         expect.any(Function)
       );
@@ -661,6 +681,276 @@ describe('registerServerBusinessObjectResources', () => {
           dataTypeId: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB", // Any type default
           isOptional: false
         });
+      });
+    });
+  });
+
+  describe('businessobject-function-test tool', () => {
+    let testToolHandler: Function;
+
+    beforeEach(() => {
+      registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
+      // Get the test tool handler (third tool registered)
+      testToolHandler = mockServer.tool.mock.calls[2][4];
+    });
+
+    describe('function test tool handler', () => {
+      it('should test function successfully with no parameters', async () => {
+        const testParams = {
+          businessObjectName: "TestBO",
+          functionName: "simpleFunction",
+          inputParameters: []
+        };
+
+        const expectedTestRequest: BusinessObjectTestRequest = {
+          parameters: []
+        };
+
+        const mockResponse: BusinessObjectTestResponse = {
+          success: true,
+          result: { message: "Hello World" }
+        };
+
+        mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await testToolHandler(testParams);
+
+        expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
+          "TestBO",
+          "simpleFunction",
+          expectedTestRequest
+        );
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "test Business Object function TestBO.simpleFunction",
+          expect.any(Function)
+        );
+      });
+
+      it('should test function successfully with parameters', async () => {
+        const testParams = {
+          businessObjectName: "TestBO",
+          functionName: "processData",
+          inputParameters: [
+            {
+              name: "inputText",
+              value: "Hello World",
+              dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+              optional: false
+            },
+            {
+              name: "count",
+              value: 5,
+              dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D"
+            }
+          ]
+        };
+
+        const expectedTestRequest: BusinessObjectTestRequest = {
+          parameters: [
+            {
+              name: "inputText",
+              value: "Hello World",
+              dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+              optional: false,
+              transfer: true
+            },
+            {
+              name: "count",
+              value: 5,
+              dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+              optional: false,
+              transfer: true
+            }
+          ]
+        };
+
+        const mockResponse: BusinessObjectTestResponse = {
+          success: true,
+          result: { processedText: "HELLO WORLD", repeatCount: 5 }
+        };
+
+        mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          expect(result.success).toBe(true);
+          expect(result.result).toEqual({ processedText: "HELLO WORLD", repeatCount: 5 });
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await testToolHandler(testParams);
+
+        expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
+          "TestBO",
+          "processData",
+          expectedTestRequest
+        );
+      });
+
+      it('should handle function execution failure', async () => {
+        const testParams = {
+          businessObjectName: "TestBO",
+          functionName: "failingFunction",
+          inputParameters: []
+        };
+
+        const mockResponse: BusinessObjectTestResponse = {
+          success: false,
+          error: "Function execution failed: missing required parameter 'input'"
+        };
+
+        mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          expect(result.success).toBe(false);
+          expect(result.error).toBe("Function execution failed: missing required parameter 'input'");
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await testToolHandler(testParams);
+
+        expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
+          "TestBO",
+          "failingFunction",
+          { parameters: [] }
+        );
+      });
+
+      it('should handle client errors (404, 400, 500)', async () => {
+        const testParams = {
+          businessObjectName: "NonExistentBO",
+          functionName: "nonExistentFunction",
+          inputParameters: []
+        };
+
+        mockSimplifierClient.testServerBusinessObjectFunction.mockRejectedValue(
+          new Error("Business Object 'NonExistentBO' or function 'nonExistentFunction' not found")
+        );
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            await fn();
+            return { content: [{ type: "text", text: "Success" }] };
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({ error: `Tool ${caption} failed: ${error}` })
+              }]
+            };
+          }
+        });
+
+        await testToolHandler(testParams);
+
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "test Business Object function NonExistentBO.nonExistentFunction",
+          expect.any(Function)
+        );
+      });
+
+      it('should use default parameter values correctly', async () => {
+        const testParams = {
+          businessObjectName: "TestBO",
+          functionName: "testFunction",
+          inputParameters: [
+            {
+              name: "param1",
+              value: "test",
+              // Explicitly set defaults since in real MCP these would come from schema
+              dataTypeId: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
+              optional: false
+            }
+          ]
+        };
+
+        const mockResponse: BusinessObjectTestResponse = {
+          success: true,
+          result: { output: "test processed" }
+        };
+
+        mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          await fn();
+          return { content: [{ type: "text", text: "Success" }] };
+        });
+
+        await testToolHandler(testParams);
+
+        const callArgs = mockSimplifierClient.testServerBusinessObjectFunction.mock.calls[0];
+        const testRequest = callArgs[2] as BusinessObjectTestRequest;
+
+        expect(testRequest.parameters[0]).toEqual({
+          name: "param1",
+          value: "test",
+          dataTypeId: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB", // Any type default
+          optional: false,
+          transfer: true
+        });
+      });
+    });
+
+    describe('test tool schema validation', () => {
+      it('should validate test tool schema fields', () => {
+        registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
+
+        const testToolCall = mockServer.tool.mock.calls[2];
+        const schema = testToolCall[2];
+
+        // Test required fields exist
+        expect(schema.businessObjectName).toBeDefined();
+        expect(schema.functionName).toBeDefined();
+        expect(schema.inputParameters).toBeDefined();
+
+        // Test valid data passes validation
+        expect(() => schema.businessObjectName.parse("TestBO")).not.toThrow();
+        expect(() => schema.functionName.parse("testFunction")).not.toThrow();
+
+        // Test parameter validation
+        const validParameters = [
+          {
+            name: "param1",
+            value: "test value",
+            dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+            optional: false
+          }
+        ];
+        expect(() => schema.inputParameters.parse(validParameters)).not.toThrow();
+
+        // Test defaults
+        expect(schema.inputParameters.parse(undefined)).toEqual([]);
+      });
+
+      it('should handle various parameter value types', () => {
+        registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
+
+        const testToolCall = mockServer.tool.mock.calls[2];
+        const schema = testToolCall[2];
+
+        // Test different value types
+        const parametersWithDifferentTypes = [
+          { name: "stringParam", value: "text" },
+          { name: "numberParam", value: 42 },
+          { name: "booleanParam", value: true },
+          { name: "objectParam", value: { key: "value" } },
+          { name: "arrayParam", value: [1, 2, 3] },
+          { name: "nullParam", value: null }
+        ];
+
+        expect(() => schema.inputParameters.parse(parametersWithDifferentTypes)).not.toThrow();
       });
     });
   });

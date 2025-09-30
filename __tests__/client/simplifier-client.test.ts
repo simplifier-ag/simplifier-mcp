@@ -310,4 +310,107 @@ describe('SimplifierClient', () => {
       expect(result).toBe("Successfully updated function 'existingFunction' in Business Object 'TestObject'");
     });
   });
+
+  describe('test server business object function', () => {
+    it('should call testBusinessObjectFunction endpoint with test request', async () => {
+      const testRequest = {
+        parameters: [
+          {
+            name: "inputParam",
+            value: "test value",
+            dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+            optional: false,
+            transfer: true
+          }
+        ]
+      };
+
+      const mockResponse = {
+        success: true,
+        result: { output: "processed test value" }
+      };
+
+      // Note: testServerBusinessObjectFunction uses executeRequest directly, not makeRequest
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.testServerBusinessObjectFunction('TestObject', 'testFunction', testRequest);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://some.test/UserInterface/api/businessobjecttest/TestObject/methods/testFunction",
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+          body: JSON.stringify(testRequest)
+        })
+      );
+
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should handle 404 error with descriptive message', async () => {
+      const testRequest = { parameters: [] };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found'
+      } as Response);
+
+      await expect(client.testServerBusinessObjectFunction('NonExistentBO', 'nonExistentFunction', testRequest))
+        .rejects
+        .toThrow("Business Object 'NonExistentBO' or function 'nonExistentFunction' not found");
+    });
+
+    it('should handle 400 error with descriptive message', async () => {
+      const testRequest = { parameters: [] };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request'
+      } as Response);
+
+      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest))
+        .rejects
+        .toThrow("Invalid parameters for function 'testFunction': HTTP 400: Bad Request");
+    });
+
+    it('should handle 500 error with descriptive message', async () => {
+      const testRequest = { parameters: [] };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error'
+      } as Response);
+
+      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest))
+        .rejects
+        .toThrow("Function 'testFunction' execution failed: HTTP 500: Internal Server Error");
+    });
+
+    it('should handle function execution that returns success false', async () => {
+      const testRequest = { parameters: [] };
+
+      const mockResponse = {
+        success: false,
+        error: "Function execution failed: missing required parameter"
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest);
+
+      expect(result).toEqual(mockResponse);
+    });
+  });
 });

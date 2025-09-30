@@ -126,3 +126,27 @@ export interface SimplifierDataTypeProperty {
   value: string;
 }
 
+/**
+ * Business Object Function Testing Types
+ */
+export interface BusinessObjectTestRequest {
+  parameters: BusinessObjectTestParameter[];
+}
+
+export interface BusinessObjectTestParameter {
+  name: string;
+  value: unknown;
+  description?: string;
+  dataTypeId: string;
+  dataType?: any;
+  optional: boolean;
+  transfer: boolean;
+}
+
+export interface BusinessObjectTestResponse {
+  success: boolean;
+  result?: any;
+  error?: string;
+  message?: string;
+}
+
