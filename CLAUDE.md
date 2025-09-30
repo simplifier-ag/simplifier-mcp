@@ -66,8 +66,8 @@ npm start
 # Development mode
 npm run dev
 
-# Test MCP server
-echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
+# Test MCP server (with environment variables)
+export SIMPLIFIER_BASE_URL=http://localhost:8087 && export SIMPLIFIER_CREDENTIALS_FILE=credentials.json && echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
 ```
 
 ## Important Notes for Claude

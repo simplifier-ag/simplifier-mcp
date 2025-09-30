@@ -93,6 +93,26 @@ export class SimplifierClient {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, { method: "GET" })
   }
 
+  async getServerBusinessObjectFunctions(objectName: string): Promise<SimplifierBusinessObjectFunction[]> {
+    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions`, { method: "GET" })
+  }
+
+  async createServerBusinessObjectFunction(objectName: string, functionData: SimplifierBusinessObjectFunction): Promise<string> {
+    await this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions`, {
+      method: "POST",
+      body: JSON.stringify(functionData)
+    });
+    return `Successfully created function '${functionData.name}' in Business Object '${objectName}'`;
+  }
+
+  async updateServerBusinessObjectFunction(objectName: string, functionName: string, functionData: SimplifierBusinessObjectFunction): Promise<string> {
+    await this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}`, {
+      method: "PUT",
+      body: JSON.stringify(functionData)
+    });
+    return `Successfully updated function '${functionName}' in Business Object '${objectName}'`;
+  }
+
   async createServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
     this.makeRequest(`/UserInterface/api/businessobjects/server`, { method: "POST", body: JSON.stringify(oData) });
     return `Successfully created Business Object '${oData.name}'`

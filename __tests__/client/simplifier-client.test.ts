@@ -165,4 +165,149 @@ describe('SimplifierClient', () => {
     });
 
   });
+
+  describe('get server business object functions', () => {
+    it('should call getBusinessObjectFunctions endpoint with object name', async () => {
+      const mockResponse = {
+        success: true,
+        result: [
+          {
+            businessObjectName: 'TestObject',
+            name: 'function1',
+            description: 'First function',
+            validateIn: true,
+            validateOut: false,
+            inputParameters: [],
+            outputParameters: [],
+            functionType: 'JavaScript',
+            code: 'return "function1";'
+          },
+          {
+            businessObjectName: 'TestObject',
+            name: 'function2',
+            description: 'Second function',
+            validateIn: false,
+            validateOut: true,
+            inputParameters: [],
+            outputParameters: [],
+            functionType: 'JavaScript',
+            code: 'return "function2";'
+          }
+        ],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.getServerBusinessObjectFunctions('TestObject');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://some.test/UserInterface/api/businessobjects/server/TestObject/functions",
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+        })
+      );
+
+      expect(result).toEqual(mockResponse.result);
+    });
+  });
+
+  describe('create server business object function', () => {
+    it('should call createBusinessObjectFunction endpoint with function data', async () => {
+      const functionData = {
+        businessObjectName: 'TestObject',
+        name: 'newFunction',
+        description: 'A new test function',
+        validateIn: false,
+        validateOut: false,
+        inputParameters: [],
+        outputParameters: [],
+        functionType: 'JavaScript' as const,
+        code: 'return "hello world";'
+      };
+
+      const mockResponse = {
+        success: true,
+        result: 'Function created successfully'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.createServerBusinessObjectFunction('TestObject', functionData);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://some.test/UserInterface/api/businessobjects/server/TestObject/functions",
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+          body: JSON.stringify(functionData)
+        })
+      );
+
+      expect(result).toBe("Successfully created function 'newFunction' in Business Object 'TestObject'");
+    });
+  });
+
+  describe('update server business object function', () => {
+    it('should call updateBusinessObjectFunction endpoint with function data', async () => {
+      const functionData = {
+        businessObjectName: 'TestObject',
+        name: 'existingFunction',
+        description: 'An updated test function',
+        validateIn: true,
+        validateOut: true,
+        inputParameters: [
+          {
+            name: 'input',
+            description: 'Input parameter',
+            alias: 'input',
+            dataTypeId: 'string-id',
+            dataType: 'String',
+            isOptional: false
+          }
+        ],
+        outputParameters: [],
+        functionType: 'JavaScript' as const,
+        code: 'return input.toUpperCase();'
+      };
+
+      const mockResponse = {
+        success: true,
+        result: 'Function updated successfully'
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.updateServerBusinessObjectFunction('TestObject', 'existingFunction', functionData);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://some.test/UserInterface/api/businessobjects/server/TestObject/functions/existingFunction",
+        expect.objectContaining({
+          method: 'PUT',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+          body: JSON.stringify(functionData)
+        })
+      );
+
+      expect(result).toBe("Successfully updated function 'existingFunction' in Business Object 'TestObject'");
+    });
+  });
 });

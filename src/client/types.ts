@@ -29,13 +29,13 @@ export type SimplifierBusinessObjectRefType = 'connector'|'serverbusinessobject'
 export interface SimplifierBusinessObjectFunction {
   businessObjectName: string,
   name: string,
-  description: string,
+  description?: string,
   validateIn: boolean,
   validateOut: boolean,
   inputParameters: SimplifierCallableParameter[],
   outputParameters: SimplifierCallableParameter[],
   functionType: "JavaScript",
-  code: string
+  code?: string
 }
 
 export interface SimplifierCallableParameter {
