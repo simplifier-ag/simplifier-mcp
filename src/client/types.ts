@@ -10,7 +10,7 @@ export interface SimplifierBusinessObjectDetails {
   editable: boolean;
   deletable: boolean;
   tags: string[];
-  assignedProperties: {
+  assignedProjects: {
     projectsBefore: string[];
     projectsAfter: string[];
   };

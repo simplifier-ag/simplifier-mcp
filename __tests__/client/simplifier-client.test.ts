@@ -78,7 +78,7 @@ describe('SimplifierClient', () => {
           editable: true,
           deletable: true,
           tags: ['test', 'api'],
-          assignedProperties: {
+          assignedProjects: {
             projectsBefore: ['init'],
             projectsAfter: ['cleanup']
           }

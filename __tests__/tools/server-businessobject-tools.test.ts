@@ -234,7 +234,7 @@ describe('registerServerBusinessObjectResources', () => {
         editable: true,
         deletable: true,
         tags: ["old"],
-        assignedProperties: { projectsBefore: [], projectsAfter: [] }
+        assignedProjects: { projectsBefore: [], projectsAfter: [] }
       };
 
       const expectedData = {
