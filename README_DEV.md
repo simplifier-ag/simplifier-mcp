@@ -69,14 +69,15 @@ simplifier-mcp/
 ├── .env.example            # Environment configuration template
 ├── .env                    # Local environment configuration
 ├── .gitignore              # Git ignore patterns
-├── README.md               # This documentation
+├── README.md               # End user Documentation published to npmjs.com
+├── README_DEV.md           # This documentation (for mcp developers)
 ├── src/                    # Source code
 │   ├── index.ts            # Main entry point with MCP server description
 │   ├── server.ts           # MCP server implementation with protocol handling
 │   ├── config.ts           # Environment configuration with validation
 │   ├── client/             # Simplifier REST API client
-│   ├── tools/              # MCP tools (currently empty)
-│   ├── resources/          # MCP resources (currently empty)
+│   ├── tools/              # MCP tools
+│   ├── resources/          # MCP resources
 │   └── prompts/            # MCP prompts (currently empty)
 └── __tests__/              # Test suite
 ```

@@ -12,33 +12,35 @@ The Simplifier MCP Server allows AI assistants to interact with the Simplifier L
 - **Access platform resources**: Browse connectors, business objects, and system information
 
 
-## Usage
-
-### Example configuration for claude code to use the MCP
-TODO update
-
-### Configuration
-
-Basic configuration is provided via environment variables or an optional **.env** file.
-
-#### Environment Variables
-
-**SIMPLIFIER_TOKEN** - A valid session token for the Simplifier Appserver
-
-In order to obtain a Simplifier Token, log in at the instance, then go to your user profile and copy
-the current token. This needs to be repeated every day, when you log out or the session expires.
-Please note that all actions on the Simplifier instance are run on behalf of that user.
-
-**Note**: The env variable *SIMPLIFIER_TOKEN* must be set. 
-
-
 ## Installation & Setup
 ### End user Installation
 ```bash
   npm install @simplifierag/simplifier-mcp
 ```
 
-### Usage as CLI
-```bash
-  npx @simplifierag/simplifier-mcp
+## Usage
+
+### Example configuration for claude code to use the MCP
+e.g. in a file named .mcp.json placed in directory, where claude is started.
 ```
+{
+  "mcpServers":  {
+    "simplifier-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [ 
+        "@simplifierag/simplifier-mcp"
+      ],
+      "env": {
+        "SIMPLIFIER_BASE_URL": "https://<yourinstance>-dev.simplifier.cloud",
+        "SIMPLIFIER_TOKEN": "<your current simplifier token>"
+      }
+    }
+  }
+}
+```
+
+
+
+
+

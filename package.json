@@ -25,7 +25,7 @@
     "model-context-protocol"
   ],
   "author": "",
-  "license": "MIT",
+  "license": "-",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.1",
     "ai": "^5.0.51",
