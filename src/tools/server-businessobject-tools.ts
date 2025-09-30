@@ -89,13 +89,14 @@ This guide provides comprehensive information for implementing Business Object f
 The \`Simplifier\` object provides access to various server-side methods and components:
 
 ### Available Components
-- **Logging**: Server-side logging capabilities - see here for details: https://community.simplifier.io/doc/current-release/applications/business-objects/create-business-objects/business-object-api/#1595936200072-b18df084-9b44
-- **Utilities/Tools**: Helper functions and tools - see here for details: https://community.simplifier.io/doc/current-release/applications/business-objects/create-business-objects/business-object-api/#1595936474883-c583ad0f-32d3
-- **Email**: Email sending functionality - see here for details: https://community.simplifier.io/doc/current-release/applications/business-objects/create-business-objects/business-object-api/#email
+- **Logging**: Server-side logging capabilities e.g. Simplifier.Log.info("my log") - see details: simplifier://documentation/server-businessobjects/api/Logging
+- **Utilities/Tools**: Helper functions and tools - see details: simplifier://documentation/server-businessobjects/api/Utils
 - **Connectors**: Access to data connectors - TODO add information later
 - **Business Objects**: Access to other Business Objects - see this description
-- **Plugins**: Plugin integration - see here for details: https://community.simplifier.io/doc/current-release/applications/business-objects/create-business-objects/business-object-api/#1595936862002-d9caebb6-9d52
 - **Users**: User management - see details: simplifier://documentation/server-businessobjects/api/User
+
+<code>Simplifier.Log.info(...)</code> is logging to a Simplifier Log inside the database. The logged entries can be seen by the user but cannot be accessed by this MCP so far.
+<code>console.log(...)</code> is logging to the Simplifier logfile. The logged entries can be accessed by Simplifier Administrators only. The MCP cannot access these logs.
 
 ## Accessing Other Business Objects
 
