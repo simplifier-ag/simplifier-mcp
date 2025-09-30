@@ -15,7 +15,8 @@ export async function wrapToolResult(caption: string, fn: () => any): Promise<Ca
       content: [{
         type: "text",
         text: JSON.stringify({error: `Tool ${caption} failed: ${e}`})
-      }]
+      }],
+      isError: true
     }
   }
 }

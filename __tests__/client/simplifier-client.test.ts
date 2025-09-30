@@ -78,7 +78,7 @@ describe('SimplifierClient', () => {
           editable: true,
           deletable: true,
           tags: ['test', 'api'],
-          assignedProperties: {
+          assignedProjects: {
             projectsBefore: ['init'],
             projectsAfter: ['cleanup']
           }
@@ -359,12 +359,13 @@ describe('SimplifierClient', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
-        statusText: 'Not Found'
+        statusText: 'Not Found',
+        text: async () => JSON.stringify(testRequest)
       } as Response);
 
       await expect(client.testServerBusinessObjectFunction('NonExistentBO', 'nonExistentFunction', testRequest))
         .rejects
-        .toThrow("Business Object 'NonExistentBO' or function 'nonExistentFunction' not found");
+        .toThrow("Failed request POST http://some.test/UserInterface/api/businessobjecttest/NonExistentBO/methods/nonExistentFunction: HTTP 404: Not Found");
     });
 
     it('should handle 400 error with descriptive message', async () => {
@@ -373,12 +374,13 @@ describe('SimplifierClient', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 400,
-        statusText: 'Bad Request'
+        statusText: 'Bad Request',
+        text: async () => JSON.stringify(testRequest)
       } as Response);
 
       await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest))
         .rejects
-        .toThrow("Invalid parameters for function 'testFunction': HTTP 400: Bad Request");
+        .toThrow("Failed request POST http://some.test/UserInterface/api/businessobjecttest/TestBO/methods/testFunction: HTTP 400: Bad Request");
     });
 
     it('should handle 500 error with descriptive message', async () => {
@@ -387,12 +389,13 @@ describe('SimplifierClient', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
-        statusText: 'Internal Server Error'
+        statusText: 'Internal Server Error',
+        text: async () => JSON.stringify(testRequest)
       } as Response);
 
       await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest))
         .rejects
-        .toThrow("Function 'testFunction' execution failed: HTTP 500: Internal Server Error");
+        .toThrow("Failed request POST http://some.test/UserInterface/api/businessobjecttest/TestBO/methods/testFunction: HTTP 500: Internal Server Error");
     });
 
     it('should handle function execution that returns success false', async () => {
@@ -408,9 +411,9 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest);
-
-      expect(result).toEqual(mockResponse);
+      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest))
+        .rejects
+        .toThrow("Received error: Function execution failed: missing required parameter");
     });
   });
 });
