@@ -47,12 +47,24 @@ export interface SimplifierCallableParameter {
   isOptional: boolean;
 }
 
-export interface SimplifierApiResponse<T = unknown> {
-  success?: boolean;
-  result?: T;
+export type SimplifierApiResponse<T = unknown> =
+{
+  success: true;
+  result: T;
+} | {
+  success: false;
   error?: string;
   message?: string;
 }
+
+/**
+ * API response where only errors use the unified format but successful responses do not wrap the result type.
+ */
+export type UnwrappedSimplifierApiResponse<T = unknown> = {
+  success: false;
+  error?: string;
+  message?: string;
+} | T
 
 /**
  * Simplifier DataTypes API Response
@@ -66,18 +78,52 @@ export interface SimplifierDataTypesResponse {
 }
 
 /**
+ * Mutually exclusive categories of data types in simplifier.
+ */
+export type SimplifierDataTypeCategory = 'base'|'domain'|'struct'|'collection';
+
+/**
  * Base or Domain DataType in Simplifier
  */
 export interface SimplifierDataType {
   id: string;
   name: string;
   nameSpace?: string;
-  category: 'base' | 'domain';
+  category: SimplifierDataTypeCategory;
   description: string;
   baseType: string;
   derivedFrom?: string;
   isStruct: boolean;
   fields: SimplifierDataTypeField[];
+  properties: SimplifierDataTypeProperty[];
+  editable: boolean;
+  tags: string[];
+  assignedProjects: {
+    projectsBefore: string[];
+    projectsAfterChange: string[];
+  };
+}
+
+
+/**
+ * Data type description for creating or updating a type in Simplifier
+ * Fields omitted compared to Scala type:
+ *  - id: is overridden in update api call
+ *  - baseType: not used in Simplifier
+ * Fields where values don't matter:
+ *  - editable: not used in Simplifier
+ */
+export interface SimplifierDataTypeUpdate {
+  name: string;
+  nameSpace?: string | undefined;
+  category: SimplifierDataTypeCategory;
+  description?: string | undefined;
+  derivedFrom?: string | undefined;
+  derivedFromNS?: string | undefined;
+  collDtName?: string | undefined;
+  collDtNS?: string | undefined;
+  isStruct: boolean;
+  fields: SimplifierDataTypeFieldUpdate[];
   properties: SimplifierDataTypeProperty[];
   editable: boolean;
   tags: string[];
@@ -116,6 +162,20 @@ export interface SimplifierDataTypeField {
   dtName: string;
   optional: boolean;
   description: string;
+}
+
+
+/**
+ * Field description for creating or updating a struct type in Simplifier
+ * Fields omitted compared to Scala type:
+ *  - id: is overridden in update api call
+ */
+export interface SimplifierDataTypeFieldUpdate {
+  name: string;
+  dtName: string;
+  dtNameSpace?: string | undefined;
+  optional: boolean;
+  description?: string | undefined;
 }
 
 /**

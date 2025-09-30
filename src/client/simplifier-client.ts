@@ -1,10 +1,15 @@
+import { config } from '../config.js';
+import { login } from "./basicauth.js";
 import {
-  SimplifierBusinessObjectDetails,
-  SimplifierApiResponse, SimplifierBusinessObjectFunction, SimplifierDataTypesResponse,
-  BusinessObjectTestRequest, BusinessObjectTestResponse
+    BusinessObjectTestRequest, BusinessObjectTestResponse,
+    SimplifierApiResponse,
+    SimplifierBusinessObjectDetails,
+    SimplifierBusinessObjectFunction,
+    SimplifierDataType,
+    SimplifierDataTypesResponse,
+    SimplifierDataTypeUpdate,
+    UnwrappedSimplifierApiResponse
 } from './types.js';
-import {config} from '../config.js';
-import {login} from "./basicauth.js";
 
 /**
  * Client for interacting with Simplifier Low Code Platform REST API
@@ -23,7 +28,7 @@ export class SimplifierClient {
     this.baseUrl = config.simplifierBaseUrl;
   }
 
-  getBaseUrl(): string {return this.baseUrl;}
+  getBaseUrl(): string { return this.baseUrl; }
 
   private async getSimplifierToken(): Promise<string> {
     if (!this.simplifierToken) {
@@ -54,31 +59,71 @@ export class SimplifierClient {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const body = await response.text();
+      throw new Error(`HTTP ${response.status}: ${response.statusText}\n${body}`);
     }
 
     return response;
   }
 
-  async makeRequest<T>(
+  async executeRequestWithHandler<T>(
     urlPath: string,
-    options: RequestInit = {}
+    options: RequestInit,
+    handle: (response: Response) => T
   ): Promise<T> {
     try {
       const response = await this.executeRequest(urlPath, options);
 
-      const json = await response.json();
-      const oResponse = json as SimplifierApiResponse<T>;
-      if (oResponse.success === false) {
-        throw new Error(`Received error: ${oResponse.error || ""}${oResponse.message || ""}`);
-      }
-      return (oResponse.result) as T;
+      return handle(response)
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Failed request ${options.method || "GET"} ${this.baseUrl}${urlPath}: ${error.message}`);
       }
       throw error;
     }
+  }
+
+  /** For handling APIs that return JSON in the common Simplifier API format:
+   * ```
+   * { success: true, result: T } | {success: false, message?: string, error?: string }
+   * ```
+   */
+  async makeRequest<T>(
+    urlPath: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    return this.executeRequestWithHandler(urlPath, options, async (response: Response) => {
+      const oResponse = (await response.json()) as SimplifierApiResponse<T>;
+      if (oResponse.success === false) {
+        throw new Error(`Received error: ${oResponse.error || ""}${oResponse.message || ""}`);
+      }
+      return oResponse.result as T;
+    })
+  }
+
+  /** For handling APIs that return JSON, but don't wrap successful calls with `{success: true, result: ... }`.
+   * Errors are still expected to be of the form `{success: false, message?: string, error?: string }` */
+  async makeUnwrappedRequest<T extends object>(
+    urlPath: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    return this.executeRequestWithHandler(urlPath, options, async (response: Response) => {
+      const oResponse = (await response.json()) as UnwrappedSimplifierApiResponse<T>;
+      if ('success' in oResponse && oResponse.success === false) {
+        throw new Error(`Received error: ${oResponse.error || ""}${oResponse.message || ""}`);
+      }
+      return (oResponse) as T;
+    })
+  }
+
+  /** For handling APIs that return plaintext results and errors */
+  async makePlaintextRequest(
+    urlPath: string,
+    options: RequestInit = {}
+  ): Promise<string> {
+    return this.executeRequestWithHandler(urlPath, options, async (response: Response) => {
+      return await response.text();
+    })
   }
 
 
@@ -115,52 +160,45 @@ export class SimplifierClient {
   }
 
   async testServerBusinessObjectFunction(objectName: string, functionName: string, testRequest: BusinessObjectTestRequest): Promise<BusinessObjectTestResponse> {
-    try {
-      const response = await this.executeRequest(`/UserInterface/api/businessobjecttest/${objectName}/methods/${functionName}`, {
+      return await this.makeUnwrappedRequest(`/UserInterface/api/businessobjecttest/${objectName}/methods/${functionName}`, {
         method: "POST",
         body: JSON.stringify(testRequest)
       });
-
-      const result = await response.json() as BusinessObjectTestResponse;
-      return result;
-    } catch (error) {
-      if (error instanceof Error) {
-        // Enhanced error handling for specific HTTP status codes
-        const errorMessage = error.message;
-        if (errorMessage.includes('HTTP 404')) {
-          throw new Error(`Business Object '${objectName}' or function '${functionName}' not found`);
-        } else if (errorMessage.includes('HTTP 400')) {
-          throw new Error(`Invalid parameters for function '${functionName}': ${errorMessage}`);
-        } else if (errorMessage.includes('HTTP 500')) {
-          throw new Error(`Function '${functionName}' execution failed: ${errorMessage}`);
-        } else {
-          throw new Error(`Failed to test function '${objectName}.${functionName}': ${errorMessage}`);
-        }
-      }
-      throw error;
-    }
   }
 
   async createServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
-    this.makeRequest(`/UserInterface/api/businessobjects/server`, { method: "POST", body: JSON.stringify(oData) });
-    return `Successfully created Business Object '${oData.name}'`
+    return this.makeRequest(`/UserInterface/api/businessobjects/server`, { method: "POST", body: JSON.stringify(oData) })
+      .then(() => `Successfully created Business Object '${oData.name}'`)
   }
 
   async updateServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
-    this.makeRequest(`/UserInterface/api/businessobjects/server/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) });
-    return `Successfully updated Business Object '${oData.name}'`
+    return this.makeRequest(`/UserInterface/api/businessobjects/server/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) })
+      .then(() => `Successfully updated Business Object '${oData.name}'`);
   }
 
-    async getDataTypes(): Promise<SimplifierDataTypesResponse> {
-        // The datatypes endpoint returns data directly, not wrapped in SimplifierApiResponse
-        try {
-            const response = await this.executeRequest("/UserInterface/api/datatypes?cacheIndex=true", { method: "GET" });
-            return await response.json() as SimplifierDataTypesResponse;
-        } catch (error) {
-            if (error instanceof Error) {
-                throw new Error(`Failed request GET ${this.baseUrl}/UserInterface/api/datatypes?cacheIndex=true: ${error.message}`);
-            }
-            throw error;
-        }
-    }
+  async getDataTypes(): Promise<SimplifierDataTypesResponse> {
+    return this.makeUnwrappedRequest("/UserInterface/api/datatypes?cacheIndex=true", { method: "GET" });
+  }
+
+  async getSingleDataType(name: string, nameSpace?: string): Promise<SimplifierDataType> {
+    const fullDataType = `${nameSpace ? nameSpace + '/' : ''}${name}`
+    return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${fullDataType}`, { method: "GET" });
+  }
+
+  async createDataType(datatypeDesc: SimplifierDataTypeUpdate): Promise<string> {
+    const fullDataType = `${datatypeDesc.nameSpace ? datatypeDesc.nameSpace + '/' : ''}${datatypeDesc.name}`
+    return this.makePlaintextRequest(`/UserInterface/api/datatypes`, { method: "POST", body: JSON.stringify(datatypeDesc) })
+      .then((id) => `Successfully created data type ${fullDataType} with id ${id}`);
+  }
+
+  async updateDataType(datatypeDesc: SimplifierDataTypeUpdate): Promise<string> {
+    const fullDataType = `${datatypeDesc.nameSpace ? datatypeDesc.nameSpace + '/' : ''}${datatypeDesc.name}`
+    return this.makePlaintextRequest(`/UserInterface/api/datatypes/${fullDataType}`, { method: "PUT", body: JSON.stringify(datatypeDesc) })
+      .then((id) => `Successfully updated data type ${fullDataType} with id ${id}`)
+  }
+
+  async deleteDataType(name: string, nameSpace: string | undefined): Promise<string> {
+    const fullDataType = `${nameSpace ? nameSpace + '/' : ''}${name}`
+    return this.makePlaintextRequest(`/UserInterface/api/datatypes/${fullDataType}`, { method: "DELETE" });
+  }
 }

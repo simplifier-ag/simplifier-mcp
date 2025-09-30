@@ -13,7 +13,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "dev": "tsx src/index.ts",
-    "inspect": "npx @modelcontextprotocol/inspector npm run dev",
+    "inspect": "npx @modelcontextprotocol/inspector npm run -s dev",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix"
