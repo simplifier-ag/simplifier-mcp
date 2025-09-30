@@ -94,10 +94,7 @@ jobs:
 - job: Publish_to_NPM
   displayName: 'Publish to NPM'
   dependsOn: Build_and_Test
-  condition: and(succeeded(), eq(variables.isNotPR, true))
-  # NOTE: Publishing happens on all branches (not just main) to allow testing
-  # TODO To restrict to main branch only, uncomment the line below:
-  # condition: and(succeeded(), eq(variables.isMainBranch, true), eq(variables.isNotPR, true))
+  condition: and(succeeded(), eq(variables.isMainBranch, true), eq(variables.isNotPR, true))
 
   steps:
   - checkout: self
@@ -133,7 +130,7 @@ jobs:
       customEndpoint: 'npm simplifierag simplifier mcp'
 
   - script: |
-      git config --global user.email "azure-pipelines@simplifier.ag"
+      git config --global user.email "azure-pipelines@simplifier.io"
       git config --global user.name "Azure Pipelines"
     displayName: 'Configure git for version tagging'
 
@@ -163,8 +160,6 @@ jobs:
       echo "Pushing version bump commit (with [skip ci]) to Azure Repos"
       # Push from detached HEAD to the source branch
       git push origin HEAD:$(Build.SourceBranch)
-      echo "Creating git tag v$(packageVersion)"
-      git tag "v$(packageVersion)"
       echo "Pushing tag to Azure Repos"
       git push origin "v$(packageVersion)"
     displayName: 'Push version commit and tag to Azure Repos'

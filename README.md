@@ -21,7 +21,7 @@ The Simplifier MCP Server allows AI assistants to interact with the Simplifier L
 ## Usage
 
 ### Example configuration for claude code to use the MCP
-e.g. in a file named .mcp.json placed in directory, where claude is started.
+e.g. in a file named .mcp.json placed in the directory, where claude is started.
 ```
 {
   "mcpServers":  {

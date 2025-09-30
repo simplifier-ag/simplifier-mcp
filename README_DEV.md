@@ -184,7 +184,7 @@ The Azure DevOps pipeline (`azure-pipelines.yml`) implements a two-stage process
 The publish stage only runs when:
 - ✅ Build and test stage succeeded
 - ✅ Not a pull request (`isNotPR = true`)
-- ⚠️ Currently runs on all branches (not just main - TODO change this when done...)
+- ✅ runs only for the main branch
 
 ### Automatic Version Bumping 
 
@@ -199,8 +199,7 @@ The publish stage only runs when:
    - Pushes commit and tag to Azure Repos
 
 3. **NPM Publication**:
-   - Currently in dry-run mode (`npm publish --dry-run`)
-   - To enable real publishing, uncomment line 154 in pipeline
+   - publishing to npmjs.com
 
 ### Git Push Strategy
 
