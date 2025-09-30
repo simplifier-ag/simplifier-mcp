@@ -12,6 +12,8 @@ export function registerServerBusinessObjectTools(server: McpServer, simplifier:
 
 When setting dependencies or tags, allways try fetch the Business Object resource first
 to ensure operating on the latest version.
+
+Dependencies are REQUIRED to be added when the BO functions access connectors or other BOs using Simplifier.Connector.* or Simplifier.BusinessObject.* APIs.
 `;
 
   server.tool("businessobject-update",
@@ -20,9 +22,9 @@ to ensure operating on the latest version.
       name: z.string(),
       description: z.string().optional().default(""),
       dependencies: z.array(z.object({
-        refType: z.string(),
-        name: z.string()
-      })).optional().default([]),
+        refType: z.enum(['connector', 'serverbusinessobject']).describe('Type of dependency: "connector" for data connectors, "serverbusinessobject" for other Business Objects'),
+        name: z.string().describe('name of the connector or server business object (bo) to depend on')
+      })).optional().default([]).describe('Array of dependencies that this BO requires. CRITICAL: Add connectors and other BOs that will be accessed from BO functions using Simplifier.Connector.<Name> or Simplifier.BusinessObject.<Name> syntax.'),
       tags: z.array(z.string()).optional().default([])
     },
     {
@@ -76,6 +78,110 @@ Output parameters can be assigned with
  The function code will be postfixed with a "return output" anyway.
  If you do a <code>return</code> instead of <code>return output</code>, then in the first case you
  will return <code>undefined</code> output parameters - this is most probably not what you want to do.  
+ 
+ # Business Objects Development Guide
+
+## Overview
+This guide provides comprehensive information for implementing Business Object functions in Simplifier, including Object API usage, connector access patterns, and Business Object to Business Object communication.
+
+## Server-Side Business Object API
+
+The \`Simplifier\` object provides access to various server-side methods and components:
+
+### Available Components
+- **Logging**: Server-side logging capabilities - see here for details: https://community.simplifier.io/doc/current-release/applications/business-objects/create-business-objects/business-object-api/#1595936200072-b18df084-9b44
+- **Utilities/Tools**: Helper functions and tools - see here for details: https://community.simplifier.io/doc/current-release/applications/business-objects/create-business-objects/business-object-api/#1595936474883-c583ad0f-32d3
+- **Email**: Email sending functionality - see here for details: https://community.simplifier.io/doc/current-release/applications/business-objects/create-business-objects/business-object-api/#email
+- **Connectors**: Access to data connectors - TODO add information later
+- **Business Objects**: Access to other Business Objects - see this description
+- **Plugins**: Plugin integration - see here for details: https://community.simplifier.io/doc/current-release/applications/business-objects/create-business-objects/business-object-api/#1595936862002-d9caebb6-9d52
+- **Users**: User management - see details: simplifier://documentation/server-businessobjects/api/User
+
+## Accessing Other Business Objects
+
+### Basic Syntax
+\`\`\`javascript
+// Access other Business Objects
+Simplifier.BusinessObject.<BOName>.<MethodName>(payload?)
+
+// Access current Business Object methods
+Simplifier.CurrentBusinessObject.<MethodName>(payload?)
+\`\`\`
+
+### Examples
+\`\`\`javascript
+// Call another Business Object function
+var userInfo = Simplifier.BusinessObject.UserManager.getUserById({
+  userId: "12345"
+});
+
+// Call a function in the current Business Object
+var result = Simplifier.CurrentBusinessObject.validateInput({
+  data: input.userData
+});
+\`\`\`
+
+## Configuration Requirements
+
+### Adding Dependencies
+When accessing other Business Objects or connectors from a Business Object function, these components **MUST** be added as dependencies.
+(see schema for tool about getting, updating and creating Business Objects) 
+
+### Dependency Types
+- **Business Objects**: Other BOs that will be called
+- **Connectors**: Data connectors that will be accessed
+
+## Dynamic Access Methods
+
+### Variables Approach
+\`\`\`javascript
+// Using variables for dynamic calls
+var boName = "UserManager";
+var methodName = "getUser";
+var result = Simplifier.BusinessObject[boName][methodName](payload);
+\`\`\`
+
+### Dynamic Call Function
+\`\`\`javascript
+// Using dynamic call patterns
+var result = Simplifier.BusinessObject.call(boName, methodName, payload);
+\`\`\`
+
+
+### Parameter Validation
+\`\`\`javascript
+// Always validate input parameters
+if (!input.userId || input.userId.length === 0) {
+  output.error = "UserId is required";
+  return output;
+}
+
+var userResult = Simplifier.BusinessObject.UserService.getUser({
+  userId: input.userId
+});
+\`\`\`
+
+
+## Security Considerations
+
+- Always validate input parameters
+- Validate data types and ranges for all inputs
+
+## Performance Tips
+
+- Cache frequently accessed data when appropriate
+- Avoid unnecessary nested Business Object calls
+
+## Debugging Tips
+- To track down an issue (e.g. the connector issue) put the failing part into a very small bo function and return the result with
+  JSON.stringify as a string, then you can check, whether the expected result is delivered. Indicate in the name of the function, that it
+  can be deleted after debugging. 
+    
+---
+
+This documentation provides the essential patterns and best practices for implementing robust Business Object functions in Simplifier. 
+Remember to always add dependencies and follow security best practices when accessing external components. Dependencies for
+yourself do not need to be added, but you can access own functions like Simplifier.CurrentBusinessObject.<MethodName>(payload?).
 `;
 
   server.tool("businessobject-function-update",
