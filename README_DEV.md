@@ -12,7 +12,6 @@ The Simplifier MCP Server allows AI assistants to interact with the Simplifier L
 - **Access platform resources**: Browse connectors, business objects, and system information
 
 
-
 ## Usage
 
 ### Example configuration for claude code to use the MCP
@@ -163,7 +162,6 @@ The Azure DevOps pipeline (`azure-pipelines.yml`) implements a two-stage process
 
 ## Build and Test Stage
 
-### What It Does
 1. **Environment Setup**
    - Node.js 18.x installation
    - npm dependency caching for faster builds
@@ -178,9 +176,6 @@ The Azure DevOps pipeline (`azure-pipelines.yml`) implements a two-stage process
    - Publishes test results (JUnit format)
    - Creates build artifacts from `dist/` folder
 
-### Test Requirements
-- All unit tests must pass
-- MCP server must respond to basic protocol commands
 
 ## Publish to NPM Stage
 
@@ -190,9 +185,8 @@ The publish stage only runs when:
 - ✅ Not a pull request (`isNotPR = true`)
 - ⚠️ Currently runs on all branches (not just main - TODO change this when done...)
 
-### Version Management Process
+### Automatic Version Bumping 
 
-#### Automatic Version Bumping
 1. **Version Patch**: `npm version --force patch -m "chore: bump version to %s [skip ci]"`
    - Increments patch version (e.g., 0.9.10 → 0.9.11)
    - `--force` flag handles modified files (like .npmrc)
@@ -219,7 +213,7 @@ This explicitly pushes from the current HEAD to the source branch that triggered
 ## NPM Publishing Configuration
 
 ### Authentication
-- Uses service connection: `npm simplifierag simplifier mcp` to authenticate at mpmjs.com 
+- Uses azure service connection: `npm simplifierag simplifier mcp` to authenticate at npmjs.com 
 - see also: https://pass.simplifier.io/app/passwords/view/6496bcb8-a8ec-4a3f-ae5a-ff7c947b10ca
 - `.npmrc` file configured for registry authentication
 

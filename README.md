@@ -23,7 +23,6 @@ Basic configuration is provided via environment variables or an optional **.env*
 
 #### Environment Variables
 
-
 **SIMPLIFIER_TOKEN** - A valid session token for the Simplifier Appserver
 
 In order to obtain a Simplifier Token, log in at the instance, then go to your user profile and copy

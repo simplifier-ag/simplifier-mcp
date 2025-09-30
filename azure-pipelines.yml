@@ -149,9 +149,7 @@ jobs:
     displayName: 'Bump patch version with [skip ci]'
 
   - script: |
-      npm publish --dry-run
-# TODO uncomment below, for real pushing
-#      npm publish --access public
+      npm publish --access public
     displayName: 'Publish to NPM'
     env:
       NPM_TOKEN: $(NPM_TOKEN)
@@ -175,10 +173,6 @@ jobs:
   - script: |
       echo "##vso[task.logissue type=warning]Successfully published @simplifierag/simplifier-mcp@$(packageVersion) to npm"
       echo "##vso[build.updatebuildnumber]$(packageVersion)"
-    displayName: 'Update build number and log success'
-    condition: succeeded()
-
-  - script: |
       echo "=========================================="
       echo "🎉 SUCCESSFUL NPM PUBLICATION"
       echo "=========================================="
@@ -187,5 +181,5 @@ jobs:
       echo "Published to: https://www.npmjs.com/package/@simplifierag/simplifier-mcp"
       echo "Install with: npm install @simplifierag/simplifier-mcp"
       echo "=========================================="
-    displayName: 'Display publication summary'
+    displayName: 'Update build number and log success'
     condition: succeeded()
