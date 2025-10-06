@@ -125,7 +125,7 @@ describe('Server Business Objects Resources', () => {
             editable: true,
             deletable: true,
             tags: [],
-            assignedProjects: { projectsBefore: [], projectsAfter: [] }
+            assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
           },
           {
             name: 'TestObject2',
@@ -135,7 +135,7 @@ describe('Server Business Objects Resources', () => {
             editable: true,
             deletable: false,
             tags: [],
-            assignedProjects: { projectsBefore: [], projectsAfter: [] }
+            assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
           }
         ];
 
@@ -229,7 +229,7 @@ describe('Server Business Objects Resources', () => {
           tags: ['production', 'critical'],
           assignedProjects: {
             projectsBefore: [],
-            projectsAfter: ['finalProject']
+            projectsAfterChange: ['finalProject']
           }
         };
 
@@ -430,7 +430,7 @@ describe('Server Business Objects Resources', () => {
         tags: ['detailed', 'integration', 'locked'],
         assignedProjects: {
           projectsBefore: ['dataSetup', 'validation'],
-          projectsAfter: ['reporting', 'audit']
+          projectsAfterChange: ['reporting', 'audit']
         }
       };
 

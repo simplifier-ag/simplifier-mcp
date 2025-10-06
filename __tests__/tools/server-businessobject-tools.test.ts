@@ -52,7 +52,9 @@ describe('registerServerBusinessObjectResources', () => {
           name: expect.any(Object),
           description: expect.any(Object),
           dependencies: expect.any(Object),
-          tags: expect.any(Object)
+          tags: expect.any(Object),
+          projectsBefore: expect.any(Object),
+          projectsAfterChange: expect.any(Object)
         }),
         expect.objectContaining({
           title: "Create or update a Business Object",
@@ -119,17 +121,23 @@ describe('registerServerBusinessObjectResources', () => {
       expect(schema.description).toBeDefined();
       expect(schema.dependencies).toBeDefined();
       expect(schema.tags).toBeDefined();
+      expect(schema.projectsBefore).toBeDefined();
+      expect(schema.projectsAfterChange).toBeDefined();
 
       // Test valid data passes validation - each field individually
       const validName = "TestBO";
       const validDescription = "Test description";
       const validDependencies = [{ refType: "connector", name: "testConnector" }];
       const validTags = ["test"];
+      const validProjectsBefore = ["Project1"];
+      const validProjectsAfterChange = ["Project1", "Project2"];
 
       expect(() => schema.name.parse(validName)).not.toThrow();
       expect(() => schema.description.parse(validDescription)).not.toThrow();
       expect(() => schema.dependencies.parse(validDependencies)).not.toThrow();
       expect(() => schema.tags.parse(validTags)).not.toThrow();
+      expect(() => schema.projectsBefore.parse(validProjectsBefore)).not.toThrow();
+      expect(() => schema.projectsAfterChange.parse(validProjectsAfterChange)).not.toThrow();
     });
 
     it('should validate that name is required', () => {
@@ -158,11 +166,15 @@ describe('registerServerBusinessObjectResources', () => {
       expect(() => schema.description.parse(undefined)).not.toThrow();
       expect(() => schema.dependencies.parse(undefined)).not.toThrow();
       expect(() => schema.tags.parse(undefined)).not.toThrow();
+      expect(() => schema.projectsBefore.parse(undefined)).not.toThrow();
+      expect(() => schema.projectsAfterChange.parse(undefined)).not.toThrow();
 
       // Test default values are applied
       expect(schema.description.parse(undefined)).toBe("");
       expect(schema.dependencies.parse(undefined)).toEqual([]);
       expect(schema.tags.parse(undefined)).toEqual([]);
+      expect(schema.projectsBefore.parse(undefined)).toEqual([]);
+      expect(schema.projectsAfterChange.parse(undefined)).toEqual([]);
     });
   });
 
@@ -179,14 +191,20 @@ describe('registerServerBusinessObjectResources', () => {
         name: "NewBO",
         description: "New business object",
         dependencies: [{ refType: "connector", name: "testConnector" }],
-        tags: ["new"]
+        tags: ["new"],
+        projectsBefore: [],
+        projectsAfterChange: ["Project1"]
       };
 
       const expectedData = {
         name: "NewBO",
         description: "New business object",
         dependencies: [{ refType: "connector", name: "testConnector" }],
-        tags: ["new"]
+        tags: ["new"],
+        assignedProjects: {
+          projectsBefore: [],
+          projectsAfterChange: ["Project1"]
+        }
       };
 
       const expectedResponse = "Business object created successfully";
@@ -223,7 +241,9 @@ describe('registerServerBusinessObjectResources', () => {
         name: "ExistingBO",
         description: "Updated business object",
         dependencies: [{ refType: "connector", name: "testConnector" }],
-        tags: ["updated"]
+        tags: ["updated"],
+        projectsBefore: ["Project1"],
+        projectsAfterChange: ["Project1", "Project2"]
       };
 
       const existingBO: SimplifierBusinessObjectDetails = {
@@ -234,14 +254,18 @@ describe('registerServerBusinessObjectResources', () => {
         editable: true,
         deletable: true,
         tags: ["old"],
-        assignedProjects: { projectsBefore: [], projectsAfter: [] }
+        assignedProjects: { projectsBefore: ["Project1"], projectsAfterChange: ["Project1"] }
       };
 
       const expectedData = {
         name: "ExistingBO",
         description: "Updated business object",
         dependencies: [{ refType: "connector", name: "testConnector" }],
-        tags: ["updated"]
+        tags: ["updated"],
+        assignedProjects: {
+          projectsBefore: ["Project1"],
+          projectsAfterChange: ["Project1", "Project2"]
+        }
       };
 
       const expectedResponse = "Business object updated successfully";
@@ -329,6 +353,83 @@ describe('registerServerBusinessObjectResources', () => {
       expect(mockSimplifierClient.createServerBusinessObject).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "MinimalBO"
+        })
+      );
+    });
+
+    it('should properly assign projects when creating a new BO', async () => {
+      const testParams = {
+        name: "ProjectAssignedBO",
+        description: "BO with projects",
+        projectsBefore: [],
+        projectsAfterChange: ["ProjectA", "ProjectB", "ProjectC"]
+      };
+
+      const expectedResponse = "Created";
+
+      mockSimplifierClient.getServerBusinessObjectDetails.mockRejectedValue(
+        new Error("Not found")
+      );
+
+      mockSimplifierClient.createServerBusinessObject.mockResolvedValue(expectedResponse);
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return {
+          content: [{ type: "text", text: "Created" }]
+        };
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.createServerBusinessObject).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "ProjectAssignedBO",
+          assignedProjects: {
+            projectsBefore: [],
+            projectsAfterChange: ["ProjectA", "ProjectB", "ProjectC"]
+          }
+        })
+      );
+    });
+
+    it('should properly update project assignments when updating a BO', async () => {
+      const testParams = {
+        name: "ExistingBO",
+        projectsBefore: ["ProjectA"],
+        projectsAfterChange: ["ProjectB"]
+      };
+
+      const existingBO: SimplifierBusinessObjectDetails = {
+        name: "ExistingBO",
+        description: "Existing",
+        dependencies: [],
+        functionNames: [],
+        editable: true,
+        deletable: true,
+        tags: [],
+        assignedProjects: { projectsBefore: ["ProjectA"], projectsAfterChange: ["ProjectA"] }
+      };
+
+      mockSimplifierClient.getServerBusinessObjectDetails.mockResolvedValue(existingBO);
+      mockSimplifierClient.updateServerBusinessObject.mockResolvedValue("Updated");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return {
+          content: [{ type: "text", text: "Updated" }]
+        };
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.updateServerBusinessObject).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "ExistingBO",
+          assignedProjects: {
+            projectsBefore: ["ProjectA"],
+            projectsAfterChange: ["ProjectB"]
+          }
         })
       );
     });

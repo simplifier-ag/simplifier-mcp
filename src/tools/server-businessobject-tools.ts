@@ -14,6 +14,27 @@ When setting dependencies or tags, allways try fetch the Business Object resourc
 to ensure operating on the latest version.
 
 Dependencies are REQUIRED to be added when the BO functions access connectors or other BOs using Simplifier.Connector.* or Simplifier.BusinessObject.* APIs.
+
+## Project Assignment
+
+Business Objects must be assigned to projects using the project assignment parameters:
+
+**For Creating New BOs:**
+- Set \`projectsBefore\` to empty array \`[]\`
+- Set \`projectsAfterChange\` to array of project names to assign the BO to
+
+**For Updating Existing BOs:**
+- Set \`projectsBefore\` to current project assignments (from existing BO)
+- Set \`projectsAfterChange\` to new project assignments
+
+**Example:**
+\`\`\`json
+{
+  "name": "MyBusinessObject",
+  "projectsBefore": [],
+  "projectsAfterChange": ["ProjectA", "ProjectB"]
+}
+\`\`\`
 `;
 
   server.tool("businessobject-update",
@@ -25,7 +46,9 @@ Dependencies are REQUIRED to be added when the BO functions access connectors or
         refType: z.enum(['connector', 'serverbusinessobject']).describe('Type of dependency: "connector" for data connectors, "serverbusinessobject" for other Business Objects'),
         name: z.string().describe('name of the connector or server business object (bo) to depend on')
       })).optional().default([]).describe('Array of dependencies that this BO requires. CRITICAL: Add connectors and other BOs that will be accessed from BO functions using Simplifier.Connector.<Name> or Simplifier.BusinessObject.<Name> syntax.'),
-      tags: z.array(z.string()).optional().default([])
+      tags: z.array(z.string()).optional().default([]),
+      projectsBefore: z.array(z.string()).optional().default([]).describe('Project names before the change. Use empty array [] when creating new BOs, or provide current projects when updating.'),
+      projectsAfterChange: z.array(z.string()).optional().default([]).describe('Project names to assign the BO to. Required for tracking project assignments.')
     },
     {
       title: "Create or update a Business Object",
@@ -33,7 +56,7 @@ Dependencies are REQUIRED to be added when the BO functions access connectors or
       destructiveHint: false,
       idempotentHint: false,
       openWorldHint: true
-    }, async ( {name, description, dependencies, tags}) => {
+    }, async ( {name, description, dependencies, tags, projectsBefore, projectsAfterChange}) => {
       return wrapToolResult( `create or update Business Object ${name}`, async () => {
         let oExisting: any;
         try { oExisting = await simplifier.getServerBusinessObjectDetails(name) } catch {}
@@ -41,7 +64,11 @@ Dependencies are REQUIRED to be added when the BO functions access connectors or
           name: name,
           description: description,
           dependencies: dependencies,
-          tags: tags || []
+          tags: tags || [],
+          assignedProjects: {
+            projectsBefore: projectsBefore || [],
+            projectsAfterChange: projectsAfterChange || []
+          }
         } as SimplifierBusinessObjectDetails
         if (oExisting) {
           return simplifier.updateServerBusinessObject(data);

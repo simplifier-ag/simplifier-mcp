@@ -12,7 +12,7 @@ export interface SimplifierBusinessObjectDetails {
   tags: string[];
   assignedProjects: {
     projectsBefore: string[];
-    projectsAfter: string[];
+    projectsAfterChange: string[];
   };
 }
 
