@@ -1,6 +1,8 @@
 // Set up environment before importing config module
 process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
 process.env.SIMPLIFIER_TOKEN = 'test-token';
+// Clear credentials file if it exists in the environment
+delete process.env.SIMPLIFIER_CREDENTIALS_FILE;
 
 // Don't use the global mock for this test
 jest.unmock('../src/config');

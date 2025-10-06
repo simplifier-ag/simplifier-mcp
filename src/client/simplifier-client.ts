@@ -5,6 +5,8 @@ import {
     SimplifierApiResponse,
     SimplifierBusinessObjectDetails,
     SimplifierBusinessObjectFunction,
+    SimplifierConnectorCallDetails,
+    SimplifierConnectorCallsResponse, SimplifierConnectorDetails, SimplifierConnectorListResponse,
     SimplifierDataType,
     SimplifierDataTypesResponse,
     SimplifierDataTypeUpdate,
@@ -200,5 +202,26 @@ export class SimplifierClient {
   async deleteDataType(name: string, nameSpace: string | undefined): Promise<string> {
     const fullDataType = `${nameSpace ? nameSpace + '/' : ''}${name}`
     return this.makePlaintextRequest(`/UserInterface/api/datatypes/${fullDataType}`, { method: "DELETE" });
+  }
+
+  // ========================================
+  // Connector API Methods
+  // ========================================
+
+  async listConnectors(): Promise<SimplifierConnectorListResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/connectors`);
+  }
+
+  async getConnector(name: string, withEndpointConfigurations: boolean = true): Promise<SimplifierConnectorDetails> {
+    const params = withEndpointConfigurations ? '' : '?withEndpointConfigurations=false';
+    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${name}${params}`);
+  }
+
+  async listConnectorCalls(connectorName: string): Promise<SimplifierConnectorCallsResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls`);
+  }
+
+  async getConnectorCall(connectorName: string, callName: string): Promise<SimplifierConnectorCallDetails> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`);
   }
 }
