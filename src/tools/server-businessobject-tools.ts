@@ -107,6 +107,9 @@ Simplifier.BusinessObject.<BOName>.<MethodName>(payload?)
 
 // Access current Business Object methods
 Simplifier.CurrentBusinessObject.<MethodName>(payload?)
+
+// Access connector calls (find the available connector calls via resources)
+Simplifier.Connector.<ConnectorName>.<ConnectorCallName>(payload?)
 \`\`\`
 
 ### Examples

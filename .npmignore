@@ -19,6 +19,7 @@ azure-pipelines.yml
 .vscode/
 *.iml
 .claude/
+.serena/
 
 # Git
 .git/
