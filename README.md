@@ -11,16 +11,14 @@ The Simplifier MCP Server allows AI assistants to interact with the Simplifier L
 - **Execute BusinessObjects**: Run JavaScript functions with parameters and retrieve results
 - **Access platform resources**: Browse connectors, business objects, and system information
 
-
-## Installation & Setup
-### End user Installation
-```bash
-  npm install @simplifierag/simplifier-mcp
-```
-
 ## Usage
 
-### Example configuration for claude code to use the MCP
+### Add the MCP to claude code
+```
+claude mcp add --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud -- simplifier npx @simplifierag/simplifier-mcp@latest
+```
+
+### or use this example configuration for claude code to use the MCP
 e.g. in a file named .mcp.json placed in the directory, where claude is started.
 ```
 {
@@ -29,7 +27,7 @@ e.g. in a file named .mcp.json placed in the directory, where claude is started.
       "type": "stdio",
       "command": "npx",
       "args": [ 
-        "@simplifierag/simplifier-mcp"
+        "@simplifierag/simplifier-mcp@latest"
       ],
       "env": {
         "SIMPLIFIER_BASE_URL": "https://<yourinstance>-dev.simplifier.cloud",
