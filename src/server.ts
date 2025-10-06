@@ -24,7 +24,13 @@ This server provides access to Simplifier's REST API for managing connectors, bu
 - **Float** (ID: C09139C72F5A8A7E0036BA66CE301748BD617F463683EE03F92EDAAAA4AF8BC7): BaseType for floats 
 - **Any** (ID: D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB): BaseType for Any (makes sense as initial return type of BO functions)
 
-Additional data types (domain, struct, collection) are organized by namespace and accessible via resources.`,
+Additional data types (domain, struct, collection) are organized by namespace and accessible via resources.
+
+## Business objects
+Simplifier represents pieces of custom Javascript code as functions grouped in business objects. There are
+Simplifier-specific APIs available in business object code. Refer to the documentation in the resources when using those,
+do not guess or try to find the available methods via debugging.
+`,
       },
       {
         capabilities: {

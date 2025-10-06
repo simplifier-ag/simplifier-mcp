@@ -6,6 +6,7 @@ import {registerConnectorResources} from "./connector-resources.js";
 import {registerUserApiDocumentation} from "./documentation/user-api-documentation.js";
 import {registerLoggingApiDocumentation} from "./documentation/logging-api-documentation.js";
 import {registerUtilsApiDocumentation} from "./documentation/utils-api-documentation.js";
+import { registerConnectorApiDocumentation } from "./documentation/connector-api-documentation.js";
 
 /**
  * Resources for Simplifier Low Code Platform integration
@@ -14,7 +15,9 @@ export function registerResources(server: McpServer, simplifier: SimplifierClien
   registerServerBusinessObjectResources(server, simplifier);
   registerDataTypesResources(server, simplifier);
   registerConnectorResources(server, simplifier);
+
   registerUserApiDocumentation(server);
   registerLoggingApiDocumentation(server);
   registerUtilsApiDocumentation(server);
+  registerConnectorApiDocumentation(server);
 }
