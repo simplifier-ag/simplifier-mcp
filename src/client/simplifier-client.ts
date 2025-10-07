@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import { login } from "./basicauth.js";
 import {
     BusinessObjectTestRequest, BusinessObjectTestResponse,
+    ConnectorTestRequest, ConnectorTestResponse,
     SimplifierApiResponse,
     SimplifierBusinessObjectDetails,
     SimplifierBusinessObjectFunction,
@@ -223,5 +224,13 @@ export class SimplifierClient {
 
   async getConnectorCall(connectorName: string, callName: string): Promise<SimplifierConnectorCallDetails> {
     return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`);
+  }
+
+
+  async testConnectorCall(connectorName: string, callName: string, testRequest: ConnectorTestRequest): Promise<ConnectorTestResponse> {
+    return await this.makeUnwrappedRequest(`/UserInterface/api/connectortest/${connectorName}/calls/${callName}`, {
+      method: "POST",
+      body: JSON.stringify(testRequest)
+    });
   }
 }
