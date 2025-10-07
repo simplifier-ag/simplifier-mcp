@@ -187,6 +187,20 @@ export class SimplifierClient {
     return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${fullDataType}`, { method: "GET" });
   }
 
+  /**
+   * Get detailed information about a specific datatype by its full identifier.
+   *
+   * @param datatypeId - The fully qualified datatype identifier, which is namespace/datatypename.
+   *                     For root namespace (no namespace), use just the datatype name without slash.
+   *                     Examples:
+   *                     - "bo/SF_User/getUser_groups_Struct" (business object datatype with namespace)
+   *                     - "_ITIZ_B_BUS2038_DATA" (datatype in root namespace)
+   * @returns Detailed datatype information including fields, category, and metadata
+   */
+  async getDataTypeById(datatypeId: string): Promise<SimplifierDataType> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${datatypeId}?woAutoGen=false&detailLevel=detailed`, { method: "GET" });
+  }
+
   async createDataType(datatypeDesc: SimplifierDataTypeUpdate): Promise<string> {
     const fullDataType = `${datatypeDesc.nameSpace ? datatypeDesc.nameSpace + '/' : ''}${datatypeDesc.name}`
     return this.makePlaintextRequest(`/UserInterface/api/datatypes`, { method: "POST", body: JSON.stringify(datatypeDesc) })

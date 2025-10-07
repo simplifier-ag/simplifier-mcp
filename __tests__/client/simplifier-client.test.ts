@@ -673,4 +673,114 @@ describe('SimplifierClient', () => {
       expect(result.connectorCallParameters[0].name).toBe('id');
     });
   });
+
+  describe('getDataTypeById', () => {
+    it('should call getDataTypeById endpoint with fully qualified datatype id (namespace/name)', async () => {
+      const mockResponse = {
+        id: "B5CEB602A6EEFBAFA6585B64E7D6AAAB03D0D5CD6701BCFE4F0F5EAA712CB884",
+        name: "getUser_groups_Struct",
+        nameSpace: "bo/SF_User",
+        category: "struct",
+        description: "auto generated data type",
+        isStruct: true,
+        fields: [
+          {
+            name: "description",
+            dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+            dtName: "String",
+            optional: true,
+            description: "auto generated field"
+          },
+          {
+            name: "id",
+            dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+            dtName: "Integer",
+            optional: true,
+            description: "auto generated field"
+          }
+        ],
+        properties: [],
+        editable: false,
+        tags: [],
+        assignedProjects: {
+          projectsBefore: [],
+          projectsAfterChange: []
+        }
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.getDataTypeById('bo/SF_User/getUser_groups_Struct');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://some.test/UserInterface/api/datatypes/bo/SF_User/getUser_groups_Struct?woAutoGen=false&detailLevel=detailed',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+        })
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(result.nameSpace).toBe('bo/SF_User');
+      expect(result.name).toBe('getUser_groups_Struct');
+    });
+
+    it('should call getDataTypeById endpoint with root namespace datatype (no namespace)', async () => {
+      const mockResponse = {
+        id: "ABC123",
+        name: "_ITIZ_B_BUS2038_DATA",
+        category: "domain",
+        description: "Custom data type in root namespace",
+        isStruct: false,
+        fields: [],
+        properties: [],
+        editable: true,
+        tags: [],
+        assignedProjects: {
+          projectsBefore: [],
+          projectsAfterChange: []
+        }
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.getDataTypeById('_ITIZ_B_BUS2038_DATA');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://some.test/UserInterface/api/datatypes/_ITIZ_B_BUS2038_DATA?woAutoGen=false&detailLevel=detailed',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+        })
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(result.name).toBe('_ITIZ_B_BUS2038_DATA');
+    });
+
+    it('should handle 404 error when datatype not found', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => 'Datatype not found'
+      } as Response);
+
+      await expect(client.getDataTypeById('nonexistent/datatype'))
+        .rejects
+        .toThrow("Failed request GET http://some.test/UserInterface/api/datatypes/nonexistent/datatype?woAutoGen=false&detailLevel=detailed: HTTP 404: Not Found");
+    });
+  });
 });

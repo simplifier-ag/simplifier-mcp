@@ -25,6 +25,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
     // Create mock client
     mockClient = {
       getDataTypes: jest.fn(),
+      getDataTypeById: jest.fn(),
     } as any;
 
     // Get the mocked wrapResourceResult
@@ -136,10 +137,10 @@ describe('DataTypes Resources (Namespace-based)', () => {
   };
 
   describe('registerDataTypesResources', () => {
-    it('should register three namespace-based datatypes resources', () => {
+    it('should register five datatypes resources', () => {
       registerDataTypesResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(3);
+      expect(mockServer.resource).toHaveBeenCalledTimes(5);
 
       // Check that specific resources are registered
       const calls = mockServer.resource.mock.calls;
@@ -148,6 +149,8 @@ describe('DataTypes Resources (Namespace-based)', () => {
       expect(resourceNames).toContain('datatypes-namespaces-list');
       expect(resourceNames).toContain('datatypes-root-namespace');
       expect(resourceNames).toContain('datatypes-by-namespace');
+      expect(resourceNames).toContain('datatype-with-namespace');
+      expect(resourceNames).toContain('datatype-root');
     });
 
     describe('namespaces handler', () => {
@@ -193,8 +196,11 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(resultData.availableResources).toHaveLength(4); // root + 3 namespaces
         expect(resultData.resourcePatterns).toEqual([
           "simplifier://datatypes/namespace/ - Root namespace datatypes",
-          "simplifier://datatypes/namespace/{namespace} - Datatypes by specific namespace"
+          "simplifier://datatypes/namespace/{namespace} - Datatypes by specific namespace",
+          "simplifier://datatype/{dataTypeName} - Single datatype in root namespace",
+          "simplifier://datatype/{namespace}/{dataTypeName} - Single datatype in specific namespace"
         ]);
+        expect(resultData.recommendation).toContain("prefer using the single datatype patterns");
       });
     });
 
@@ -305,19 +311,230 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(result.contents[0].text).toContain('API Error');
       });
     });
-  });
 
-  describe('template resource configuration', () => {
-    it('should register all datatype resources successfully', () => {
-      registerDataTypesResources(mockServer, mockClient);
+    describe('single datatype with namespace handler', () => {
+      let singleDatatypeWithNamespaceHandler: any;
 
-      // Verify that all three resources are registered
-      expect(mockServer.resource).toHaveBeenCalledTimes(3);
+      beforeEach(() => {
+        registerDataTypesResources(mockServer, mockClient);
+        singleDatatypeWithNamespaceHandler = mockServer.resource.mock.calls[3][3]; // Fourth resource (datatype with namespace)
+      });
 
-      // Verify resource names
-      expect(mockServer.resource).toHaveBeenCalledWith('datatypes-namespaces-list', expect.any(String), expect.any(Object), expect.any(Function));
-      expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
-      expect(mockServer.resource).toHaveBeenCalledWith('datatypes-by-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
+      it('should return single datatype with namespace', async () => {
+        const testUri = new URL('simplifier://datatype/bo/SF_User/getUser_groups_Struct');
+        const mockDatatype = {
+          id: "B5CEB602A6EEFBAFA6585B64E7D6AAAB03D0D5CD6701BCFE4F0F5EAA712CB884",
+          name: "getUser_groups_Struct",
+          nameSpace: "bo/SF_User",
+          category: "struct" as const,
+          description: "auto generated data type",
+          baseType: "Any",
+          isStruct: true,
+          fields: [
+            {
+              name: "description",
+              dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+              dtName: "String",
+              optional: true,
+              description: "auto generated field"
+            }
+          ],
+          properties: [],
+          editable: false,
+          tags: [],
+          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+        };
+
+        mockClient.getDataTypeById.mockResolvedValue(mockDatatype);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await singleDatatypeWithNamespaceHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('bo/SF_User/getUser_groups_Struct');
+        const resultData = JSON.parse(result.contents[0].text as string);
+        expect(resultData.name).toBe('getUser_groups_Struct');
+        expect(resultData.nameSpace).toBe('bo/SF_User');
+        expect(resultData.category).toBe('struct');
+        expect(resultData.fields).toHaveLength(1);
+      });
+
+      it('should handle errors through wrapResourceResult', async () => {
+        const testUri = new URL('simplifier://datatype/nonexistent/MyType');
+        const testError = new Error('Datatype not found');
+
+        mockClient.getDataTypeById.mockRejectedValue(testError);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          try {
+            await fn();
+            return {
+              contents: [{
+                uri: uri.href,
+                text: JSON.stringify({error: 'Should not reach here'}),
+                mimeType: 'application/json'
+              }]
+            };
+          } catch (e) {
+            return {
+              contents: [{
+                uri: uri.href,
+                text: JSON.stringify({error: `Could not get data! ${e}`}),
+                mimeType: 'application/json'
+              }]
+            };
+          }
+        });
+
+        const result = await singleDatatypeWithNamespaceHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('nonexistent/MyType');
+        expect(result.contents[0].text).toContain('Could not get data!');
+        expect(result.contents[0].text).toContain('Datatype not found');
+      });
+    });
+
+    describe('single datatype root namespace handler', () => {
+      let singleDatatypeRootHandler: any;
+
+      beforeEach(() => {
+        registerDataTypesResources(mockServer, mockClient);
+        singleDatatypeRootHandler = mockServer.resource.mock.calls[4][3]; // Fifth resource (datatype root)
+      });
+
+      it('should return single datatype from root namespace', async () => {
+        const testUri = new URL('simplifier://datatype/_ITIZ_B_BUS2038_DATA');
+        const mockDatatype = {
+          id: "ABC123",
+          name: "_ITIZ_B_BUS2038_DATA",
+          category: "domain" as const,
+          description: "Custom data type in root namespace",
+          baseType: "String",
+          isStruct: false,
+          fields: [],
+          properties: [],
+          editable: true,
+          tags: [],
+          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+        };
+
+        mockClient.getDataTypeById.mockResolvedValue(mockDatatype);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await singleDatatypeRootHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('_ITIZ_B_BUS2038_DATA');
+        const resultData = JSON.parse(result.contents[0].text as string);
+        expect(resultData.name).toBe('_ITIZ_B_BUS2038_DATA');
+        expect(resultData.nameSpace).toBeUndefined();
+        expect(resultData.category).toBe('domain');
+      });
+
+      it('should return base type (String)', async () => {
+        const testUri = new URL('simplifier://datatype/String');
+        const mockDatatype = {
+          id: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+          name: "String",
+          category: "base" as const,
+          description: "BaseType for strings",
+          baseType: "String",
+          isStruct: false,
+          fields: [],
+          properties: [{ name: "Operators", value: "==, !=" }],
+          editable: true,
+          tags: [],
+          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+        };
+
+        mockClient.getDataTypeById.mockResolvedValue(mockDatatype);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await singleDatatypeRootHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('String');
+        const resultData = JSON.parse(result.contents[0].text as string);
+        expect(resultData.name).toBe('String');
+        expect(resultData.category).toBe('base');
+      });
+
+      it('should handle errors through wrapResourceResult', async () => {
+        const testUri = new URL('simplifier://datatype/nonexistent_datatype');
+        const testError = new Error('Datatype not found');
+
+        mockClient.getDataTypeById.mockRejectedValue(testError);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          try {
+            await fn();
+            return {
+              contents: [{
+                uri: uri.href,
+                text: JSON.stringify({error: 'Should not reach here'}),
+                mimeType: 'application/json'
+              }]
+            };
+          } catch (e) {
+            return {
+              contents: [{
+                uri: uri.href,
+                text: JSON.stringify({error: `Could not get data! ${e}`}),
+                mimeType: 'application/json'
+              }]
+            };
+          }
+        });
+
+        const result = await singleDatatypeRootHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('nonexistent_datatype');
+        expect(result.contents[0].text).toContain('Could not get data!');
+        expect(result.contents[0].text).toContain('Datatype not found');
+      });
+    });
+
+    describe('template resource configuration', () => {
+      it('should register all datatype resources successfully', () => {
+        registerDataTypesResources(mockServer, mockClient);
+
+        // Verify that all five resources are registered
+        expect(mockServer.resource).toHaveBeenCalledTimes(5);
+
+        // Verify resource names
+        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-namespaces-list', expect.any(String), expect.any(Object), expect.any(Function));
+        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
+        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-by-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
+        expect(mockServer.resource).toHaveBeenCalledWith('datatype-with-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
+        expect(mockServer.resource).toHaveBeenCalledWith('datatype-root', expect.any(Object), expect.any(Object), expect.any(Function));
+      });
     });
   });
 });
