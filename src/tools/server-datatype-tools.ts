@@ -23,6 +23,9 @@ Datatypes for connectors should be in the namespace "con/$name_of_connector", th
 
   const datatypeDeleteDescription = `#Delete a datatype
 Deletes the datatype with the given name. The name may be prefixed by the namespace, separated with a slash.
+
+Datatypes can only be deleted, if they aren't in use anymore. This also means that to delete a struct type, the top level
+struct has to be deleted first before the field types can be deleted.
 `;
 
   server.tool("datatype-update",
