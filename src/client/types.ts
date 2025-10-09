@@ -243,6 +243,20 @@ export interface SimplifierConnector {
   };
 }
 
+export interface SimplifierConnectorUpdate {
+  name: string;
+  description: string;
+  connectorType: string;
+  endpointConfiguration?: DetailedEndpoint | undefined;
+  active: boolean;
+  timeoutTime: number;
+  tags: string[];
+  assignedProjects: {
+    projectsBefore: string[];
+    projectsAfterChange: string[];
+  };
+}
+
 interface SimpleEndpoint {
     endpointName: string;
     endpointType: string;
@@ -250,7 +264,7 @@ interface SimpleEndpoint {
 
 interface DetailedEndpoint {
     endpoint: string;
-    loginMethodName: string;
+    loginMethodName?: string;
     certificates: string[];
     /* contents of configuration differ based on connector type */
     configuration?: any;

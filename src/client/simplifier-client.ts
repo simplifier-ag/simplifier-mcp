@@ -1,16 +1,17 @@
 import { config } from '../config.js';
 import { login } from "./basicauth.js";
 import {
-    BusinessObjectTestRequest, BusinessObjectTestResponse,
-    SimplifierApiResponse,
-    SimplifierBusinessObjectDetails,
-    SimplifierBusinessObjectFunction,
-    SimplifierConnectorCallDetails,
-    SimplifierConnectorCallsResponse, SimplifierConnectorDetails, SimplifierConnectorListResponse,
-    SimplifierDataType,
-    SimplifierDataTypesResponse,
-    SimplifierDataTypeUpdate,
-    UnwrappedSimplifierApiResponse
+  BusinessObjectTestRequest, BusinessObjectTestResponse,
+  SimplifierApiResponse,
+  SimplifierBusinessObjectDetails,
+  SimplifierBusinessObjectFunction,
+  SimplifierConnectorCallDetails,
+  SimplifierConnectorCallsResponse, SimplifierConnectorDetails, SimplifierConnectorListResponse,
+  SimplifierConnectorUpdate,
+  SimplifierDataType,
+  SimplifierDataTypesResponse,
+  SimplifierDataTypeUpdate,
+  UnwrappedSimplifierApiResponse
 } from './types.js';
 
 /**
@@ -176,6 +177,16 @@ export class SimplifierClient {
   async updateServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) })
       .then(() => `Successfully updated Business Object '${oData.name}'`);
+  }
+
+  async createConnector(oData: SimplifierConnectorUpdate): Promise<string> {
+    await this.makeRequest(`/UserInterface/api/connectors`, { method: "POST", body: JSON.stringify(oData) });
+    return `Successfully created Connector '${oData.name}'`;
+  }
+
+  async updateConnector(oData: SimplifierConnectorUpdate): Promise<string> {
+    await this.makeRequest(`/UserInterface/api/connectors/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) });
+    return `Successfully updated Connector '${oData.name}'`;
   }
 
   async getDataTypes(): Promise<SimplifierDataTypesResponse> {
