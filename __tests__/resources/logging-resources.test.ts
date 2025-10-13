@@ -27,7 +27,8 @@ describe('Logging Resources', () => {
 
     // Create mock client
     mockClient = {
-      listLogEntries: jest.fn(),
+      listLogEntriesPaginated: jest.fn(),
+      getLogPages: jest.fn(),
       getLogEntry: jest.fn(),
     } as any;
 
@@ -118,7 +119,8 @@ describe('Logging Resources', () => {
 
       it('should return log entries list through wrapper', async () => {
         const testUri = new URL('simplifier://logging');
-        mockClient.listLogEntries.mockResolvedValue(mockLogListResponse);
+        mockClient.listLogEntriesPaginated.mockResolvedValue(mockLogListResponse);
+        mockClient.getLogPages.mockResolvedValue({ pages: 1, pagesize: 50 });
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           const result = await fn();
@@ -133,7 +135,8 @@ describe('Logging Resources', () => {
 
         const result = await loggingListHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.listLogEntries).toHaveBeenCalledWith({});
+        expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, {});
+        expect(mockClient.getLogPages).toHaveBeenCalledWith(50, {});
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.logs).toHaveLength(2);
         expect(resultData.totalCount).toBe(2);
@@ -142,9 +145,10 @@ describe('Logging Resources', () => {
         expect(resultData.logs[0].levelName).toBe('Error');
       });
 
-      it('should filter by log level', async () => {
-        const testUri = new URL('simplifier://logging?logLevel=3');
-        mockClient.listLogEntries.mockResolvedValue(mockLogListResponse);
+      it('should return note about using tool for filtering', async () => {
+        const testUri = new URL('simplifier://logging');
+        mockClient.listLogEntriesPaginated.mockResolvedValue(mockLogListResponse);
+        mockClient.getLogPages.mockResolvedValue({ pages: 1, pagesize: 50 });
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           const result = await fn();
@@ -159,63 +163,14 @@ describe('Logging Resources', () => {
 
         const result = await loggingListHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.listLogEntries).toHaveBeenCalledWith({ logLevel: 3 });
         const resultData = JSON.parse(result.contents[0].text as string);
-        expect(resultData.filters.logLevel).toBe(3);
-      });
-
-      it('should filter by since parameter', async () => {
-        const testUri = new URL('simplifier://logging?since=2025-01-01T00:00:00Z');
-        mockClient.listLogEntries.mockResolvedValue(mockLogListResponse);
-
-        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
-          const result = await fn();
-          return {
-            contents: [{
-              uri: uri.href,
-              text: JSON.stringify(result, null, 2),
-              mimeType: 'application/json'
-            }]
-          };
-        });
-
-        const result = await loggingListHandler(testUri, {}, createMockExtra());
-
-        expect(mockClient.listLogEntries).toHaveBeenCalledWith({ since: '2025-01-01T00:00:00Z' });
-        const resultData = JSON.parse(result.contents[0].text as string);
-        expect(resultData.filters.since).toBe('2025-01-01T00:00:00Z');
-      });
-
-      it('should filter by from and until parameters', async () => {
-        const testUri = new URL('simplifier://logging?from=2025-01-01T00:00:00Z&until=2025-01-31T23:59:59Z');
-        mockClient.listLogEntries.mockResolvedValue(mockLogListResponse);
-
-        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
-          const result = await fn();
-          return {
-            contents: [{
-              uri: uri.href,
-              text: JSON.stringify(result, null, 2),
-              mimeType: 'application/json'
-            }]
-          };
-        });
-
-        const result = await loggingListHandler(testUri, {}, createMockExtra());
-
-        expect(mockClient.listLogEntries).toHaveBeenCalledWith({
-          from: '2025-01-01T00:00:00Z',
-          until: '2025-01-31T23:59:59Z'
-        });
-        const resultData = JSON.parse(result.contents[0].text as string);
-        expect(resultData.filters.from).toBe('2025-01-01T00:00:00Z');
-        expect(resultData.filters.until).toBe('2025-01-31T23:59:59Z');
+        expect(resultData.note).toContain('logging-list tool');
       });
 
       it('should handle API errors through wrapper', async () => {
         const testUri = new URL('simplifier://logging');
         const testError = new Error('API Error');
-        mockClient.listLogEntries.mockRejectedValue(testError);
+        mockClient.listLogEntriesPaginated.mockRejectedValue(testError);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           try {
@@ -234,7 +189,7 @@ describe('Logging Resources', () => {
 
         const result = await loggingListHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.listLogEntries).toHaveBeenCalled();
+        expect(mockClient.listLogEntriesPaginated).toHaveBeenCalled();
         expect(result.contents[0].text).toContain('Failed to fetch');
         expect(result.contents[0].text).toContain('API Error');
       });
@@ -341,7 +296,8 @@ describe('Logging Resources', () => {
           { id: '5', entryDate: '2025-01-15T10:00:00Z', level: 4, messageKey: 'critical', messageParams: [], hasDetails: false, category: 'Test' }
         ]
       };
-      mockClient.listLogEntries.mockResolvedValue(responseWithDifferentLevels);
+      mockClient.listLogEntriesPaginated.mockResolvedValue(responseWithDifferentLevels);
+      mockClient.getLogPages.mockResolvedValue({ pages: 1, pagesize: 50 });
 
       registerLoggingResources(mockServer, mockClient);
       const loggingListHandler = mockServer.resource.mock.calls[0][3];
