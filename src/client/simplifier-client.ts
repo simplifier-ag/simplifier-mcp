@@ -263,27 +263,8 @@ export class SimplifierClient {
   }
 
   // Logging API methods
-  async listLogEntries(options?: SimplifierLogListOptions): Promise<SimplifierLogListResponse> {
-    const params = new URLSearchParams();
-    if (options?.logLevel !== undefined) params.append('logLevel', options.logLevel.toString());
-    if (options?.since) params.append('since', options.since);
-    if (options?.from) params.append('from', options.from);
-    if (options?.until) params.append('until', options.until);
-
-    const queryString = params.toString();
-    const url = queryString 
-      ? `/UserInterface/api/logging/list?${queryString}`
-      : '/UserInterface/api/logging/list';
-    
-    return await this.makeUnwrappedRequest(url);
-  }
-
   async listLogEntriesPaginated(pageNo: number, pageSize: number, options?: SimplifierLogListOptions): Promise<SimplifierLogListResponse> {
-    const params = new URLSearchParams();
-    if (options?.logLevel !== undefined) params.append('logLevel', options.logLevel.toString());
-    if (options?.since) params.append('since', options.since);
-    if (options?.from) params.append('from', options.from);
-    if (options?.until) params.append('until', options.until);
+    const params = this.optionsToQueryParams(options)
 
     const queryString = params.toString();
     const url = queryString
@@ -293,11 +274,23 @@ export class SimplifierClient {
     return await this.makeUnwrappedRequest(url);
   }
 
-  async getLogPages(pageSize: number = 25): Promise<SimplifierLogPagesResponse> {
-    return await this.makeUnwrappedRequest(`/UserInterface/api/logging/pages?pagesize=${pageSize}`);
+  async getLogPages(pageSize: number = 50, options?: SimplifierLogListOptions): Promise<SimplifierLogPagesResponse> {
+    const params = this.optionsToQueryParams(options)
+    params.append('pagesize', pageSize.toString())
+
+    return await this.makeUnwrappedRequest(`/UserInterface/api/logging/pages?${params}`);
   }
 
   async getLogEntry(id: string): Promise<SimplifierLogEntryDetails> {
     return await this.makeUnwrappedRequest(`/UserInterface/api/logging/entry/${id}`);
+  }
+
+  optionsToQueryParams(options?: SimplifierLogListOptions): URLSearchParams {
+    const params = new URLSearchParams();
+    if (options?.logLevel !== undefined) params.append('logLevel', options.logLevel.toString());
+    if (options?.since) params.append('since', options.since);
+    if (options?.from) params.append('from', options.from);
+    if (options?.until) params.append('until', options.until);
+    return params;
   }
 }

@@ -10,7 +10,10 @@ export function registerLoggingResources(server: McpServer, simplifier: Simplifi
   const DEFAULT_PAGE_SIZE = 50
 
   // Main discoverable logging resource - shows up in resources/list
-  server.resource("logging-list", "simplifier://logging", {
+  // Uses ResourceTemplate with query parameters for filtering
+  const loggingListTemplate = new ResourceTemplate("simplifier://logging{?logLevel,since,from,until,pageSize,page}", noListCallback);
+
+  server.resource("logging-list", loggingListTemplate, {
       title: "Simplifier Log Entries",
       mimeType: "application/json",
       description: `# Get recent log entries from Simplifier
@@ -26,7 +29,8 @@ parameters. If no filters are used, it returns the ${DEFAULT_PAGE_SIZE} most rec
 - 4 = Critical
 
 **Query Parameters:**
-- amount: Maximum number of log entries to return, defaults to 50.
+- pageSize: number of log entries to return in one request, defaults to ${DEFAULT_PAGE_SIZE}.
+- page: if more than "pageSize" entries are available, this can be used for accessing later pages. Starts at 0, defaults to 0.
 - logLevel: Filter by minimum log level (0-4)
 - since: ISO timestamp for entries since this time
 - from/until: ISO timestamps for a time range (must be used together)
@@ -45,7 +49,8 @@ parameters. If no filters are used, it returns the ${DEFAULT_PAGE_SIZE} most rec
         const since = uri.searchParams.get('since');
         const from = uri.searchParams.get('from');
         const until = uri.searchParams.get('until');
-        const amount = uri.searchParams.get('amount');
+        const pageSizeStr = uri.searchParams.get('pageSize');
+        const pageStr = uri.searchParams.get('page');
 
         const options: SimplifierLogListOptions = {};
         if (logLevel !== null) options.logLevel = parseInt(logLevel, 10);
@@ -55,9 +60,11 @@ parameters. If no filters are used, it returns the ${DEFAULT_PAGE_SIZE} most rec
             options.until = until;
         }
 
-        const pageSize = amount !== null ? parseInt(amount, 10) : DEFAULT_PAGE_SIZE;
+        const pageSize = pageSizeStr !== null ? parseInt(pageSizeStr, 10) : DEFAULT_PAGE_SIZE;
+        const page = pageStr !== null ? parseInt(pageStr, 10) : 0;
 
-        const response = await simplifier.listLogEntriesPaginated(0, pageSize, options);
+        const response = await simplifier.listLogEntriesPaginated(page, pageSize, options);
+        const pageCount = await simplifier.getLogPages(pageSize, options)
 
         const logEntryResources = response.list.map(entry => ({
           uri: `simplifier://logging/entry/${entry.id}`,
@@ -73,6 +80,9 @@ parameters. If no filters are used, it returns the ${DEFAULT_PAGE_SIZE} most rec
         return {
           logs: logEntryResources,
           totalCount: response.list.length,
+          page: page,
+          pageSize: pageSize,
+          totalPages: pageCount.pages,
           filters: {
             logLevel: options.logLevel,
             since: options.since,
