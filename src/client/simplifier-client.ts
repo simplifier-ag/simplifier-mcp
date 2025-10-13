@@ -1,17 +1,17 @@
 import { config } from '../config.js';
 import { login } from "./basicauth.js";
 import {
-  BusinessObjectTestRequest, BusinessObjectTestResponse,
-  SimplifierApiResponse,
-  SimplifierBusinessObjectDetails,
-  SimplifierBusinessObjectFunction,
-  SimplifierConnectorCallDetails,
-  SimplifierConnectorCallsResponse, SimplifierConnectorDetails, SimplifierConnectorListResponse,
-  SimplifierConnectorUpdate,
-  SimplifierDataType,
-  SimplifierDataTypesResponse,
-  SimplifierDataTypeUpdate,
-  UnwrappedSimplifierApiResponse
+    BusinessObjectTestRequest, BusinessObjectTestResponse,
+    SimplifierApiResponse,
+    SimplifierBusinessObjectDetails,
+    SimplifierBusinessObjectFunction,
+    SimplifierConnectorCallDetails,
+    SimplifierConnectorCallsResponse, SimplifierConnectorDetails, SimplifierConnectorListResponse,
+    SimplifierConnectorUpdate, ConnectorTestRequest, ConnectorTestResponse,
+    SimplifierDataType,
+    SimplifierDataTypesResponse,
+    SimplifierDataTypeUpdate,
+    UnwrappedSimplifierApiResponse
 } from './types.js';
 
 /**
@@ -248,5 +248,13 @@ export class SimplifierClient {
 
   async getConnectorCall(connectorName: string, callName: string): Promise<SimplifierConnectorCallDetails> {
     return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`);
+  }
+
+
+  async testConnectorCall(connectorName: string, callName: string, testRequest: ConnectorTestRequest): Promise<ConnectorTestResponse> {
+    return await this.makeUnwrappedRequest(`/UserInterface/api/connectortest/${connectorName}/calls/${callName}`, {
+      method: "POST",
+      body: JSON.stringify(testRequest)
+    });
   }
 }

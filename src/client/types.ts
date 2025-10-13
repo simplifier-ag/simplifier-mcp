@@ -210,6 +210,22 @@ export interface BusinessObjectTestResponse {
   message?: string;
 }
 
+export interface ConnectorTestParameter {
+  name: string;
+  value: unknown;
+}
+
+export interface ConnectorTestRequest {
+  parameters: ConnectorTestParameter[];
+}
+
+export interface ConnectorTestResponse {
+  success: boolean;
+  result?: { result?: unknown };
+  error?: string;
+  message?: string;
+}
+
 /**
  * Connector Types
  */
