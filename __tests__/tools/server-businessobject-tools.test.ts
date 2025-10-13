@@ -156,23 +156,22 @@ describe('registerServerBusinessObjectResources', () => {
       expect(() => schema.name.parse(null)).toThrow();
     });
 
-    it('should allow optional fields to be omitted', () => {
+    it('should require description, dependencies, and tags fields', () => {
       registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
 
       const toolCall = mockServer.tool.mock.calls[0];
       const schema = toolCall[2];
 
-      // Test that optional fields can be undefined
-      expect(() => schema.description.parse(undefined)).not.toThrow();
-      expect(() => schema.dependencies.parse(undefined)).not.toThrow();
-      expect(() => schema.tags.parse(undefined)).not.toThrow();
+      // Test that description, dependencies, and tags are now required (will throw on undefined)
+      expect(() => schema.description.parse(undefined)).toThrow();
+      expect(() => schema.dependencies.parse(undefined)).toThrow();
+      expect(() => schema.tags.parse(undefined)).toThrow();
+
+      // Test that projectsBefore and projectsAfterChange can still be undefined (have defaults)
       expect(() => schema.projectsBefore.parse(undefined)).not.toThrow();
       expect(() => schema.projectsAfterChange.parse(undefined)).not.toThrow();
 
-      // Test default values are applied
-      expect(schema.description.parse(undefined)).toBe("");
-      expect(schema.dependencies.parse(undefined)).toEqual([]);
-      expect(schema.tags.parse(undefined)).toEqual([]);
+      // Test default values are applied for fields that have defaults
       expect(schema.projectsBefore.parse(undefined)).toEqual([]);
       expect(schema.projectsAfterChange.parse(undefined)).toEqual([]);
     });
@@ -295,10 +294,66 @@ describe('registerServerBusinessObjectResources', () => {
       );
     });
 
+    it('should update with all required fields provided', async () => {
+      const testParams = {
+        name: "ExistingBO",
+        description: "Updated description",
+        dependencies: [{ refType: "connector", name: "newConnector" }],
+        tags: ["updated", "v2"]
+        // All required fields must now be provided
+      };
+
+      const existingBO: SimplifierBusinessObjectDetails = {
+        name: "ExistingBO",
+        description: "Old description",
+        dependencies: [{ refType: "connector", name: "existingConnector" }],
+        functionNames: ["test"],
+        editable: true,
+        deletable: true,
+        tags: ["important", "production"],
+        assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+      };
+
+      const expectedData = {
+        name: "ExistingBO",
+        description: "Updated description",
+        dependencies: [{ refType: "connector", name: "newConnector" }],
+        tags: ["updated", "v2"],
+        assignedProjects: {
+          projectsBefore: [],
+          projectsAfterChange: []
+        }
+      };
+
+      const expectedResponse = "Updated successfully";
+
+      // Mock that business object exists
+      mockSimplifierClient.getServerBusinessObjectDetails.mockResolvedValue(existingBO);
+
+      // Mock successful update
+      mockSimplifierClient.updateServerBusinessObject.mockResolvedValue(expectedResponse);
+
+      // Mock wrapToolResult
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        const result = await fn();
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+        };
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.getServerBusinessObjectDetails).toHaveBeenCalledWith("ExistingBO");
+      expect(mockSimplifierClient.updateServerBusinessObject).toHaveBeenCalledWith(expect.objectContaining(expectedData));
+      expect(mockSimplifierClient.createServerBusinessObject).not.toHaveBeenCalled();
+    });
+
     it('should return the string response from API', async () => {
       const testParams = {
         name: "TestBO",
-        description: "Test business object"
+        description: "Test business object",
+        dependencies: [],
+        tags: []
       };
 
       const expectedResponse = "Created successfully";
@@ -325,10 +380,13 @@ describe('registerServerBusinessObjectResources', () => {
       expect(mockWrapToolResult).toHaveBeenCalled();
     });
 
-    it('should handle minimal data with optional fields', async () => {
+    it('should handle minimal data with required fields provided', async () => {
       const testParams = {
-        name: "MinimalBO"
-        // Optional fields will get defaults from Zod schema: description="", dependencies=[], tags=[]
+        name: "MinimalBO",
+        description: "Minimal BO",
+        dependencies: [],
+        tags: []
+        // description, dependencies, and tags are now required
       };
 
       const expectedResponse = "Created";
@@ -352,7 +410,10 @@ describe('registerServerBusinessObjectResources', () => {
       // Verify that createServerBusinessObject was called
       expect(mockSimplifierClient.createServerBusinessObject).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: "MinimalBO"
+          name: "MinimalBO",
+          description: "Minimal BO",
+          dependencies: [],
+          tags: []
         })
       );
     });
@@ -396,6 +457,9 @@ describe('registerServerBusinessObjectResources', () => {
     it('should properly update project assignments when updating a BO', async () => {
       const testParams = {
         name: "ExistingBO",
+        description: "Existing",
+        dependencies: [],
+        tags: [],
         projectsBefore: ["ProjectA"],
         projectsAfterChange: ["ProjectB"]
       };
@@ -426,6 +490,9 @@ describe('registerServerBusinessObjectResources', () => {
       expect(mockSimplifierClient.updateServerBusinessObject).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "ExistingBO",
+          description: "Existing",
+          dependencies: [],
+          tags: [],
           assignedProjects: {
             projectsBefore: ["ProjectA"],
             projectsAfterChange: ["ProjectB"]
@@ -446,7 +513,9 @@ describe('registerServerBusinessObjectResources', () => {
     it('should handle errors through wrapToolResult', async () => {
       const testParams = {
         name: "ErrorBO",
-        description: "This will fail"
+        description: "This will fail",
+        dependencies: [],
+        tags: []
       };
 
       // Mock that business object doesn't exist
