@@ -3,6 +3,7 @@ import {SimplifierClient} from "../client/simplifier-client.js";
 import {registerServerBusinessObjectResources} from "./server-businessobject-resources.js";
 import {registerDataTypesResources} from "./datatypes-resources.js";
 import {registerConnectorResources} from "./connector-resources.js";
+import {registerLoggingResources} from "./logging-resources.js";
 import {registerUserApiDocumentation} from "./documentation/user-api-documentation.js";
 import {registerLoggingApiDocumentation} from "./documentation/logging-api-documentation.js";
 import {registerUtilsApiDocumentation} from "./documentation/utils-api-documentation.js";
@@ -15,6 +16,7 @@ export function registerResources(server: McpServer, simplifier: SimplifierClien
   registerServerBusinessObjectResources(server, simplifier);
   registerDataTypesResources(server, simplifier);
   registerConnectorResources(server, simplifier);
+  registerLoggingResources(server, simplifier);
 
   registerUserApiDocumentation(server);
   registerLoggingApiDocumentation(server);

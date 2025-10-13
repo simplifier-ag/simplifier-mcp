@@ -11,6 +11,10 @@ import {
     SimplifierDataType,
     SimplifierDataTypesResponse,
     SimplifierDataTypeUpdate,
+    SimplifierLogEntryDetails,
+    SimplifierLogListOptions,
+    SimplifierLogListResponse,
+    SimplifierLogPagesResponse,
     UnwrappedSimplifierApiResponse
 } from './types.js';
 
@@ -256,5 +260,44 @@ export class SimplifierClient {
       method: "POST",
       body: JSON.stringify(testRequest)
     });
+  }
+
+  // Logging API methods
+  async listLogEntries(options?: SimplifierLogListOptions): Promise<SimplifierLogListResponse> {
+    const params = new URLSearchParams();
+    if (options?.logLevel !== undefined) params.append('logLevel', options.logLevel.toString());
+    if (options?.since) params.append('since', options.since);
+    if (options?.from) params.append('from', options.from);
+    if (options?.until) params.append('until', options.until);
+
+    const queryString = params.toString();
+    const url = queryString 
+      ? `/UserInterface/api/logging/list?${queryString}`
+      : '/UserInterface/api/logging/list';
+    
+    return await this.makeUnwrappedRequest(url);
+  }
+
+  async listLogEntriesPaginated(pageNo: number, pageSize: number, options?: SimplifierLogListOptions): Promise<SimplifierLogListResponse> {
+    const params = new URLSearchParams();
+    if (options?.logLevel !== undefined) params.append('logLevel', options.logLevel.toString());
+    if (options?.since) params.append('since', options.since);
+    if (options?.from) params.append('from', options.from);
+    if (options?.until) params.append('until', options.until);
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `/UserInterface/api/logging/list/page/${pageNo}/pagesize/${pageSize}?${queryString}`
+      : `/UserInterface/api/logging/list/page/${pageNo}/pagesize/${pageSize}`;
+    
+    return await this.makeUnwrappedRequest(url);
+  }
+
+  async getLogPages(pageSize: number = 25): Promise<SimplifierLogPagesResponse> {
+    return await this.makeUnwrappedRequest(`/UserInterface/api/logging/pages?pagesize=${pageSize}`);
+  }
+
+  async getLogEntry(id: string): Promise<SimplifierLogEntryDetails> {
+    return await this.makeUnwrappedRequest(`/UserInterface/api/logging/entry/${id}`);
   }
 }
