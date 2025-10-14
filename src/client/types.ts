@@ -412,6 +412,61 @@ export interface SimplifierLoginMethodDetailsRaw {
   configuration: Record<string, any>;
 }
 
+
+// ========================================
+// LoginMethod Create/Update Types
+// ========================================
+
+/**
+ * Source configuration for UserCredentials (BasicAuth) login method
+ */
+export interface UserCredentialsSourceConfig {
+  username: string;
+  password: string;
+  /** Only used in updates - set to true to change the password */
+  changePassword?: boolean;
+}
+
+/**
+ * Request payload for creating a UserCredentials (BasicAuth) login method
+ */
+export interface CreateUserCredentialsLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "UserCredentials";
+  /** Source ID - 1 = "Provided" (default) */
+  source: 1;
+  /** Target ID - 0 = default target */
+  target: 0;
+  sourceConfiguration: UserCredentialsSourceConfig;
+}
+
+/**
+ * Request payload for updating a UserCredentials (BasicAuth) login method
+ */
+export interface UpdateUserCredentialsLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "UserCredentials";
+  /** Source ID - 1 = "Provided" (default) */
+  source: 1;
+  /** Target ID - 0 = default target */
+  target: 0;
+  sourceConfiguration: UserCredentialsSourceConfig;
+}
+
+/**
+ * Union type for all supported login method create requests
+ * Currently only UserCredentials, will be extended with OAuth2
+ */
+export type CreateLoginMethodRequest = CreateUserCredentialsLoginMethodRequest;
+
+/**
+ * Union type for all supported login method update requests
+ * Currently only UserCredentials, will be extended with OAuth2
+ */
+export type UpdateLoginMethodRequest = UpdateUserCredentialsLoginMethodRequest;
+
 /**
  * Processed/transformed login method details with discriminated unions
  * This is what our MCP resource returns after adding type discriminators

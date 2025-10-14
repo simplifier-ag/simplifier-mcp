@@ -13,6 +13,8 @@ import {
     SimplifierDataTypeUpdate,
     SimplifierLoginMethodsResponse,
     SimplifierLoginMethodDetailsRaw,
+    CreateLoginMethodRequest,
+    UpdateLoginMethodRequest,
     UnwrappedSimplifierApiResponse
 } from './types.js';
 
@@ -270,5 +272,22 @@ export class SimplifierClient {
 
   async getLoginMethodDetails(name: string): Promise<SimplifierLoginMethodDetailsRaw> {
     return this.makeUnwrappedRequest(`/UserInterface/api/login-methods/${name}`);
+  }
+
+
+  async createLoginMethod(request: CreateLoginMethodRequest): Promise<string> {
+    await this.makeUnwrappedRequest(`/UserInterface/api/login-methods`, {
+      method: "POST",
+      body: JSON.stringify(request)
+    });
+    return `Successfully created Login Method '${request.name}'`;
+  }
+
+  async updateLoginMethod(name: string, request: UpdateLoginMethodRequest): Promise<string> {
+    await this.makeUnwrappedRequest(`/UserInterface/api/login-methods/${name}`, {
+      method: "PUT",
+      body: JSON.stringify(request)
+    });
+    return `Successfully updated Login Method '${name}'`;
   }
 }
