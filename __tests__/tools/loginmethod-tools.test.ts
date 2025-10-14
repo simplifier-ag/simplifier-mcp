@@ -132,6 +132,7 @@ describe('registerLoginMethodTools', () => {
     it('should create a new login method when it does not exist', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "NewBasicAuth",
         description: "New basic auth login method",
         username: "admin",
@@ -182,6 +183,7 @@ describe('registerLoginMethodTools', () => {
     it('should not include changePassword in create request', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "NewBasicAuth",
         description: "Test",
         username: "admin",
@@ -209,6 +211,7 @@ describe('registerLoginMethodTools', () => {
     it('should return the success message from API', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "TestAuth",
         description: "Test login method",
         username: "testuser",
@@ -245,6 +248,7 @@ describe('registerLoginMethodTools', () => {
     it('should update existing login method when it exists', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "ExistingAuth",
         description: "Updated description",
         username: "admin",
@@ -315,6 +319,7 @@ describe('registerLoginMethodTools', () => {
     it('should update description without changing password', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "ExistingAuth",
         description: "Updated description only",
         username: "admin",
@@ -360,6 +365,7 @@ describe('registerLoginMethodTools', () => {
     it('should include changePassword when updating with new password', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "ExistingAuth",
         description: "Changing password",
         username: "admin",
@@ -404,6 +410,7 @@ describe('registerLoginMethodTools', () => {
     it('should update username along with other fields', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "ExistingAuth",
         description: "Updated",
         username: "newAdmin",
@@ -456,6 +463,7 @@ describe('registerLoginMethodTools', () => {
     it('should handle errors through wrapToolResult', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "ErrorAuth",
         description: "This will fail",
         username: "admin",
@@ -500,6 +508,7 @@ describe('registerLoginMethodTools', () => {
     it('should handle update errors', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "ExistingAuth",
         description: "Update",
         username: "admin",
@@ -561,6 +570,7 @@ describe('registerLoginMethodTools', () => {
     it('should always use source ID 1 (Provided)', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "TestAuth",
         description: "Test",
         username: "user",
@@ -586,6 +596,7 @@ describe('registerLoginMethodTools', () => {
     it('should always use target ID 0 (Default)', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "TestAuth",
         description: "Test",
         username: "user",
@@ -611,6 +622,7 @@ describe('registerLoginMethodTools', () => {
     it('should always use UserCredentials loginMethodType', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
+        sourceType: "Provided" as const,
         name: "TestAuth",
         description: "Test",
         username: "user",
@@ -646,7 +658,7 @@ describe('registerLoginMethodTools', () => {
     it('should create OAuth2 login method with default header', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        oauth2SourceType: "ClientReference" as const,
+        sourceType: "ClientReference" as const,
         name: "TestOAuth",
         description: "OAuth with infraOIDC",
         oauth2ClientName: "infraOIDC",
@@ -679,7 +691,7 @@ describe('registerLoginMethodTools', () => {
     it('should create OAuth2 login method with custom header', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        oauth2SourceType: "ClientReference" as const,
+        sourceType: "ClientReference" as const,
         name: "TestOAuth",
         description: "OAuth with custom header",
         oauth2ClientName: "infraOIDC",
@@ -714,7 +726,7 @@ describe('registerLoginMethodTools', () => {
     it('should create OAuth2 login method with query parameter', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        oauth2SourceType: "ClientReference" as const,
+        sourceType: "ClientReference" as const,
         name: "TestOAuth",
         description: "OAuth as query param",
         oauth2ClientName: "infraOIDC",
@@ -758,7 +770,7 @@ describe('registerLoginMethodTools', () => {
     it('should create OAuth2 login method with profile reference', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        oauth2SourceType: "ProfileReference" as const,
+        sourceType: "ProfileReference" as const,
         name: "TestOAuth",
         description: "OAuth from user profile",
         profileKey: "oauthToken",
@@ -800,7 +812,7 @@ describe('registerLoginMethodTools', () => {
     it('should create OAuth2 login method with user attribute reference', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        oauth2SourceType: "UserAttributeReference" as const,
+        sourceType: "UserAttributeReference" as const,
         name: "TestOAuth",
         description: "OAuth from user attribute",
         userAttributeName: "myAttrName",
@@ -832,6 +844,158 @@ describe('registerLoginMethodTools', () => {
           category: "myAttrCat"
         }
       });
+    });
+  });
+
+  // UserCredentials with different source types
+  describe('UserCredentials - ProfileReference', () => {
+    let toolHandler: Function;
+
+    beforeEach(() => {
+      registerLoginMethodTools(mockServer, mockSimplifierClient);
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
+    });
+
+    it('should create UserCredentials login method with profile reference', async () => {
+      const testParams = {
+        loginMethodType: "UserCredentials" as const,
+        sourceType: "ProfileReference" as const,
+        name: "TestBasicAuth",
+        description: "BasicAuth from user profile",
+        profileKey: "credentialsKey"
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request).toEqual({
+        name: "TestBasicAuth",
+        description: "BasicAuth from user profile",
+        loginMethodType: "UserCredentials",
+        source: 4,
+        target: 0,
+        sourceConfiguration: { key: "credentialsKey" }
+      });
+    });
+  });
+
+  describe('UserCredentials - UserAttributeReference', () => {
+    let toolHandler: Function;
+
+    beforeEach(() => {
+      registerLoginMethodTools(mockServer, mockSimplifierClient);
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
+    });
+
+    it('should create UserCredentials login method with user attribute reference', async () => {
+      const testParams = {
+        loginMethodType: "UserCredentials" as const,
+        sourceType: "UserAttributeReference" as const,
+        name: "TestBasicAuth",
+        description: "BasicAuth from user attribute",
+        userAttributeName: "myAttrName",
+        userAttributeCategory: "myAttrCat"
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request).toEqual({
+        name: "TestBasicAuth",
+        description: "BasicAuth from user attribute",
+        loginMethodType: "UserCredentials",
+        source: 5,
+        target: 0,
+        sourceConfiguration: {
+          name: "myAttrName",
+          category: "myAttrCat"
+        }
+      });
+    });
+  });
+
+  // Test default sourceType values
+  describe('Default sourceType values', () => {
+    let toolHandler: Function;
+
+    beforeEach(() => {
+      registerLoginMethodTools(mockServer, mockSimplifierClient);
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
+    });
+
+    it('should default to "Provided" sourceType for UserCredentials when sourceType is omitted', async () => {
+      const testParams = {
+        loginMethodType: "UserCredentials" as const,
+        // sourceType omitted - should default to "Provided"
+        name: "TestBasicAuth",
+        description: "BasicAuth with default source",
+        username: "admin",
+        password: "password"
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request.source).toBe(1); // Provided source
+      expect(request.sourceConfiguration).toHaveProperty('username');
+      expect(request.sourceConfiguration).toHaveProperty('password');
+    });
+
+    it('should default to "ClientReference" sourceType for OAuth2 when sourceType is omitted', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        // sourceType omitted - should default to "ClientReference"
+        name: "TestOAuth",
+        description: "OAuth with default source",
+        oauth2ClientName: "infraOIDC",
+        targetType: "Default" as const
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request.source).toBe(0); // ClientReference source
+      expect(request.sourceConfiguration).toHaveProperty('clientName');
     });
   });
 });

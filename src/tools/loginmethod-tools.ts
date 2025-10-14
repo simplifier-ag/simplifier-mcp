@@ -18,17 +18,22 @@ Create or update login methods for authenticating connectors with external syste
 
 ## UserCredentials (BasicAuth)
 
-Creates or updates a basic authentication login method with username and password.
+Creates or updates a basic authentication login method with various source types.
+
+### UserCredentials with Provided Source (Default)
+
+Stores username and password directly in the login method.
 
 **Configuration:**
 - **loginMethodType**: "UserCredentials"
-- **Source**: "Provided" (source ID: 1) - credentials are stored directly
+- **sourceType**: "Provided" (source ID: 1) - default
 - **Target**: Default (target ID: 0) - standard authentication header
 
 **Example - Creating BasicAuth:**
 \`\`\`json
 {
   "loginMethodType": "UserCredentials",
+  "sourceType": "Provided",
   "name": "MyBasicAuth",
   "description": "Basic auth for API",
   "username": "admin",
@@ -40,6 +45,7 @@ Creates or updates a basic authentication login method with username and passwor
 \`\`\`json
 {
   "loginMethodType": "UserCredentials",
+  "sourceType": "Provided",
   "name": "MyBasicAuth",
   "description": "Updated description",
   "username": "admin",
@@ -48,25 +54,56 @@ Creates or updates a basic authentication login method with username and passwor
 }
 \`\`\`
 
+### UserCredentials with Profile Reference
+
+References a key in the user's profile.
+
+**Example:**
+\`\`\`json
+{
+  "loginMethodType": "UserCredentials",
+  "sourceType": "ProfileReference",
+  "name": "MyBasicAuth",
+  "description": "BasicAuth from user profile",
+  "profileKey": "credentialsKey"
+}
+\`\`\`
+
+### UserCredentials with User Attribute Reference
+
+References a user attribute by name and category.
+
+**Example:**
+\`\`\`json
+{
+  "loginMethodType": "UserCredentials",
+  "sourceType": "UserAttributeReference",
+  "name": "MyBasicAuth",
+  "description": "BasicAuth from user attribute",
+  "userAttributeName": "myAttrName",
+  "userAttributeCategory": "myAttrCat"
+}
+\`\`\`
+
 ## OAuth2 Login Methods
 
 Creates or updates OAuth2-based login methods with various source configurations.
 
-### OAuth2 with Client Reference (Default Source)
+### OAuth2 with Client Reference
 
 Uses a configured OAuth2 client from Simplifier.
 **Discover available clients:** Use \`simplifier://oauthclients\` resource
 
 **Configuration:**
 - **loginMethodType**: "OAuth2"
-- **oauth2SourceType**: "ClientReference"
+- **sourceType**: "ClientReference"
 - **Target**: 0 = default header, 1 = custom header, 2 = query parameter
 
 **Example - Default header:**
 \`\`\`json
 {
   "loginMethodType": "OAuth2",
-  "oauth2SourceType": "ClientReference",
+  "sourceType": "ClientReference",
   "name": "MyOAuth",
   "description": "OAuth with infraOIDC",
   "oauth2ClientName": "infraOIDC",
@@ -78,7 +115,7 @@ Uses a configured OAuth2 client from Simplifier.
 \`\`\`json
 {
   "loginMethodType": "OAuth2",
-  "oauth2SourceType": "ClientReference",
+  "sourceType": "ClientReference",
   "name": "MyOAuth",
   "description": "OAuth with custom header",
   "oauth2ClientName": "infraOIDC",
@@ -91,7 +128,7 @@ Uses a configured OAuth2 client from Simplifier.
 \`\`\`json
 {
   "loginMethodType": "OAuth2",
-  "oauth2SourceType": "ClientReference",
+  "sourceType": "ClientReference",
   "name": "MyOAuth",
   "description": "OAuth as query param",
   "oauth2ClientName": "infraOIDC",
@@ -108,7 +145,7 @@ References a key in the user's profile.
 \`\`\`json
 {
   "loginMethodType": "OAuth2",
-  "oauth2SourceType": "ProfileReference",
+  "sourceType": "ProfileReference",
   "name": "MyOAuth",
   "description": "OAuth from user profile",
   "profileKey": "oauthToken",
@@ -124,7 +161,7 @@ References a user attribute by name and category.
 \`\`\`json
 {
   "loginMethodType": "OAuth2",
-  "oauth2SourceType": "UserAttributeReference",
+  "sourceType": "UserAttributeReference",
   "name": "MyOAuth",
   "description": "OAuth from user attribute",
   "userAttributeName": "myAttrName",
@@ -141,24 +178,24 @@ References a user attribute by name and category.
       name: z.string().describe("Name of the login method"),
       description: z.string().describe("Description of the login method"),
 
-      // UserCredentials fields
-      username: z.string().optional().describe("[UserCredentials] Username for basic authentication"),
-      password: z.string().optional().describe("[UserCredentials] Password for basic authentication"),
-      changePassword: z.boolean().optional().default(false).describe("[UserCredentials] Set to true when updating to change the password"),
+      // Source type (applies to both UserCredentials and OAuth2)
+      sourceType: z.enum(["Provided", "ClientReference", "ProfileReference", "UserAttributeReference"]).optional()
+        .describe("Source type: Provided (default for UserCredentials - username/password), ClientReference (default for OAuth2 - OAuth2 client), ProfileReference (user profile key), UserAttributeReference (user attribute)"),
 
-      // OAuth2 source type
-      oauth2SourceType: z.enum(["ClientReference", "ProfileReference", "UserAttributeReference"]).optional()
-        .describe("[OAuth2] Source type: ClientReference (uses OAuth2 client), ProfileReference (user profile key), UserAttributeReference (user attribute)"),
+      // UserCredentials Provided source fields
+      username: z.string().optional().describe("[UserCredentials Provided] Username for basic authentication"),
+      password: z.string().optional().describe("[UserCredentials Provided] Password for basic authentication"),
+      changePassword: z.boolean().optional().default(false).describe("[UserCredentials Provided] Set to true when updating to change the password"),
 
-      // OAuth2 ClientReference fields
+      // ClientReference fields (OAuth2)
       oauth2ClientName: z.string().optional().describe("[OAuth2 ClientReference] Name of the OAuth2 client (discover via simplifier://oauthclients)"),
 
-      // OAuth2 ProfileReference fields
-      profileKey: z.string().optional().describe("[OAuth2 ProfileReference] Key name in the user's profile"),
+      // ProfileReference fields (UserCredentials and OAuth2)
+      profileKey: z.string().optional().describe("[ProfileReference] Key name in the user's profile"),
 
-      // OAuth2 UserAttributeReference fields
-      userAttributeName: z.string().optional().describe("[OAuth2 UserAttributeReference] Name of the user attribute"),
-      userAttributeCategory: z.string().optional().describe("[OAuth2 UserAttributeReference] Category of the user attribute"),
+      // UserAttributeReference fields (UserCredentials and OAuth2)
+      userAttributeName: z.string().optional().describe("[UserAttributeReference] Name of the user attribute"),
+      userAttributeCategory: z.string().optional().describe("[UserAttributeReference] Category of the user attribute"),
 
       // Target configuration (for OAuth2)
       targetType: z.enum(["Default", "CustomHeader", "QueryParameter"]).optional().default("Default")
@@ -185,34 +222,67 @@ References a user attribute by name and category.
         let request: any;
 
         if (params.loginMethodType === "UserCredentials") {
-          // Validate UserCredentials required fields
-          if (!params.username || !params.password) {
-            throw new Error("UserCredentials login method requires 'username' and 'password' fields");
+          // Set default sourceType for UserCredentials if not provided
+          const sourceType = params.sourceType || "Provided";
+
+          // Determine source and sourceConfiguration based on sourceType
+          let source: 1 | 4 | 5;
+          let sourceConfiguration: any;
+
+          switch (sourceType) {
+            case "Provided":
+              // Validate required fields for Provided source
+              if (!params.username || !params.password) {
+                throw new Error("UserCredentials with Provided source requires 'username' and 'password' fields");
+              }
+              source = 1;
+              sourceConfiguration = {
+                username: params.username,
+                password: params.password,
+                ...(existing && { changePassword: params.changePassword })
+              };
+              break;
+
+            case "ProfileReference":
+              if (!params.profileKey) {
+                throw new Error("UserCredentials ProfileReference requires 'profileKey' field");
+              }
+              source = 4;
+              sourceConfiguration = { key: params.profileKey };
+              break;
+
+            case "UserAttributeReference":
+              if (!params.userAttributeName || !params.userAttributeCategory) {
+                throw new Error("UserCredentials UserAttributeReference requires 'userAttributeName' and 'userAttributeCategory' fields");
+              }
+              source = 5;
+              sourceConfiguration = {
+                name: params.userAttributeName,
+                category: params.userAttributeCategory
+              };
+              break;
+
+            default:
+              throw new Error(`Unsupported sourceType for UserCredentials: ${sourceType}`);
           }
 
           request = {
             name: params.name,
             description: params.description,
             loginMethodType: "UserCredentials" as const,
-            source: 1 as const, // Provided
+            source,
             target: 0 as const, // Default
-            sourceConfiguration: {
-              username: params.username,
-              password: params.password,
-              ...(existing && { changePassword: params.changePassword })
-            }
+            sourceConfiguration
           };
         } else if (params.loginMethodType === "OAuth2") {
-          // Validate OAuth2 required fields
-          if (!params.oauth2SourceType) {
-            throw new Error("OAuth2 login method requires 'oauth2SourceType' field");
-          }
+          // Set default sourceType for OAuth2 if not provided
+          const sourceType = params.sourceType || "ClientReference";
 
-          // Determine source and sourceConfiguration
+          // Determine source and sourceConfiguration based on sourceType
           let source: 0 | 4 | 5;
           let sourceConfiguration: any;
 
-          switch (params.oauth2SourceType) {
+          switch (sourceType) {
             case "ClientReference":
               if (!params.oauth2ClientName) {
                 throw new Error("OAuth2 ClientReference requires 'oauth2ClientName' field");
@@ -239,6 +309,9 @@ References a user attribute by name and category.
                 category: params.userAttributeCategory
               };
               break;
+
+            default:
+              throw new Error(`Unsupported sourceType for OAuth2: ${sourceType}`);
           }
 
           // Determine target and targetConfiguration

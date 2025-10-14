@@ -443,9 +443,9 @@ export interface SimplifierLoginMethodDetailsRaw {
 // ========================================
 
 /**
- * Source configuration for UserCredentials (BasicAuth) login method
+ * Source configuration for UserCredentials with Provided source (username/password)
  */
-export interface UserCredentialsSourceConfig {
+export interface UserCredentialsProvidedSourceConfig {
   username: string;
   password: string;
   /** Only used in updates - set to true to change the password */
@@ -453,23 +453,24 @@ export interface UserCredentialsSourceConfig {
 }
 
 /**
- * Request payload for creating a UserCredentials (BasicAuth) login method
+ * Source configuration for UserCredentials with ProfileReference source
  */
-export interface CreateUserCredentialsLoginMethodRequest {
-  name: string;
-  description: string;
-  loginMethodType: "UserCredentials";
-  /** Source ID - 1 = "Provided" (default) */
-  source: 1;
-  /** Target ID - 0 = default target */
-  target: 0;
-  sourceConfiguration: UserCredentialsSourceConfig;
+export interface UserCredentialsProfileRefSourceConfig {
+  key: string;
 }
 
 /**
- * Request payload for updating a UserCredentials (BasicAuth) login method
+ * Source configuration for UserCredentials with UserAttributeReference source
  */
-export interface UpdateUserCredentialsLoginMethodRequest {
+export interface UserCredentialsUserAttrSourceConfig {
+  name: string;
+  category: string;
+}
+
+/**
+ * Request payload for creating a UserCredentials login method with Provided source
+ */
+export interface CreateUserCredentialsProvidedLoginMethodRequest {
   name: string;
   description: string;
   loginMethodType: "UserCredentials";
@@ -477,7 +478,77 @@ export interface UpdateUserCredentialsLoginMethodRequest {
   source: 1;
   /** Target ID - 0 = default target */
   target: 0;
-  sourceConfiguration: UserCredentialsSourceConfig;
+  sourceConfiguration: UserCredentialsProvidedSourceConfig;
+}
+
+/**
+ * Request payload for creating a UserCredentials login method with ProfileReference source
+ */
+export interface CreateUserCredentialsProfileRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "UserCredentials";
+  /** Source ID - 4 = "Profile Reference" */
+  source: 4;
+  /** Target ID - 0 = default target */
+  target: 0;
+  sourceConfiguration: UserCredentialsProfileRefSourceConfig;
+}
+
+/**
+ * Request payload for creating a UserCredentials login method with UserAttributeReference source
+ */
+export interface CreateUserCredentialsUserAttrRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "UserCredentials";
+  /** Source ID - 5 = "User Attribute Reference" */
+  source: 5;
+  /** Target ID - 0 = default target */
+  target: 0;
+  sourceConfiguration: UserCredentialsUserAttrSourceConfig;
+}
+
+/**
+ * Request payload for updating a UserCredentials login method with Provided source
+ */
+export interface UpdateUserCredentialsProvidedLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "UserCredentials";
+  /** Source ID - 1 = "Provided" (default) */
+  source: 1;
+  /** Target ID - 0 = default target */
+  target: 0;
+  sourceConfiguration: UserCredentialsProvidedSourceConfig;
+}
+
+/**
+ * Request payload for updating a UserCredentials login method with ProfileReference source
+ */
+export interface UpdateUserCredentialsProfileRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "UserCredentials";
+  /** Source ID - 4 = "Profile Reference" */
+  source: 4;
+  /** Target ID - 0 = default target */
+  target: 0;
+  sourceConfiguration: UserCredentialsProfileRefSourceConfig;
+}
+
+/**
+ * Request payload for updating a UserCredentials login method with UserAttributeReference source
+ */
+export interface UpdateUserCredentialsUserAttrRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "UserCredentials";
+  /** Source ID - 5 = "User Attribute Reference" */
+  source: 5;
+  /** Target ID - 0 = default target */
+  target: 0;
+  sourceConfiguration: UserCredentialsUserAttrSourceConfig;
 }
 
 /**
@@ -608,7 +679,9 @@ export interface UpdateOAuth2UserAttrRefLoginMethodRequest {
  * Union type for all supported login method create requests
  */
 export type CreateLoginMethodRequest =
-  | CreateUserCredentialsLoginMethodRequest
+  | CreateUserCredentialsProvidedLoginMethodRequest
+  | CreateUserCredentialsProfileRefLoginMethodRequest
+  | CreateUserCredentialsUserAttrRefLoginMethodRequest
   | CreateOAuth2ClientRefLoginMethodRequest
   | CreateOAuth2ProfileRefLoginMethodRequest
   | CreateOAuth2UserAttrRefLoginMethodRequest;
@@ -617,7 +690,9 @@ export type CreateLoginMethodRequest =
  * Union type for all supported login method update requests
  */
 export type UpdateLoginMethodRequest =
-  | UpdateUserCredentialsLoginMethodRequest
+  | UpdateUserCredentialsProvidedLoginMethodRequest
+  | UpdateUserCredentialsProfileRefLoginMethodRequest
+  | UpdateUserCredentialsUserAttrRefLoginMethodRequest
   | UpdateOAuth2ClientRefLoginMethodRequest
   | UpdateOAuth2ProfileRefLoginMethodRequest
   | UpdateOAuth2UserAttrRefLoginMethodRequest;
