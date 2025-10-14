@@ -674,6 +674,131 @@ describe('SimplifierClient', () => {
     });
   });
 
+  describe('listLoginMethods', () => {
+    it('should call listLoginMethods endpoint', async () => {
+      const mockResponse = {
+        loginMethods: [
+          {
+            name: 'TestUserCredentials',
+            description: 'Test login method',
+            loginMethodType: {
+              technicalName: 'UserCredentials',
+              i18n: 'loginMethodType_UserCredentials_Caption',
+              descriptionI18n: 'loginMethodType_UserCredentials_Description',
+              sources: [
+                {
+                  id: 0,
+                  name: 'DEFAULT',
+                  i18nName: 'login_method_source_default',
+                  i18nDescription: 'login_method_source_default_description'
+                },
+                {
+                  id: 1,
+                  name: 'PROVIDED',
+                  i18nName: 'login_method_source_provided',
+                  i18nDescription: 'login_method_source_provided_description'
+                }
+              ],
+              targets: [
+                {
+                  id: 0,
+                  name: 'DEFAULT',
+                  i18nName: 'login_method_target_default',
+                  i18nDescription: 'login_method_target_undefined_description'
+                }
+              ],
+              supportedConnectors: ['Email', 'MQTT', 'OData', 'REST', 'SOAP', 'SQL']
+            },
+            source: 0,
+            target: 0,
+            updateInfo: {
+              created: '2025-05-08T16:01:40+02:00',
+              creator: {
+                loginName: 'admin',
+                firstName: 'Admin',
+                lastName: 'User',
+                platformDomain: 'localhost',
+                differentPlatformDomain: false
+              }
+            },
+            editable: true,
+            deletable: true
+          },
+          {
+            name: 'OAuthSpotify',
+            description: 'OAuth for Spotify API',
+            loginMethodType: {
+              technicalName: 'OAuth2',
+              i18n: 'loginMethodType_OAuth2_Caption',
+              descriptionI18n: 'loginMethodType_OAuth2_Description',
+              sources: [
+                {
+                  id: 0,
+                  name: 'DEFAULT',
+                  i18nName: 'login_method_source_default',
+                  i18nDescription: 'login_method_source_default_description'
+                }
+              ],
+              targets: [
+                {
+                  id: 0,
+                  name: 'DEFAULT',
+                  i18nName: 'login_method_target_default',
+                  i18nDescription: 'login_method_target_undefined_description'
+                },
+                {
+                  id: 1,
+                  name: 'HEADER',
+                  i18nName: 'login_method_target_header',
+                  i18nDescription: 'login_method_target_header_description'
+                }
+              ],
+              supportedConnectors: ['Email', 'OData', 'REST', 'SOAP']
+            },
+            source: 0,
+            target: 1,
+            updateInfo: {
+              created: '2025-07-07T11:53:08+02:00',
+              creator: {
+                loginName: 'volkervonsimplifier',
+                firstName: 'volkervonsimplifier',
+                lastName: 'volkervonsimplifier',
+                platformDomain: 'localhost',
+                differentPlatformDomain: false
+              }
+            },
+            editable: true,
+            deletable: true
+          }
+        ]
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.listLoginMethods();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://some.test/UserInterface/api/login-methods',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+        })
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(result.loginMethods).toHaveLength(2);
+      expect(result.loginMethods[0].name).toBe('TestUserCredentials');
+      expect(result.loginMethods[0].loginMethodType.technicalName).toBe('UserCredentials');
+      expect(result.loginMethods[1].name).toBe('OAuthSpotify');
+      expect(result.loginMethods[1].loginMethodType.technicalName).toBe('OAuth2');
+    });
+  });
+
   describe('getDataTypeById', () => {
     it('should call getDataTypeById endpoint with fully qualified datatype id (namespace/name)', async () => {
       const mockResponse = {

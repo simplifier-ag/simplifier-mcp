@@ -11,6 +11,7 @@ import {
     SimplifierDataType,
     SimplifierDataTypesResponse,
     SimplifierDataTypeUpdate,
+    SimplifierLoginMethodsResponse,
     UnwrappedSimplifierApiResponse
 } from './types.js';
 
@@ -256,5 +257,13 @@ export class SimplifierClient {
       method: "POST",
       body: JSON.stringify(testRequest)
     });
+  }
+
+  // ========================================
+  // LoginMethod API Methods
+  // ========================================
+
+  async listLoginMethods(): Promise<SimplifierLoginMethodsResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/login-methods`);
   }
 }

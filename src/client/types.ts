@@ -337,3 +337,55 @@ export interface SimplifierConnectorCallParameter {
   position: number;
 }
 
+/**
+ * LoginMethod Types
+ */
+export interface SimplifierLoginMethodsResponse {
+  loginMethods: SimplifierLoginMethod[];
+}
+
+export interface SimplifierLoginMethod {
+  name: string;
+  description: string;
+  loginMethodType: SimplifierLoginMethodType;
+  source: number;  // ID referencing loginMethodType.sources array
+  target: number;  // ID referencing loginMethodType.targets array
+  updateInfo?: SimplifierUpdateInfo;
+  editable: boolean;
+  deletable: boolean;
+}
+
+export interface SimplifierLoginMethodType {
+  technicalName: string;  // e.g., "UserCredentials", "OAuth2", "Token"
+  i18n: string;
+  descriptionI18n: string;
+  sources: SimplifierLoginMethodSource[];
+  targets: SimplifierLoginMethodTarget[];
+  supportedConnectors: string[];
+  methodSpecificData?: any;  // Only present for WSS type
+}
+
+export interface SimplifierLoginMethodSource {
+  id: number;
+  name: string;  // e.g., "DEFAULT", "PROFILE_REFERENCE", "PROVIDED"
+  i18nName: string;
+  i18nDescription: string;
+}
+
+export interface SimplifierLoginMethodTarget {
+  id: number;
+  name: string;  // e.g., "DEFAULT", "HEADER", "QUERY"
+  i18nName: string;
+  i18nDescription: string;
+}
+
+/**
+ * Reusable UpdateInfo type for entities with creation/modification tracking
+ */
+export interface SimplifierUpdateInfo {
+  created: string;
+  creator: SimplifierUser;
+  lastEdited?: string;
+  lastEditor?: SimplifierUser;
+}
+
