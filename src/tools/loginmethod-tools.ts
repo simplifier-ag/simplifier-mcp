@@ -3,6 +3,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { wrapToolResult } from "./toolresult.js";
 import { readFile } from "../resourceprovider.js";
 import { z } from "zod";
+import { TargetAndSourceMapper } from "./loginmethod/TargetAndSourceMapper.js";
+import { UserCredentialsTargetAndSourceMapper } from "./loginmethod/UserCredentialsTargetAndSourceMapper.js";
+import { OAuthTargetAndSourceMapper } from "./loginmethod/OAuthTargetAndSourceMapper.js";
 
 /**
  * Register LoginMethod tools for Simplifier Low Code Platform integration
@@ -57,142 +60,33 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
           // Login method doesn't exist, will create
         }
 
-        let request: any;
-
+        // Select appropriate mapper based on login method type
+        let mapper: TargetAndSourceMapper;
         if (params.loginMethodType === "UserCredentials") {
-          // Set default sourceType for UserCredentials if not provided
-          const sourceType = params.sourceType || "Provided";
-
-          // Determine source and sourceConfiguration based on sourceType
-          let source: 1 | 4 | 5;
-          let sourceConfiguration: any;
-
-          switch (sourceType) {
-            case "Provided":
-              // Validate required fields for Provided source
-              if (!params.username || !params.password) {
-                throw new Error("UserCredentials with Provided source requires 'username' and 'password' fields");
-              }
-              source = 1;
-              sourceConfiguration = {
-                username: params.username,
-                password: params.password,
-                ...(existing && { changePassword: params.changePassword })
-              };
-              break;
-
-            case "ProfileReference":
-              if (!params.profileKey) {
-                throw new Error("UserCredentials ProfileReference requires 'profileKey' field");
-              }
-              source = 4;
-              sourceConfiguration = { key: params.profileKey };
-              break;
-
-            case "UserAttributeReference":
-              if (!params.userAttributeName || !params.userAttributeCategory) {
-                throw new Error("UserCredentials UserAttributeReference requires 'userAttributeName' and 'userAttributeCategory' fields");
-              }
-              source = 5;
-              sourceConfiguration = {
-                name: params.userAttributeName,
-                category: params.userAttributeCategory
-              };
-              break;
-
-            default:
-              throw new Error(`Unsupported sourceType for UserCredentials: ${sourceType}`);
-          }
-
-          request = {
-            name: params.name,
-            description: params.description,
-            loginMethodType: "UserCredentials" as const,
-            source,
-            target: 0 as const, // Default
-            sourceConfiguration
-          };
+          mapper = new UserCredentialsTargetAndSourceMapper();
         } else if (params.loginMethodType === "OAuth2") {
-          // Set default sourceType for OAuth2 if not provided
-          const sourceType = params.sourceType || "ClientReference";
-
-          // Determine source and sourceConfiguration based on sourceType
-          let source: 0 | 4 | 5;
-          let sourceConfiguration: any;
-
-          switch (sourceType) {
-            case "ClientReference":
-              if (!params.oauth2ClientName) {
-                throw new Error("OAuth2 ClientReference requires 'oauth2ClientName' field");
-              }
-              source = 0;
-              sourceConfiguration = { clientName: params.oauth2ClientName };
-              break;
-
-            case "ProfileReference":
-              if (!params.profileKey) {
-                throw new Error("OAuth2 ProfileReference requires 'profileKey' field");
-              }
-              source = 4;
-              sourceConfiguration = { key: params.profileKey };
-              break;
-
-            case "UserAttributeReference":
-              if (!params.userAttributeName || !params.userAttributeCategory) {
-                throw new Error("OAuth2 UserAttributeReference requires 'userAttributeName' and 'userAttributeCategory' fields");
-              }
-              source = 5;
-              sourceConfiguration = {
-                name: params.userAttributeName,
-                category: params.userAttributeCategory
-              };
-              break;
-
-            default:
-              throw new Error(`Unsupported sourceType for OAuth2: ${sourceType}`);
-          }
-
-          // Determine target and targetConfiguration
-          let target: 0 | 1 | 2;
-          let targetConfiguration: any = undefined;
-
-          switch (params.targetType) {
-            case "Default":
-              target = 0;
-              break;
-
-            case "CustomHeader":
-              if (!params.customHeaderName) {
-                throw new Error("OAuth2 CustomHeader target requires 'customHeaderName' field");
-              }
-              target = 1;
-              targetConfiguration = { name: params.customHeaderName };
-              break;
-
-            case "QueryParameter":
-              if (!params.queryParameterKey) {
-                throw new Error("OAuth2 QueryParameter target requires 'queryParameterKey' field");
-              }
-              target = 2;
-              targetConfiguration = { key: params.queryParameterKey };
-              break;
-
-            default:
-              target = 0; // Default
-          }
-
-          request = {
-            name: params.name,
-            description: params.description,
-            loginMethodType: "OAuth2" as const,
-            source,
-            target,
-            sourceConfiguration,
-            ...(targetConfiguration && { targetConfiguration })
-          };
+          mapper = new OAuthTargetAndSourceMapper();
         } else {
           throw new Error(`Unsupported loginMethodType: ${params.loginMethodType}`);
         }
+
+        // Apply default source type if not provided
+        const sourceType = params.sourceType || mapper.getDefaultSourceType();
+
+        // Map source and target using the mapper
+        const { source, sourceConfiguration } = mapper.mapSource(sourceType, params, existing);
+        const { target, targetConfiguration } = mapper.mapTarget(params.targetType || "Default", params);
+
+        // Build the request object
+        const request: any = {
+          name: params.name,
+          description: params.description,
+          loginMethodType: params.loginMethodType,
+          source,
+          target,
+          sourceConfiguration,
+          ...(targetConfiguration && { targetConfiguration })
+        };
 
         if (existing) {
           return simplifier.updateLoginMethod(params.name, request);
