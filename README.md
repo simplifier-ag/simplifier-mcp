@@ -13,12 +13,20 @@ The Simplifier MCP Server allows AI assistants to interact with the Simplifier L
 
 ## Usage
 
-### Add the MCP to claude code
+### Add the MCP to claude code ...
 ```
 claude mcp add --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud -- simplifier npx @simplifierag/simplifier-mcp@latest
 ```
+#### After a new login to Simplifier
+With every login to Simplifier your SimplifierToken will change. So you will have to:
+ - exit your AI agent (in this example claude),
+ - then remove the configuration of the MCP
+```
+claude mcp remove simplifier
+```
+ - and then add the MCP again with the new token (see upper command) and restart your AI agent
 
-### or use this example configuration for claude code to use the MCP
+### ...or use this example configuration for claude code to use the MCP
 e.g. in a file named .mcp.json placed in the directory, where claude is started.
 ```
 {
