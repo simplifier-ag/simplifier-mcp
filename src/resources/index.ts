@@ -4,6 +4,7 @@ import {registerServerBusinessObjectResources} from "./server-businessobject-res
 import {registerDataTypesResources} from "./datatypes-resources.js";
 import {registerConnectorResources} from "./connector-resources.js";
 import {registerLoginMethodResources} from "./loginmethod-resources.js";
+import {registerOAuth2ClientResources} from "./oauthclient-resources.js";
 import {registerUserApiDocumentation} from "./documentation/user-api-documentation.js";
 import {registerLoggingApiDocumentation} from "./documentation/logging-api-documentation.js";
 import {registerUtilsApiDocumentation} from "./documentation/utils-api-documentation.js";
@@ -17,6 +18,7 @@ export function registerResources(server: McpServer, simplifier: SimplifierClien
   registerDataTypesResources(server, simplifier);
   registerConnectorResources(server, simplifier);
   registerLoginMethodResources(server, simplifier);
+  registerOAuth2ClientResources(server, simplifier);
 
   registerUserApiDocumentation(server);
   registerLoggingApiDocumentation(server);

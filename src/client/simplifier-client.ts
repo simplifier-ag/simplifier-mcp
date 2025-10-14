@@ -13,6 +13,7 @@ import {
     SimplifierDataTypeUpdate,
     SimplifierLoginMethodsResponse,
     SimplifierLoginMethodDetailsRaw,
+    SimplifierOAuth2ClientsResponse,
     CreateLoginMethodRequest,
     UpdateLoginMethodRequest,
     UnwrappedSimplifierApiResponse
@@ -268,6 +269,11 @@ export class SimplifierClient {
 
   async listLoginMethods(): Promise<SimplifierLoginMethodsResponse> {
     return this.makeUnwrappedRequest(`/UserInterface/api/login-methods`);
+  }
+
+
+  async listOAuth2Clients(): Promise<SimplifierOAuth2ClientsResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/AuthSettings?mechanism=OAuth2`);
   }
 
   async getLoginMethodDetails(name: string): Promise<SimplifierLoginMethodDetailsRaw> {

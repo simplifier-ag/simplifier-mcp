@@ -344,6 +344,21 @@ export interface SimplifierLoginMethodsResponse {
   loginMethods: SimplifierLoginMethod[];
 }
 
+
+/**
+ * OAuth2 Client Types
+ */
+export interface SimplifierOAuth2ClientsResponse {
+  authSettings: SimplifierOAuth2Client[];
+}
+
+export interface SimplifierOAuth2Client {
+  name: string;
+  mechanism: "OAuth2";
+  description: string;
+  hasIcon: boolean;
+}
+
 export interface SimplifierLoginMethod {
   name: string;
   description: string;
