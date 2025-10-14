@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SimplifierClient } from "../../src/client/simplifier-client.js";
 import { registerLoginMethodTools } from "../../src/tools/loginmethod-tools.js";
 import { wrapToolResult } from "../../src/tools/toolresult.js";
+import { readFile } from "../../src/resourceprovider.js";
 import { SimplifierLoginMethodDetailsRaw } from "../../src/client/types.js";
 
 // Mock the wrapToolResult function
@@ -9,10 +10,16 @@ jest.mock("../../src/tools/toolresult.js", () => ({
   wrapToolResult: jest.fn()
 }));
 
+// Mock the resourceprovider
+jest.mock("../../src/resourceprovider.js", () => ({
+  readFile: jest.fn()
+}));
+
 describe('registerLoginMethodTools', () => {
   let mockServer: jest.Mocked<McpServer>;
   let mockSimplifierClient: jest.Mocked<SimplifierClient>;
   let mockWrapToolResult: jest.MockedFunction<typeof wrapToolResult>;
+  let mockReadFile: jest.MockedFunction<typeof readFile>;
 
   // Named constants for server.tool() call indices
   const TOOL_CALL_INDEX = 0; // First (and only) tool registration call
@@ -39,8 +46,12 @@ describe('registerLoginMethodTools', () => {
       updateLoginMethod: jest.fn()
     } as any;
 
-    // Get the mocked wrapToolResult
+    // Get the mocked functions
     mockWrapToolResult = wrapToolResult as jest.MockedFunction<typeof wrapToolResult>;
+    mockReadFile = readFile as jest.MockedFunction<typeof readFile>;
+
+    // Setup default mock for readFile
+    mockReadFile.mockReturnValue("This is the login method documentation content");
 
     // Clear all mocks
     jest.clearAllMocks();
