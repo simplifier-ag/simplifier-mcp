@@ -235,7 +235,7 @@ describe('LoginMethod Resources', () => {
         expect(resultData.resourcePatterns).toHaveLength(2);
       });
 
-      it('should map source and target IDs to names correctly', async () => {
+      it('should return simplified login method information', async () => {
         const testUri = new URL('simplifier://loginmethods');
         mockClient.listLoginMethods.mockResolvedValue(mockLoginMethodsResponse);
 
@@ -254,23 +254,15 @@ describe('LoginMethod Resources', () => {
 
         const resultData = JSON.parse(result.contents[0].text as string);
 
-        // First login method: source=0 (DEFAULT), target=0 (DEFAULT)
         expect(resultData.loginMethods[0].name).toBe('TestUserCredentials');
-        expect(resultData.loginMethods[0].source).toBe('DEFAULT');
-        expect(resultData.loginMethods[0].target).toBe('DEFAULT');
-
-        // Second login method: source=0 (DEFAULT), target=1 (HEADER)
+        expect(resultData.loginMethods[0].type).toBe('UserCredentials');
         expect(resultData.loginMethods[1].name).toBe('OAuthSpotify');
-        expect(resultData.loginMethods[1].source).toBe('DEFAULT');
-        expect(resultData.loginMethods[1].target).toBe('HEADER');
-
-        // Third login method: source=0 (DEFAULT), target=1 (HEADER)
+        expect(resultData.loginMethods[1].type).toBe('OAuth2');
         expect(resultData.loginMethods[2].name).toBe('TokenMethod');
-        expect(resultData.loginMethods[2].source).toBe('DEFAULT');
-        expect(resultData.loginMethods[2].target).toBe('HEADER');
+        expect(resultData.loginMethods[2].type).toBe('Token');
       });
 
-      it('should include all relevant fields in the response', async () => {
+      it('should include only essential fields in the response', async () => {
         const testUri = new URL('simplifier://loginmethods');
         mockClient.listLoginMethods.mockResolvedValue(mockLoginMethodsResponse);
 
@@ -290,16 +282,13 @@ describe('LoginMethod Resources', () => {
         const resultData = JSON.parse(result.contents[0].text as string);
         const firstLoginMethod = resultData.loginMethods[0];
 
+        // Should have these fields
         expect(firstLoginMethod).toHaveProperty('uri');
         expect(firstLoginMethod).toHaveProperty('name');
         expect(firstLoginMethod).toHaveProperty('description');
         expect(firstLoginMethod).toHaveProperty('type');
-        expect(firstLoginMethod).toHaveProperty('source');
-        expect(firstLoginMethod).toHaveProperty('target');
         expect(firstLoginMethod).toHaveProperty('supportedConnectors');
         expect(firstLoginMethod).toHaveProperty('updateInfo');
-        expect(firstLoginMethod).toHaveProperty('editable');
-        expect(firstLoginMethod).toHaveProperty('deletable');
 
         expect(firstLoginMethod.uri).toBe('simplifier://loginmethod/TestUserCredentials');
         expect(firstLoginMethod.type).toBe('UserCredentials');
@@ -331,34 +320,6 @@ describe('LoginMethod Resources', () => {
         expect(resultData.loginMethods[0].updateInfo).toBeUndefined();
       });
 
-      it('should handle unknown source/target IDs gracefully', async () => {
-        const testUri = new URL('simplifier://loginmethods');
-        const responseWithBadIds: SimplifierLoginMethodsResponse = {
-          loginMethods: [{
-            ...mockLoginMethodsResponse.loginMethods[0],
-            source: 999, // Invalid ID
-            target: 888  // Invalid ID
-          }]
-        };
-        mockClient.listLoginMethods.mockResolvedValue(responseWithBadIds);
-
-        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
-          const result = await fn();
-          return {
-            contents: [{
-              uri: uri.href,
-              text: JSON.stringify(result, null, 2),
-              mimeType: 'application/json'
-            }]
-          };
-        });
-
-        const result = await loginMethodsListHandler(testUri, {}, createMockExtra());
-
-        const resultData = JSON.parse(result.contents[0].text as string);
-        expect(resultData.loginMethods[0].source).toBe('UNKNOWN');
-        expect(resultData.loginMethods[0].target).toBe('UNKNOWN');
-      });
 
       it('should handle API errors through wrapper', async () => {
         const testUri = new URL('simplifier://loginmethods');

@@ -36,21 +36,13 @@ Login methods handle authentication for connectors, supporting various authentic
         const response = await simplifier.listLoginMethods();
 
         const loginMethodResources = response.loginMethods.map(lm => {
-          // Find source and target names from the arrays
-          const sourceName = lm.loginMethodType.sources.find(s => s.id === lm.source)?.name || 'UNKNOWN';
-          const targetName = lm.loginMethodType.targets.find(t => t.id === lm.target)?.name || 'UNKNOWN';
-
           return {
             uri: `simplifier://loginmethod/${lm.name}`,
             name: lm.name,
             description: lm.description,
             type: lm.loginMethodType.technicalName,
-            source: sourceName,
-            target: targetName,
             supportedConnectors: lm.loginMethodType.supportedConnectors,
-            updateInfo: lm.updateInfo,
-            editable: lm.editable,
-            deletable: lm.deletable
+            updateInfo: lm.updateInfo
           };
         });
 
