@@ -32,6 +32,7 @@ describe('registerConnectorTools', () => {
       getConnector: jest.fn(),
       createConnector: jest.fn(),
       updateConnector: jest.fn(),
+      updateConnectorCall: jest.fn(),
       testConnectorCall: jest.fn()
     } as any;
 
@@ -50,7 +51,7 @@ describe('registerConnectorTools', () => {
     it('should register both connector-update and connector-call-test tools', () => {
       registerConnectorTools(mockServer, mockSimplifierClient);
 
-      expect(mockServer.tool).toHaveBeenCalledTimes(2);
+      expect(mockServer.tool).toHaveBeenCalledTimes(3);
 
       // Check that readFile was called with the correct path
       expect(mockReadFile).toHaveBeenCalledWith("tools/docs/create-or-update-connector.md");
@@ -555,7 +556,7 @@ describe('registerConnectorTools', () => {
       it('should validate required schema fields', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
-        const toolCall = mockServer.tool.mock.calls[1];
+        const toolCall = mockServer.tool.mock.calls[2];
         const schema = toolCall[2];
 
         // Test that schema validates required fields
@@ -572,7 +573,7 @@ describe('registerConnectorTools', () => {
       it('should validate that connectorName and callName are required', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
-        const toolCall = mockServer.tool.mock.calls[1];
+        const toolCall = mockServer.tool.mock.calls[2];
         const schema = toolCall[2];
 
         // Test that valid strings pass
@@ -591,7 +592,7 @@ describe('registerConnectorTools', () => {
       it('should allow parameters to be optional with empty array default', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
-        const toolCall = mockServer.tool.mock.calls[1];
+        const toolCall = mockServer.tool.mock.calls[2];
         const schema = toolCall[2];
 
         // Test that parameters can be undefined and defaults to empty array
@@ -602,7 +603,7 @@ describe('registerConnectorTools', () => {
       it('should validate parameter structure', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
-        const toolCall = mockServer.tool.mock.calls[1];
+        const toolCall = mockServer.tool.mock.calls[2];
         const schema = toolCall[2];
 
         // Test valid parameter structure
@@ -622,7 +623,7 @@ describe('registerConnectorTools', () => {
       it('should allow any value type in parameters', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
-        const toolCall = mockServer.tool.mock.calls[1];
+        const toolCall = mockServer.tool.mock.calls[2];
         const schema = toolCall[2];
 
         const parametersWithVariousValues = [
@@ -644,7 +645,7 @@ describe('registerConnectorTools', () => {
 
       beforeEach(() => {
         registerConnectorTools(mockServer, mockSimplifierClient);
-        toolHandler = mockServer.tool.mock.calls[1][4];
+        toolHandler = mockServer.tool.mock.calls[2][4];
       });
 
       it('should test connector call successfully with no parameters', async () => {
@@ -714,7 +715,7 @@ describe('registerConnectorTools', () => {
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
           const result = await fn();
           expect(result.success).toBe(true);
-          expect(result.result).toEqual({ processedText: "HELLO WORLD", repeatCount: 5 });
+          expect(result.result).toEqual({ result: { processedText: "HELLO WORLD", repeatCount: 5 } });
           expect(result.executedWith).toEqual({
             connector: "TestConnector",
             call: "processData",
@@ -912,7 +913,7 @@ describe('registerConnectorTools', () => {
           expect(result).toEqual({
             success: true,
             message: "Connector call 'successCall' executed successfully",
-            result: { output: "processed test" },
+            result: {result: {output: "processed test"}},
             executedWith: {
               connector: "TestConnector",
               call: "successCall",

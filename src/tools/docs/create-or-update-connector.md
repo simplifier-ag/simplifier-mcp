@@ -4,6 +4,10 @@ This tool allows to
 * create new connectors
 * modify existing connectors
 
+**Attention:** When updating a Connector, allways fetch the existing resource first to ensure operating on the latest version.
+Existing tags and endpoints have to be resent when doing an update - otherwise they would be cleared.
+
+
 ## Connector Types
 
 ### Connector type 'REST'

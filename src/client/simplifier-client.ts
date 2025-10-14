@@ -1,17 +1,17 @@
 import { config } from '../config.js';
 import { login } from "./basicauth.js";
 import {
-    BusinessObjectTestRequest, BusinessObjectTestResponse,
-    SimplifierApiResponse,
-    SimplifierBusinessObjectDetails,
-    SimplifierBusinessObjectFunction,
-    SimplifierConnectorCallDetails,
-    SimplifierConnectorCallsResponse, SimplifierConnectorDetails, SimplifierConnectorListResponse,
-    SimplifierConnectorUpdate, ConnectorTestRequest, ConnectorTestResponse,
-    SimplifierDataType,
-    SimplifierDataTypesResponse,
-    SimplifierDataTypeUpdate,
-    UnwrappedSimplifierApiResponse
+  BusinessObjectTestRequest, BusinessObjectTestResponse,
+  SimplifierApiResponse,
+  SimplifierBusinessObjectDetails,
+  SimplifierBusinessObjectFunction,
+  SimplifierConnectorCallDetails,
+  SimplifierConnectorCallsResponse, SimplifierConnectorDetails, SimplifierConnectorListResponse,
+  SimplifierConnectorUpdate, ConnectorTestRequest, ConnectorTestResponse,
+  SimplifierDataType,
+  SimplifierDataTypesResponse,
+  SimplifierDataTypeUpdate,
+  UnwrappedSimplifierApiResponse, SimplifierConnectorCallUpdate
 } from './types.js';
 
 /**
@@ -52,14 +52,16 @@ export class SimplifierClient {
     const url = `${this.baseUrl}${urlPath}`;
     const simplifierToken = await this.getSimplifierToken();
 
-    const response: Response = await fetch(url, {
+    const data = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
         'SimplifierToken': simplifierToken,
         ...options.headers,
       },
-    });
+    }
+
+    const response: Response = await fetch(url, data);
 
     if (!response.ok) {
       const body = await response.text();
@@ -187,6 +189,16 @@ export class SimplifierClient {
   async updateConnector(oData: SimplifierConnectorUpdate): Promise<string> {
     await this.makeRequest(`/UserInterface/api/connectors/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) });
     return `Successfully updated Connector '${oData.name}'`;
+  }
+
+  async createConnectorCall(connectorName: string, oData: SimplifierConnectorCallUpdate): Promise<string> {
+    await this.makeRequest(`/UserInterface/api/connectors/${connectorName}/calls`, { method: "POST", body: JSON.stringify(oData) });
+    return `Successfully created Connector call '${connectorName}.${oData.name}'`;
+  }
+
+  async updateConnectorCall(connectorName: string, oData: SimplifierConnectorCallUpdate): Promise<string> {
+    await this.makeRequest(`/UserInterface/api/connectors/${connectorName}/calls/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) });
+    return `Successfully updated Connector call '${connectorName}.${oData.name}'`;
   }
 
   async getDataTypes(): Promise<SimplifierDataTypesResponse> {
