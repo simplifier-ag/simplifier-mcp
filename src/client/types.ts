@@ -484,13 +484,143 @@ export interface UpdateUserCredentialsLoginMethodRequest {
  * Union type for all supported login method create requests
  * Currently only UserCredentials, will be extended with OAuth2
  */
-export type CreateLoginMethodRequest = CreateUserCredentialsLoginMethodRequest;
+/**
+ * Source configuration for OAuth2 with Default/Referenced source (clientName)
+ */
+export interface OAuth2ClientNameSourceConfig {
+  clientName: string;
+}
+
+/**
+ * Source configuration for OAuth2 with Profile Reference source
+ */
+export interface OAuth2ProfileReferenceSourceConfig {
+  key: string;
+}
+
+/**
+ * Source configuration for OAuth2 with User Attribute Reference source
+ */
+export interface OAuth2UserAttributeSourceConfig {
+  name: string;
+  category: string;
+}
+
+/**
+ * Target configuration for custom header
+ */
+export interface HeaderTargetConfig {
+  name: string;
+}
+
+/**
+ * Target configuration for query parameter
+ */
+export interface QueryTargetConfig {
+  key: string;
+}
+
+/**
+ * Request payload for creating an OAuth2 login method with Default source (client reference)
+ */
+export interface CreateOAuth2ClientRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "OAuth2";
+  /** Source ID - 0 = "Default" (client reference) */
+  source: 0;
+  /** Target ID - 0 = default header, 1 = custom header, 2 = query parameter */
+  target: 0 | 1 | 2;
+  sourceConfiguration: OAuth2ClientNameSourceConfig;
+  targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
+}
+
+/**
+ * Request payload for creating an OAuth2 login method with Profile Reference source
+ */
+export interface CreateOAuth2ProfileRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "OAuth2";
+  /** Source ID - 4 = "Profile Reference" */
+  source: 4;
+  /** Target ID - 0 = default header, 1 = custom header, 2 = query parameter */
+  target: 0 | 1 | 2;
+  sourceConfiguration: OAuth2ProfileReferenceSourceConfig;
+  targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
+}
+
+/**
+ * Request payload for creating an OAuth2 login method with User Attribute Reference source
+ */
+export interface CreateOAuth2UserAttrRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "OAuth2";
+  /** Source ID - 5 = "User Attribute Reference" */
+  source: 5;
+  /** Target ID - 0 = default header, 1 = custom header, 2 = query parameter */
+  target: 0 | 1 | 2;
+  sourceConfiguration: OAuth2UserAttributeSourceConfig;
+  targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
+}
+
+/**
+ * Request payload for updating an OAuth2 login method with Default source (client reference)
+ */
+export interface UpdateOAuth2ClientRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "OAuth2";
+  source: 0;
+  target: 0 | 1 | 2;
+  sourceConfiguration: OAuth2ClientNameSourceConfig;
+  targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
+}
+
+/**
+ * Request payload for updating an OAuth2 login method with Profile Reference source
+ */
+export interface UpdateOAuth2ProfileRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "OAuth2";
+  source: 4;
+  target: 0 | 1 | 2;
+  sourceConfiguration: OAuth2ProfileReferenceSourceConfig;
+  targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
+}
+
+/**
+ * Request payload for updating an OAuth2 login method with User Attribute Reference source
+ */
+export interface UpdateOAuth2UserAttrRefLoginMethodRequest {
+  name: string;
+  description: string;
+  loginMethodType: "OAuth2";
+  source: 5;
+  target: 0 | 1 | 2;
+  sourceConfiguration: OAuth2UserAttributeSourceConfig;
+  targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
+}
+
+/**
+ * Union type for all supported login method create requests
+ */
+export type CreateLoginMethodRequest =
+  | CreateUserCredentialsLoginMethodRequest
+  | CreateOAuth2ClientRefLoginMethodRequest
+  | CreateOAuth2ProfileRefLoginMethodRequest
+  | CreateOAuth2UserAttrRefLoginMethodRequest;
 
 /**
  * Union type for all supported login method update requests
- * Currently only UserCredentials, will be extended with OAuth2
  */
-export type UpdateLoginMethodRequest = UpdateUserCredentialsLoginMethodRequest;
+export type UpdateLoginMethodRequest =
+  | UpdateUserCredentialsLoginMethodRequest
+  | UpdateOAuth2ClientRefLoginMethodRequest
+  | UpdateOAuth2ProfileRefLoginMethodRequest
+  | UpdateOAuth2UserAttrRefLoginMethodRequest;
 
 /**
  * Processed/transformed login method details with discriminated unions

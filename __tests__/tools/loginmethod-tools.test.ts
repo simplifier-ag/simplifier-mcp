@@ -14,6 +14,18 @@ describe('registerLoginMethodTools', () => {
   let mockSimplifierClient: jest.Mocked<SimplifierClient>;
   let mockWrapToolResult: jest.MockedFunction<typeof wrapToolResult>;
 
+  // Named constants for server.tool() call indices
+  const TOOL_CALL_INDEX = 0; // First (and only) tool registration call
+
+  // Named constants for server.tool() argument positions
+  const TOOL_ARG_SCHEMA = 2;
+  const TOOL_ARG_HANDLER = 4;
+
+  // Named constants for client method call positions
+  const FIRST_CALL = 0;
+  const FIRST_ARG = 0;
+  const SECOND_ARG = 1;
+
   beforeEach(() => {
     // Create a mock McpServer
     mockServer = {
@@ -64,8 +76,8 @@ describe('registerLoginMethodTools', () => {
     it('should validate required schema fields', () => {
       registerLoginMethodTools(mockServer, mockSimplifierClient);
 
-      const toolCall = mockServer.tool.mock.calls[0];
-      const schema = toolCall[2];
+      const toolCall = mockServer.tool.mock.calls[TOOL_CALL_INDEX];
+      const schema = toolCall[TOOL_ARG_SCHEMA];
 
       // Test that schema validates required fields
       expect(schema.name).toBeDefined();
@@ -85,24 +97,27 @@ describe('registerLoginMethodTools', () => {
     it('should have default value for changePassword', () => {
       registerLoginMethodTools(mockServer, mockSimplifierClient);
 
-      const toolCall = mockServer.tool.mock.calls[0];
-      const schema = toolCall[2];
+      const toolCall = mockServer.tool.mock.calls[TOOL_CALL_INDEX];
+      const schema = toolCall[TOOL_ARG_SCHEMA];
 
       // Test default value for changePassword
       expect(schema.changePassword.parse(undefined)).toBe(false);
     });
 
-    it('should require name, description, username, and password', () => {
+    it('should require name, description, and loginMethodType', () => {
       registerLoginMethodTools(mockServer, mockSimplifierClient);
 
-      const toolCall = mockServer.tool.mock.calls[0];
-      const schema = toolCall[2];
+      const toolCall = mockServer.tool.mock.calls[TOOL_CALL_INDEX];
+      const schema = toolCall[TOOL_ARG_SCHEMA];
 
       // Test that required fields throw on undefined
       expect(() => schema.name.parse(undefined)).toThrow();
       expect(() => schema.description.parse(undefined)).toThrow();
-      expect(() => schema.username.parse(undefined)).toThrow();
-      expect(() => schema.password.parse(undefined)).toThrow();
+      expect(() => schema.loginMethodType.parse(undefined)).toThrow();
+
+      // Test that username and password are optional
+      expect(() => schema.username.parse(undefined)).not.toThrow();
+      expect(() => schema.password.parse(undefined)).not.toThrow();
     });
   });
 
@@ -111,11 +126,12 @@ describe('registerLoginMethodTools', () => {
 
     beforeEach(() => {
       registerLoginMethodTools(mockServer, mockSimplifierClient);
-      toolHandler = mockServer.tool.mock.calls[0][4];
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
     });
 
     it('should create a new login method when it does not exist', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "NewBasicAuth",
         description: "New basic auth login method",
         username: "admin",
@@ -165,6 +181,7 @@ describe('registerLoginMethodTools', () => {
 
     it('should not include changePassword in create request', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "NewBasicAuth",
         description: "Test",
         username: "admin",
@@ -182,8 +199,8 @@ describe('registerLoginMethodTools', () => {
 
       await toolHandler(testParams);
 
-      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[0];
-      const request = callArgs[0];
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
 
       // Should not include changePassword for creation
       expect(request.sourceConfiguration).not.toHaveProperty('changePassword');
@@ -191,6 +208,7 @@ describe('registerLoginMethodTools', () => {
 
     it('should return the success message from API', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "TestAuth",
         description: "Test login method",
         username: "testuser",
@@ -221,11 +239,12 @@ describe('registerLoginMethodTools', () => {
 
     beforeEach(() => {
       registerLoginMethodTools(mockServer, mockSimplifierClient);
-      toolHandler = mockServer.tool.mock.calls[0][4];
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
     });
 
     it('should update existing login method when it exists', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "ExistingAuth",
         description: "Updated description",
         username: "admin",
@@ -295,6 +314,7 @@ describe('registerLoginMethodTools', () => {
 
     it('should update description without changing password', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "ExistingAuth",
         description: "Updated description only",
         username: "admin",
@@ -329,16 +349,17 @@ describe('registerLoginMethodTools', () => {
 
       await toolHandler(testParams);
 
-      const callArgs = mockSimplifierClient.updateLoginMethod.mock.calls[0];
-      const request = callArgs[1];
+      const callArgs = mockSimplifierClient.updateLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[SECOND_ARG];
 
-      expect(request.sourceConfiguration.changePassword).toBe(false);
-      expect(request.sourceConfiguration.password).toBe("<not relevant>");
+      expect((request.sourceConfiguration as any).changePassword).toBe(false);
+      expect((request.sourceConfiguration as any).password).toBe("<not relevant>");
       expect(request.description).toBe("Updated description only");
     });
 
     it('should include changePassword when updating with new password', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "ExistingAuth",
         description: "Changing password",
         username: "admin",
@@ -373,15 +394,16 @@ describe('registerLoginMethodTools', () => {
 
       await toolHandler(testParams);
 
-      const callArgs = mockSimplifierClient.updateLoginMethod.mock.calls[0];
-      const request = callArgs[1];
+      const callArgs = mockSimplifierClient.updateLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[SECOND_ARG];
 
-      expect(request.sourceConfiguration.changePassword).toBe(true);
-      expect(request.sourceConfiguration.password).toBe("newSecurePassword123");
+      expect((request.sourceConfiguration as any).changePassword).toBe(true);
+      expect((request.sourceConfiguration as any).password).toBe("newSecurePassword123");
     });
 
     it('should update username along with other fields', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "ExistingAuth",
         description: "Updated",
         username: "newAdmin",
@@ -416,10 +438,10 @@ describe('registerLoginMethodTools', () => {
 
       await toolHandler(testParams);
 
-      const callArgs = mockSimplifierClient.updateLoginMethod.mock.calls[0];
-      const request = callArgs[1];
+      const callArgs = mockSimplifierClient.updateLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[SECOND_ARG];
 
-      expect(request.sourceConfiguration.username).toBe("newAdmin");
+      expect((request.sourceConfiguration as any).username).toBe("newAdmin");
     });
   });
 
@@ -428,11 +450,12 @@ describe('registerLoginMethodTools', () => {
 
     beforeEach(() => {
       registerLoginMethodTools(mockServer, mockSimplifierClient);
-      toolHandler = mockServer.tool.mock.calls[0][4];
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
     });
 
     it('should handle errors through wrapToolResult', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "ErrorAuth",
         description: "This will fail",
         username: "admin",
@@ -476,6 +499,7 @@ describe('registerLoginMethodTools', () => {
 
     it('should handle update errors', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "ExistingAuth",
         description: "Update",
         username: "admin",
@@ -531,11 +555,12 @@ describe('registerLoginMethodTools', () => {
 
     beforeEach(() => {
       registerLoginMethodTools(mockServer, mockSimplifierClient);
-      toolHandler = mockServer.tool.mock.calls[0][4];
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
     });
 
     it('should always use source ID 1 (Provided)', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "TestAuth",
         description: "Test",
         username: "user",
@@ -552,14 +577,15 @@ describe('registerLoginMethodTools', () => {
 
       await toolHandler(testParams);
 
-      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[0];
-      const request = callArgs[0];
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
 
       expect(request.source).toBe(1);
     });
 
     it('should always use target ID 0 (Default)', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "TestAuth",
         description: "Test",
         username: "user",
@@ -576,14 +602,15 @@ describe('registerLoginMethodTools', () => {
 
       await toolHandler(testParams);
 
-      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[0];
-      const request = callArgs[0];
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
 
       expect(request.target).toBe(0);
     });
 
     it('should always use UserCredentials loginMethodType', async () => {
       const testParams = {
+        loginMethodType: "UserCredentials" as const,
         name: "TestAuth",
         description: "Test",
         username: "user",
@@ -600,10 +627,211 @@ describe('registerLoginMethodTools', () => {
 
       await toolHandler(testParams);
 
-      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[0];
-      const request = callArgs[0];
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
 
       expect(request.loginMethodType).toBe("UserCredentials");
+    });
+  });
+
+  // OAuth2 Tests
+  describe('OAuth2 - ClientReference', () => {
+    let toolHandler: Function;
+
+    beforeEach(() => {
+      registerLoginMethodTools(mockServer, mockSimplifierClient);
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
+    });
+
+    it('should create OAuth2 login method with default header', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        oauth2SourceType: "ClientReference" as const,
+        name: "TestOAuth",
+        description: "OAuth with infraOIDC",
+        oauth2ClientName: "infraOIDC",
+        targetType: "Default" as const
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request).toEqual({
+        name: "TestOAuth",
+        description: "OAuth with infraOIDC",
+        loginMethodType: "OAuth2",
+        source: 0,
+        target: 0,
+        sourceConfiguration: { clientName: "infraOIDC" }
+      });
+    });
+
+    it('should create OAuth2 login method with custom header', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        oauth2SourceType: "ClientReference" as const,
+        name: "TestOAuth",
+        description: "OAuth with custom header",
+        oauth2ClientName: "infraOIDC",
+        targetType: "CustomHeader" as const,
+        customHeaderName: "X-Custom-Auth"
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request).toEqual({
+        name: "TestOAuth",
+        description: "OAuth with custom header",
+        loginMethodType: "OAuth2",
+        source: 0,
+        target: 1,
+        sourceConfiguration: { clientName: "infraOIDC" },
+        targetConfiguration: { name: "X-Custom-Auth" }
+      });
+    });
+
+    it('should create OAuth2 login method with query parameter', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        oauth2SourceType: "ClientReference" as const,
+        name: "TestOAuth",
+        description: "OAuth as query param",
+        oauth2ClientName: "infraOIDC",
+        targetType: "QueryParameter" as const,
+        queryParameterKey: "authToken"
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request).toEqual({
+        name: "TestOAuth",
+        description: "OAuth as query param",
+        loginMethodType: "OAuth2",
+        source: 0,
+        target: 2,
+        sourceConfiguration: { clientName: "infraOIDC" },
+        targetConfiguration: { key: "authToken" }
+      });
+    });
+  });
+
+  describe('OAuth2 - ProfileReference', () => {
+    let toolHandler: Function;
+
+    beforeEach(() => {
+      registerLoginMethodTools(mockServer, mockSimplifierClient);
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
+    });
+
+    it('should create OAuth2 login method with profile reference', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        oauth2SourceType: "ProfileReference" as const,
+        name: "TestOAuth",
+        description: "OAuth from user profile",
+        profileKey: "oauthToken",
+        targetType: "Default" as const
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request).toEqual({
+        name: "TestOAuth",
+        description: "OAuth from user profile",
+        loginMethodType: "OAuth2",
+        source: 4,
+        target: 0,
+        sourceConfiguration: { key: "oauthToken" }
+      });
+    });
+  });
+
+  describe('OAuth2 - UserAttributeReference', () => {
+    let toolHandler: Function;
+
+    beforeEach(() => {
+      registerLoginMethodTools(mockServer, mockSimplifierClient);
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
+    });
+
+    it('should create OAuth2 login method with user attribute reference', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        oauth2SourceType: "UserAttributeReference" as const,
+        name: "TestOAuth",
+        description: "OAuth from user attribute",
+        userAttributeName: "myAttrName",
+        userAttributeCategory: "myAttrCat",
+        targetType: "Default" as const
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      expect(request).toEqual({
+        name: "TestOAuth",
+        description: "OAuth from user attribute",
+        loginMethodType: "OAuth2",
+        source: 5,
+        target: 0,
+        sourceConfiguration: {
+          name: "myAttrName",
+          category: "myAttrCat"
+        }
+      });
     });
   });
 });
