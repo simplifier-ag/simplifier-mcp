@@ -389,3 +389,323 @@ export interface SimplifierUpdateInfo {
   lastEditor?: SimplifierUser;
 }
 
+/**
+ * ========================================
+ * LoginMethod Details Types (Individual GET endpoint)
+ * ========================================
+ * These types represent the detailed configuration returned by GET /api/login-methods/{name}
+ * Note: This endpoint does NOT return updateInfo, editable, or deletable fields
+ */
+
+/**
+ * Raw API response from GET /api/login-methods/{name}
+ * This is what Simplifier returns before transformation
+ */
+export interface SimplifierLoginMethodDetailsRaw {
+  name: string;
+  description: string;
+  loginMethodType: SimplifierLoginMethodType;
+  source: number;
+  target: number;
+  sourceConfiguration: Record<string, any>;
+  targetConfiguration?: Record<string, any>;
+  configuration: Record<string, any>;
+}
+
+/**
+ * Processed/transformed login method details with discriminated unions
+ * This is what our MCP resource returns after adding type discriminators
+ */
+export interface SimplifierLoginMethodDetails {
+  name: string;
+  description: string;
+  loginMethodType: SimplifierLoginMethodType;
+  source: number;
+  target: number;
+  sourceConfiguration: SimplifierLoginMethodSourceConfiguration;
+  targetConfiguration?: SimplifierLoginMethodTargetConfiguration;
+  configuration: SimplifierLoginMethodConfiguration;
+}
+
+// ===== SOURCE CONFIGURATION TYPES (Discriminated by type + source) =====
+
+/**
+ * UserCredentials with DEFAULT source - stores username/password directly
+ */
+export interface UserCredentialsDefaultSource {
+  type: 'UserCredentials';
+  source: 0; // DEFAULT
+  jsonClass?: string;
+  username?: string;
+  password?: string; // Always masked as "*****" when retrieved
+  changePassword?: boolean;
+}
+
+/**
+ * UserCredentials with PROFILE_REFERENCE source - references user profile attribute
+ */
+export interface UserCredentialsProfileReferenceSource {
+  type: 'UserCredentials';
+  source: 4; // PROFILE_REFERENCE
+  jsonClass?: string;
+  key: string; // Profile attribute key
+}
+
+/**
+ * UserCredentials with USER_ATTRIBUTE_REFERENCE source - references user attribute
+ */
+export interface UserCredentialsUserAttributeSource {
+  type: 'UserCredentials';
+  source: 5; // USER_ATTRIBUTE_REFERENCE
+  jsonClass?: string;
+  key: string; // User attribute key
+}
+
+/**
+ * OAuth2 with DEFAULT or REFERENCE source - references OAuth2 client configuration
+ */
+export interface OAuth2DefaultOrReferenceSource {
+  type: 'OAuth2';
+  source: 0 | 2; // DEFAULT or REFERENCE
+  jsonClass?: string;
+  clientName?: string | null; // OAuth2 client name, can be null
+}
+
+/**
+ * OAuth2 with PROFILE_REFERENCE source
+ */
+export interface OAuth2ProfileReferenceSource {
+  type: 'OAuth2';
+  source: 4; // PROFILE_REFERENCE
+  jsonClass?: string;
+  key?: string;
+}
+
+/**
+ * Token with DEFAULT source
+ */
+export interface TokenDefaultSource {
+  type: 'Token';
+  source: 0; // DEFAULT
+  jsonClass?: string;
+}
+
+/**
+ * Token with PROFILE_REFERENCE source
+ */
+export interface TokenProfileReferenceSource {
+  type: 'Token';
+  source: 4; // PROFILE_REFERENCE
+  jsonClass?: string;
+  key?: string;
+}
+
+/**
+ * Token with SYSTEM_REFERENCE source
+ */
+export interface TokenSystemReferenceSource {
+  type: 'Token';
+  source: 3; // SYSTEM_REFERENCE
+  jsonClass?: string;
+  key?: string;
+}
+
+/**
+ * Certificate with DEFAULT source - references certificate by identifier
+ */
+export interface CertificateDefaultSource {
+  type: 'Certificate';
+  source: 0; // DEFAULT
+  identifier?: string; // e.g., "Simplifier: X509 - Certificate (2): WssTestAutomationCrt"
+}
+
+/**
+ * Certificate with PROFILE_REFERENCE source
+ */
+export interface CertificateProfileReferenceSource {
+  type: 'Certificate';
+  source: 4; // PROFILE_REFERENCE
+  key?: string;
+}
+
+/**
+ * Certificate with USER_ATTRIBUTE_REFERENCE source
+ */
+export interface CertificateUserAttributeSource {
+  type: 'Certificate';
+  source: 5; // USER_ATTRIBUTE_REFERENCE
+  key?: string;
+}
+
+/**
+ * SingleSignOn (SSO) with WITH_EXT_PROVIDER source - uses external identity provider
+ */
+export interface SSOWithExtProviderSource {
+  type: 'SingleSignOn';
+  source: 7; // WITH_EXT_PROVIDER
+  identityProvider?: string;
+  secretUserAttribute?: string;
+}
+
+/**
+ * SingleSignOn (SSO) with DEFAULT source
+ */
+export interface SSODefaultSource {
+  type: 'SingleSignOn';
+  source: 0; // DEFAULT
+  jsonClass?: string;
+}
+
+/**
+ * SingleSignOn (SSO) with SYSTEM_REFERENCE source
+ */
+export interface SSOSystemReferenceSource {
+  type: 'SingleSignOn';
+  source: 3; // SYSTEM_REFERENCE
+  jsonClass?: string;
+  key?: string;
+}
+
+/**
+ * Union type for all source configurations
+ * Discriminated by 'type' (login method type) and 'source' (source ID)
+ */
+export type SimplifierLoginMethodSourceConfiguration =
+  | UserCredentialsDefaultSource
+  | UserCredentialsProfileReferenceSource
+  | UserCredentialsUserAttributeSource
+  | OAuth2DefaultOrReferenceSource
+  | OAuth2ProfileReferenceSource
+  | TokenDefaultSource
+  | TokenProfileReferenceSource
+  | TokenSystemReferenceSource
+  | CertificateDefaultSource
+  | CertificateProfileReferenceSource
+  | CertificateUserAttributeSource
+  | SSOWithExtProviderSource
+  | SSODefaultSource
+  | SSOSystemReferenceSource;
+
+// ===== CONFIGURATION TYPES (Discriminated by type) =====
+
+/**
+ * Configuration for UserCredentials login method
+ */
+export interface UserCredentialsConfiguration {
+  type: 'UserCredentials';
+  convertTargetToBase64?: boolean;
+  convertSourceFromBase64?: boolean;
+}
+
+/**
+ * Configuration for Token login method
+ */
+export interface TokenConfiguration {
+  type: 'Token';
+  convertTargetToBase64?: boolean;
+  convertSourceFromBase64?: boolean;
+}
+
+/**
+ * Configuration for Certificate login method
+ */
+export interface CertificateConfiguration {
+  type: 'Certificate';
+  removeLinebreaks?: boolean;
+  prerequisites?: {
+    type?: string; // e.g., "X509"
+    version?: string; // e.g., "3.0"
+    encodingFormat?: string; // e.g., "PEM"
+  };
+}
+
+/**
+ * Configuration for SingleSignOn (SSO) login method
+ */
+export interface SSOConfiguration {
+  type: 'SingleSignOn';
+  sapSystem?: string;
+  externalIdType?: string; // e.g., "LDAP"
+}
+
+/**
+ * Configuration for OAuth2 login method
+ * Often empty or minimal, keeping flexible
+ */
+export interface OAuth2Configuration {
+  type: 'OAuth2';
+  [key: string]: any; // OAuth2 config is highly variable
+}
+
+/**
+ * Configuration for SAML login method
+ */
+export interface SAMLConfiguration {
+  type: 'SAML';
+  [key: string]: any; // SAML config is highly variable
+}
+
+/**
+ * Configuration for WSS (Web Services Security) login method
+ */
+export interface WSSConfiguration {
+  type: 'WSS';
+  [key: string]: any; // WSS config is highly variable
+}
+
+/**
+ * Configuration for Microsoft Entra ID login method
+ */
+export interface MSEntraIDConfiguration {
+  type: 'MSEntraID_OAuth';
+  [key: string]: any; // Entra ID config is highly variable
+}
+
+/**
+ * Union type for all configuration types
+ * Discriminated by 'type' (login method type)
+ */
+export type SimplifierLoginMethodConfiguration =
+  | UserCredentialsConfiguration
+  | TokenConfiguration
+  | CertificateConfiguration
+  | SSOConfiguration
+  | OAuth2Configuration
+  | SAMLConfiguration
+  | WSSConfiguration
+  | MSEntraIDConfiguration;
+
+// ===== TARGET CONFIGURATION TYPES (Discriminated by target) =====
+
+/**
+ * DEFAULT target - no additional configuration
+ */
+export interface DefaultTargetConfiguration {
+  target: 0; // DEFAULT
+}
+
+/**
+ * HEADER target - places token/credential in HTTP header
+ */
+export interface HeaderTargetConfiguration {
+  target: 1; // HEADER
+  name?: string; // Header name like "MY_CERT", "Authorization", etc.
+}
+
+/**
+ * QUERY target - places token/credential in query parameter
+ */
+export interface QueryTargetConfiguration {
+  target: 2; // QUERY
+  name?: string; // Query parameter name
+}
+
+/**
+ * Union type for all target configurations
+ * Discriminated by 'target' (target ID)
+ */
+export type SimplifierLoginMethodTargetConfiguration =
+  | DefaultTargetConfiguration
+  | HeaderTargetConfiguration
+  | QueryTargetConfiguration;
+

@@ -799,6 +799,154 @@ describe('SimplifierClient', () => {
     });
   });
 
+  describe('getLoginMethodDetails', () => {
+    it('should call getLoginMethodDetails endpoint with login method name', async () => {
+      const mockResponse = {
+        name: 'TestUserCredentials',
+        description: 'Test user credentials login',
+        loginMethodType: {
+          technicalName: 'UserCredentials',
+          i18n: 'loginMethodType_UserCredentials_Caption',
+          descriptionI18n: 'loginMethodType_UserCredentials_Description',
+          sources: [
+            {
+              id: 0,
+              name: 'DEFAULT',
+              i18nName: 'login_method_source_default',
+              i18nDescription: 'login_method_source_default_description'
+            }
+          ],
+          targets: [
+            {
+              id: 0,
+              name: 'DEFAULT',
+              i18nName: 'login_method_target_default',
+              i18nDescription: 'login_method_target_undefined_description'
+            }
+          ],
+          supportedConnectors: ['Email', 'MQTT', 'OData', 'REST', 'SOAP', 'SQL']
+        },
+        source: 0,
+        target: 0,
+        sourceConfiguration: {
+          jsonClass: 'de.itizzimo.simplifier.api.plugin.loginmethod.LoginData',
+          username: 'testuser',
+          password: '*****',
+          changePassword: false
+        },
+        targetConfiguration: {},
+        configuration: {
+          convertTargetToBase64: false,
+          convertSourceFromBase64: false
+        }
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.getLoginMethodDetails('TestUserCredentials');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://some.test/UserInterface/api/login-methods/TestUserCredentials',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+        })
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(result.name).toBe('TestUserCredentials');
+      expect(result.loginMethodType.technicalName).toBe('UserCredentials');
+      expect(result.sourceConfiguration).toHaveProperty('username');
+      expect(result.configuration).toHaveProperty('convertTargetToBase64');
+    });
+
+    it('should call getLoginMethodDetails endpoint for OAuth2 login method', async () => {
+      const mockResponse = {
+        name: 'oAuthSpotify',
+        description: 'OAuth for Spotify API',
+        loginMethodType: {
+          technicalName: 'OAuth2',
+          i18n: 'loginMethodType_OAuth2_Caption',
+          descriptionI18n: 'loginMethodType_OAuth2_Description',
+          sources: [
+            {
+              id: 0,
+              name: 'DEFAULT',
+              i18nName: 'login_method_source_default',
+              i18nDescription: 'login_method_source_default_description'
+            }
+          ],
+          targets: [
+            {
+              id: 0,
+              name: 'DEFAULT',
+              i18nName: 'login_method_target_default',
+              i18nDescription: 'login_method_target_undefined_description'
+            },
+            {
+              id: 1,
+              name: 'HEADER',
+              i18nName: 'login_method_target_header',
+              i18nDescription: 'login_method_target_header_description'
+            }
+          ],
+          supportedConnectors: ['Email', 'OData', 'REST', 'SOAP']
+        },
+        source: 0,
+        target: 1,
+        sourceConfiguration: {
+          jsonClass: 'de.itizzimo.simplifier.api.plugin.loginmethod.LoginData',
+          clientName: 'SpotifyOAuthClient'
+        },
+        targetConfiguration: {
+          name: 'Authorization'
+        },
+        configuration: {}
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.getLoginMethodDetails('oAuthSpotify');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://some.test/UserInterface/api/login-methods/oAuthSpotify',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+        })
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(result.name).toBe('oAuthSpotify');
+      expect(result.loginMethodType.technicalName).toBe('OAuth2');
+      expect(result.source).toBe(0);
+      expect(result.target).toBe(1);
+    });
+
+    it('should handle 404 error when login method not found', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => 'Login method not found'
+      } as Response);
+
+      await expect(client.getLoginMethodDetails('NonExistentMethod'))
+        .rejects
+        .toThrow("Failed request GET http://some.test/UserInterface/api/login-methods/NonExistentMethod: HTTP 404: Not Found");
+    });
+  });
+
   describe('getDataTypeById', () => {
     it('should call getDataTypeById endpoint with fully qualified datatype id (namespace/name)', async () => {
       const mockResponse = {

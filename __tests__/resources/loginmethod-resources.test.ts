@@ -25,6 +25,7 @@ describe('LoginMethod Resources', () => {
     // Create mock client
     mockClient = {
       listLoginMethods: jest.fn(),
+      getLoginMethodDetails: jest.fn(),
     } as any;
 
     // Get the mocked wrapResourceResult
@@ -177,16 +178,17 @@ describe('LoginMethod Resources', () => {
   };
 
   describe('registerLoginMethodResources', () => {
-    it('should register one login methods resource', () => {
+    it('should register two login methods resources', () => {
       registerLoginMethodResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(1);
+      expect(mockServer.resource).toHaveBeenCalledTimes(2);
 
-      // Check that specific resource is registered
+      // Check that specific resources are registered
       const calls = mockServer.resource.mock.calls;
       const resourceNames = calls.map(call => call[0]);
 
       expect(resourceNames).toContain('loginmethods-list');
+      expect(resourceNames).toContain('loginmethod-details');
     });
 
     describe('loginmethods list handler', () => {
@@ -408,6 +410,336 @@ describe('LoginMethod Resources', () => {
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.loginMethods).toHaveLength(0);
         expect(resultData.totalCount).toBe(0);
+      });
+    });
+
+    describe('loginmethod details handler', () => {
+      let loginMethodDetailsHandler: any;
+
+      beforeEach(() => {
+        registerLoginMethodResources(mockServer, mockClient);
+        loginMethodDetailsHandler = mockServer.resource.mock.calls[1][3]; // Second resource (loginmethod details)
+      });
+
+      it('should call wrapResourceResult with correct parameters', async () => {
+        const testUri = new URL('simplifier://loginmethod/TestUserCredentials');
+        mockWrapResourceResult.mockResolvedValue({ contents: [] });
+
+        await loginMethodDetailsHandler(testUri, {}, createMockExtra());
+
+        expect(mockWrapResourceResult).toHaveBeenCalledWith(
+          testUri,
+          expect.any(Function)
+        );
+      });
+
+      it('should return UserCredentials login method details with discriminated unions', async () => {
+        const testUri = new URL('simplifier://loginmethod/TestUserCredentials');
+        const mockRawDetails = {
+          name: 'TestUserCredentials',
+          description: 'Test user credentials login',
+          loginMethodType: {
+            technicalName: 'UserCredentials',
+            i18n: 'loginMethodType_UserCredentials_Caption',
+            descriptionI18n: 'loginMethodType_UserCredentials_Description',
+            sources: [
+              {
+                id: 0,
+                name: 'DEFAULT',
+                i18nName: 'login_method_source_default',
+                i18nDescription: 'login_method_source_default_description'
+              }
+            ],
+            targets: [
+              {
+                id: 0,
+                name: 'DEFAULT',
+                i18nName: 'login_method_target_default',
+                i18nDescription: 'login_method_target_undefined_description'
+              }
+            ],
+            supportedConnectors: ['Email', 'MQTT', 'OData', 'REST', 'SOAP', 'SQL']
+          },
+          source: 0,
+          target: 0,
+          sourceConfiguration: {
+            jsonClass: 'de.itizzimo.simplifier.api.plugin.loginmethod.LoginData',
+            username: 'testuser',
+            password: '*****',
+            changePassword: false
+          },
+          targetConfiguration: {},
+          configuration: {
+            convertTargetToBase64: false,
+            convertSourceFromBase64: false
+          }
+        };
+
+        mockClient.getLoginMethodDetails.mockResolvedValue(mockRawDetails);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await loginMethodDetailsHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('TestUserCredentials');
+        const resultData = JSON.parse(result.contents[0].text as string);
+
+        expect(resultData.name).toBe('TestUserCredentials');
+        expect(resultData.type).toBe('UserCredentials');
+        expect(resultData.source.id).toBe(0);
+        expect(resultData.source.name).toBe('DEFAULT');
+        expect(resultData.target.id).toBe(0);
+        expect(resultData.target.name).toBe('DEFAULT');
+
+        // Check that discriminators were added
+        expect(resultData.sourceConfiguration.type).toBe('UserCredentials');
+        expect(resultData.sourceConfiguration.source).toBe(0);
+        expect(resultData.configuration.type).toBe('UserCredentials');
+        expect(resultData.targetConfiguration.target).toBe(0);
+      });
+
+      it('should return OAuth2 login method details with HEADER target', async () => {
+        const testUri = new URL('simplifier://loginmethod/oAuthSpotify');
+        const mockRawDetails = {
+          name: 'oAuthSpotify',
+          description: 'OAuth for Spotify API',
+          loginMethodType: {
+            technicalName: 'OAuth2',
+            i18n: 'loginMethodType_OAuth2_Caption',
+            descriptionI18n: 'loginMethodType_OAuth2_Description',
+            sources: [
+              {
+                id: 0,
+                name: 'DEFAULT',
+                i18nName: 'login_method_source_default',
+                i18nDescription: 'login_method_source_default_description'
+              }
+            ],
+            targets: [
+              {
+                id: 0,
+                name: 'DEFAULT',
+                i18nName: 'login_method_target_default',
+                i18nDescription: 'login_method_target_undefined_description'
+              },
+              {
+                id: 1,
+                name: 'HEADER',
+                i18nName: 'login_method_target_header',
+                i18nDescription: 'login_method_target_header_description'
+              }
+            ],
+            supportedConnectors: ['Email', 'OData', 'REST', 'SOAP']
+          },
+          source: 0,
+          target: 1,
+          sourceConfiguration: {
+            jsonClass: 'de.itizzimo.simplifier.api.plugin.loginmethod.LoginData',
+            clientName: 'SpotifyOAuthClient'
+          },
+          targetConfiguration: {
+            name: 'Authorization'
+          },
+          configuration: {}
+        };
+
+        mockClient.getLoginMethodDetails.mockResolvedValue(mockRawDetails);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await loginMethodDetailsHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('oAuthSpotify');
+        const resultData = JSON.parse(result.contents[0].text as string);
+
+        expect(resultData.name).toBe('oAuthSpotify');
+        expect(resultData.type).toBe('OAuth2');
+        expect(resultData.target.id).toBe(1);
+        expect(resultData.target.name).toBe('HEADER');
+        expect(resultData.targetConfiguration.name).toBe('Authorization');
+
+        // Check OAuth2-specific discriminators
+        expect(resultData.sourceConfiguration.type).toBe('OAuth2');
+        expect(resultData.configuration.type).toBe('OAuth2');
+      });
+
+      it('should return Token login method details', async () => {
+        const testUri = new URL('simplifier://loginmethod/TokenMethod');
+        const mockRawDetails = {
+          name: 'TokenMethod',
+          description: 'Bearer token authentication',
+          loginMethodType: {
+            technicalName: 'Token',
+            i18n: 'loginMethodType_Token_Caption',
+            descriptionI18n: 'loginMethodType_Token_Description',
+            sources: [
+              {
+                id: 0,
+                name: 'DEFAULT',
+                i18nName: 'login_method_source_default',
+                i18nDescription: 'login_method_source_default_description'
+              }
+            ],
+            targets: [
+              {
+                id: 1,
+                name: 'HEADER',
+                i18nName: 'login_method_target_header',
+                i18nDescription: 'login_method_target_header_description'
+              }
+            ],
+            supportedConnectors: ['Email', 'MQTT', 'OData', 'ProxyV2', 'REST', 'SAPRFC', 'SOAP', 'SQL']
+          },
+          source: 0,
+          target: 1,
+          sourceConfiguration: {},
+          targetConfiguration: {
+            name: 'Authorization'
+          },
+          configuration: {
+            convertTargetToBase64: false,
+            convertSourceFromBase64: false
+          }
+        };
+
+        mockClient.getLoginMethodDetails.mockResolvedValue(mockRawDetails);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await loginMethodDetailsHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('TokenMethod');
+        const resultData = JSON.parse(result.contents[0].text as string);
+
+        expect(resultData.name).toBe('TokenMethod');
+        expect(resultData.type).toBe('Token');
+        expect(resultData.sourceConfiguration.type).toBe('Token');
+        expect(resultData.configuration.type).toBe('Token');
+      });
+
+      it('should extract login method name from URI path correctly', async () => {
+        const testUri = new URL('simplifier://loginmethod/MyCustomMethod');
+
+        mockClient.getLoginMethodDetails.mockResolvedValue({
+          name: 'MyCustomMethod',
+          description: 'Custom method',
+          loginMethodType: {
+            technicalName: 'UserCredentials',
+            i18n: 'test',
+            descriptionI18n: 'test',
+            sources: [{ id: 0, name: 'DEFAULT', i18nName: 'test', i18nDescription: 'test' }],
+            targets: [{ id: 0, name: 'DEFAULT', i18nName: 'test', i18nDescription: 'test' }],
+            supportedConnectors: []
+          },
+          source: 0,
+          target: 0,
+          sourceConfiguration: {},
+          targetConfiguration: {},
+          configuration: {}
+        });
+
+        mockWrapResourceResult.mockImplementation(async (_uri: URL, fn: () => any) => {
+          await fn();
+          return { contents: [] };
+        });
+
+        await loginMethodDetailsHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('MyCustomMethod');
+      });
+
+      it('should handle API errors through wrapper', async () => {
+        const testUri = new URL('simplifier://loginmethod/NonExistent');
+        const testError = new Error('Not Found');
+        mockClient.getLoginMethodDetails.mockRejectedValue(testError);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          try {
+            await fn();
+            return { contents: [] };
+          } catch (e) {
+            return {
+              contents: [{
+                uri: uri.href,
+                text: JSON.stringify({ error: `Failed to fetch: ${e}` }),
+                mimeType: 'application/json'
+              }]
+            };
+          }
+        });
+
+        const result = await loginMethodDetailsHandler(testUri, {}, createMockExtra());
+
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalled();
+        expect(result.contents[0].text).toContain('Failed to fetch');
+        expect(result.contents[0].text).toContain('Not Found');
+      });
+
+      it('should handle unknown source/target IDs gracefully', async () => {
+        const testUri = new URL('simplifier://loginmethod/BadIdsMethod');
+        const mockRawDetails = {
+          name: 'BadIdsMethod',
+          description: 'Method with invalid IDs',
+          loginMethodType: {
+            technicalName: 'UserCredentials',
+            i18n: 'test',
+            descriptionI18n: 'test',
+            sources: [{ id: 0, name: 'DEFAULT', i18nName: 'test', i18nDescription: 'test' }],
+            targets: [{ id: 0, name: 'DEFAULT', i18nName: 'test', i18nDescription: 'test' }],
+            supportedConnectors: []
+          },
+          source: 999, // Invalid
+          target: 888, // Invalid
+          sourceConfiguration: {},
+          targetConfiguration: {},
+          configuration: {}
+        };
+
+        mockClient.getLoginMethodDetails.mockResolvedValue(mockRawDetails);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await loginMethodDetailsHandler(testUri, {}, createMockExtra());
+
+        const resultData = JSON.parse(result.contents[0].text as string);
+        expect(resultData.source.name).toBe('UNKNOWN');
+        expect(resultData.target.name).toBe('UNKNOWN');
       });
     });
   });

@@ -1,6 +1,7 @@
 import {SimplifierClient} from "../client/simplifier-client.js";
-import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
+import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
+import {SimplifierLoginMethodDetailsRaw, SimplifierLoginMethodDetails} from "../client/types.js";
 
 export function registerLoginMethodResources(server: McpServer, simplifier: SimplifierClient): void {
 
@@ -64,4 +65,112 @@ Login methods handle authentication for connectors, supporting various authentic
       });
     }
   );
+
+  // Individual login method resource template - dynamic URI with {loginMethodName}
+  const noListCallback = { list: undefined };
+  server.resource("loginmethod-details", new ResourceTemplate("simplifier://loginmethod/{loginMethodName}", noListCallback), {
+      title: "Get Login Method Details",
+      mimeType: "application/json",
+      description: `# Get detailed configuration for a specific Login Method
+
+This resource provides complete configuration details for a login method, including:
+- **Source Configuration**: Where credentials come from (stored values, user profile, system reference, etc.)
+- **Target Configuration**: Where credentials are placed (header, query parameter, etc.)
+- **Method Configuration**: Method-specific settings (Base64 encoding, prerequisites, etc.)
+
+**Note**: Unlike the list endpoint, individual details do NOT include updateInfo, editable, or deletable fields.
+
+**Example URIs**:
+- simplifier://loginmethod/TestUserCredentials
+- simplifier://loginmethod/oAuthSpotify
+- simplifier://loginmethod/TokenMethod
+
+**Configuration Types by Login Method**:
+- **UserCredentials**: Username/password with optional profile/attribute references
+- **OAuth2**: OAuth2 client references
+- **Token**: Bearer tokens from various sources
+- **Certificate**: X.509 certificates with prerequisites
+- **SingleSignOn**: SAP SSO with or without external providers
+- **SAML**: SAML authentication
+- **WSS**: Web Services Security
+- **MSEntraID_OAuth**: Microsoft Entra ID (formerly Azure AD)
+
+**Type Safety**: All configurations use discriminated unions for type-safe access based on login method type and source/target.`
+    },
+    async (uri: URL) => {
+      return wrapResourceResult(uri, async () => {
+        const pathParts = uri.pathname.split('/');
+        const loginMethodName = pathParts[pathParts.length - 1];
+
+        if (!loginMethodName) {
+          throw new Error('Login method name is required in URI path');
+        }
+
+        const rawDetails = await simplifier.getLoginMethodDetails(loginMethodName);
+        const details = transformLoginMethodDetails(rawDetails);
+
+        // Resolve source and target IDs to names for readability
+        const sourceName = details.loginMethodType.sources.find(s => s.id === details.source)?.name || 'UNKNOWN';
+        const targetName = details.loginMethodType.targets.find(t => t.id === details.target)?.name || 'UNKNOWN';
+
+        return {
+          name: details.name,
+          description: details.description,
+          type: details.loginMethodType.technicalName,
+          source: {
+            id: details.source,
+            name: sourceName
+          },
+          target: {
+            id: details.target,
+            name: targetName
+          },
+          sourceConfiguration: details.sourceConfiguration,
+          targetConfiguration: details.targetConfiguration,
+          configuration: details.configuration,
+          supportedConnectors: details.loginMethodType.supportedConnectors,
+          loginMethodType: details.loginMethodType
+        };
+      });
+    }
+  );
+}
+
+
+/**
+ * Transforms raw login method details from API into discriminated union types
+ * by adding synthetic 'type' fields for TypeScript type narrowing.
+ */
+function transformLoginMethodDetails(raw: SimplifierLoginMethodDetailsRaw): SimplifierLoginMethodDetails {
+  const typeName = raw.loginMethodType.technicalName;
+
+  // Add discriminators to sourceConfiguration
+  const sourceConfiguration = {
+    type: typeName,
+    source: raw.source,
+    ...raw.sourceConfiguration
+  } as any;
+
+  // Add discriminator to configuration
+  const configuration = {
+    type: typeName,
+    ...raw.configuration
+  } as any;
+
+  // Add discriminator to targetConfiguration if present
+  const targetConfiguration = raw.targetConfiguration ? {
+    target: raw.target,
+    ...raw.targetConfiguration
+  } as any : undefined;
+
+  return {
+    name: raw.name,
+    description: raw.description,
+    loginMethodType: raw.loginMethodType,
+    source: raw.source,
+    target: raw.target,
+    sourceConfiguration,
+    targetConfiguration,
+    configuration
+  };
 }
