@@ -194,23 +194,13 @@ This allows you to test connector calls with real data and see the results.
           return {
             success: true,
             message: `Connector call '${callName}' executed successfully`,
-            result: result.result,
-            executedWith: {
-              connector: connectorName,
-              call: callName,
-              parameters: testParameters
-            }
+            result: result.result
           };
         } else {
           return {
             success: false,
             message: `Connector call '${callName}' execution failed`,
-            error: result.error || result.message || "Unknown error",
-            executedWith: {
-              connector: connectorName,
-              call: callName,
-              parameters: testParameters
-            }
+            error: result.error || result.message || "Unknown error"
           };
         }
       });

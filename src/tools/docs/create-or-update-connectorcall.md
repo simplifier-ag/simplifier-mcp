@@ -76,4 +76,4 @@ A REST Connector must have at least one output parameter
 
 An empty parameter name, or "/" refers to the whole output object.
 
-
+Use alias "data" for the whole output object.
