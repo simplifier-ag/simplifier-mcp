@@ -203,6 +203,12 @@ export interface BusinessObjectTestParameter {
   transfer: boolean;
 }
 
+export interface GenericApiResponse {
+  success?: boolean;
+  error?: string;
+  message: string;
+}
+
 export interface BusinessObjectTestResponse {
   success: boolean;
   result?: any;

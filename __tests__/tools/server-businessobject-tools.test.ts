@@ -28,7 +28,9 @@ describe('registerServerBusinessObjectResources', () => {
       getServerBusinessObjectFunction: jest.fn(),
       createServerBusinessObjectFunction: jest.fn(),
       updateServerBusinessObjectFunction: jest.fn(),
-      testServerBusinessObjectFunction: jest.fn()
+      testServerBusinessObjectFunction: jest.fn(),
+      deleteServerBusinessObject: jest.fn(),
+      deleteServerBusinessObjectFunction: jest.fn()
     } as any;
 
     // Get the mocked wrapToolResult
@@ -39,10 +41,10 @@ describe('registerServerBusinessObjectResources', () => {
   });
 
   describe('function registration', () => {
-    it('should register all three business object tools', () => {
+    it('should register all five business object tools', () => {
       registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
 
-      expect(mockServer.tool).toHaveBeenCalledTimes(3);
+      expect(mockServer.tool).toHaveBeenCalledTimes(5);
 
       // Check first tool (businessobject-update)
       expect(mockServer.tool).toHaveBeenNthCalledWith(1,
@@ -103,6 +105,41 @@ describe('registerServerBusinessObjectResources', () => {
           title: "Test a Business Object Function",
           readOnlyHint: true,
           destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
+        }),
+        expect.any(Function)
+      );
+
+      // Check fourth tool (businessobject-delete)
+      expect(mockServer.tool).toHaveBeenNthCalledWith(4,
+        "businessobject-delete",
+        expect.any(String),
+        expect.objectContaining({
+          name: expect.any(Object)
+        }),
+        expect.objectContaining({
+          title: "Delete a Business Object",
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: true,
+          openWorldHint: false
+        }),
+        expect.any(Function)
+      );
+
+      // Check fifth tool (businessobject-function-delete)
+      expect(mockServer.tool).toHaveBeenNthCalledWith(5,
+        "businessobject-function-delete",
+        expect.any(String),
+        expect.objectContaining({
+          businessObjectName: expect.any(Object),
+          functionName: expect.any(Object)
+        }),
+        expect.objectContaining({
+          title: "Delete a Business Object Function",
+          readOnlyHint: false,
+          destructiveHint: true,
           idempotentHint: true,
           openWorldHint: false
         }),
@@ -1121,6 +1158,400 @@ describe('registerServerBusinessObjectResources', () => {
         ];
 
         expect(() => schema.inputParameters.parse(parametersWithDifferentTypes)).not.toThrow();
+      });
+    });
+  });
+
+  describe('businessobject-delete tool', () => {
+    let deleteToolHandler: Function;
+
+    beforeEach(() => {
+      registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
+      // Get the delete tool handler (fourth tool registered)
+      deleteToolHandler = mockServer.tool.mock.calls[3][4];
+    });
+
+    describe('delete tool registration', () => {
+      it('should register delete tool with correct schema', () => {
+        registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
+
+        const deleteToolCall = mockServer.tool.mock.calls[3];
+        const schema = deleteToolCall[2];
+
+        // Test required fields exist
+        expect(schema.name).toBeDefined();
+
+        // Test valid data passes validation
+        expect(() => schema.name.parse("TestBO")).not.toThrow();
+
+        // Test that name is required
+        expect(() => schema.name.parse(undefined)).toThrow();
+        expect(() => schema.name.parse(null)).toThrow();
+      });
+    });
+
+    describe('delete tool handler', () => {
+      it('should successfully delete a business object', async () => {
+        const testParams = {
+          name: "TestBO"
+        };
+
+        const expectedResponse = "Business Object 'TestBO' deleted successfully";
+
+        mockSimplifierClient.deleteServerBusinessObject.mockResolvedValue(expectedResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await deleteToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("TestBO");
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "Delete Business Object TestBO",
+          expect.any(Function)
+        );
+      });
+
+      it('should handle deletion of business object with special characters in name', async () => {
+        const testParams = {
+          name: "Test_BO-v2.0"
+        };
+
+        const expectedResponse = "Business Object 'Test_BO-v2.0' deleted successfully";
+
+        mockSimplifierClient.deleteServerBusinessObject.mockResolvedValue(expectedResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await deleteToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("Test_BO-v2.0");
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "Delete Business Object Test_BO-v2.0",
+          expect.any(Function)
+        );
+      });
+
+      it('should handle errors when business object does not exist', async () => {
+        const testParams = {
+          name: "NonExistentBO"
+        };
+
+        mockSimplifierClient.deleteServerBusinessObject.mockRejectedValue(
+          new Error("Business Object 'NonExistentBO' not found")
+        );
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            await fn();
+            return { content: [{ type: "text", text: "Success" }] };
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({ error: `Tool ${caption} failed: ${error}` })
+              }]
+            };
+          }
+        });
+
+        await deleteToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("NonExistentBO");
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "Delete Business Object NonExistentBO",
+          expect.any(Function)
+        );
+      });
+
+      it('should handle errors when business object is not deletable', async () => {
+        const testParams = {
+          name: "ProtectedBO"
+        };
+
+        mockSimplifierClient.deleteServerBusinessObject.mockRejectedValue(
+          new Error("Business Object 'ProtectedBO' cannot be deleted: still in use")
+        );
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            await fn();
+            return { content: [{ type: "text", text: "Success" }] };
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({ error: `Tool ${caption} failed: ${error}` })
+              }]
+            };
+          }
+        });
+
+        await deleteToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("ProtectedBO");
+      });
+
+      it('should return the string response from API on successful deletion', async () => {
+        const testParams = {
+          name: "TestBO"
+        };
+
+        const expectedResponse = "Deleted successfully";
+
+        mockSimplifierClient.deleteServerBusinessObject.mockResolvedValue(expectedResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          expect(result).toBe("Deleted successfully");
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await deleteToolHandler(testParams);
+
+        expect(mockWrapToolResult).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('businessobject-function-delete tool', () => {
+    let deleteFunctionToolHandler: Function;
+
+    beforeEach(() => {
+      registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
+      // Get the delete function tool handler (fifth tool registered)
+      deleteFunctionToolHandler = mockServer.tool.mock.calls[4][4];
+    });
+
+    describe('delete function tool registration', () => {
+      it('should register delete function tool with correct schema', () => {
+        registerServerBusinessObjectTools(mockServer, mockSimplifierClient);
+
+        const deleteFunctionToolCall = mockServer.tool.mock.calls[4];
+        const schema = deleteFunctionToolCall[2];
+
+        // Test required fields exist
+        expect(schema.businessObjectName).toBeDefined();
+        expect(schema.functionName).toBeDefined();
+
+        // Test valid data passes validation
+        expect(() => schema.businessObjectName.parse("TestBO")).not.toThrow();
+        expect(() => schema.functionName.parse("testFunction")).not.toThrow();
+
+        // Test that fields are required
+        expect(() => schema.businessObjectName.parse(undefined)).toThrow();
+        expect(() => schema.functionName.parse(undefined)).toThrow();
+        expect(() => schema.businessObjectName.parse(null)).toThrow();
+        expect(() => schema.functionName.parse(null)).toThrow();
+      });
+    });
+
+    describe('delete function tool handler', () => {
+      it('should successfully delete a business object function', async () => {
+        const testParams = {
+          businessObjectName: "TestBO",
+          functionName: "testFunction"
+        };
+
+        const expectedResponse = "Function 'testFunction' deleted successfully from Business Object 'TestBO'";
+
+        mockSimplifierClient.deleteServerBusinessObjectFunction.mockResolvedValue(expectedResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await deleteFunctionToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "testFunction");
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "Delete Business Object Function TestBO.testFunction",
+          expect.any(Function)
+        );
+      });
+
+      it('should handle deletion of function with special characters in names', async () => {
+        const testParams = {
+          businessObjectName: "Test_BO-v2",
+          functionName: "get_user_data"
+        };
+
+        const expectedResponse = "Function 'get_user_data' deleted successfully from Business Object 'Test_BO-v2'";
+
+        mockSimplifierClient.deleteServerBusinessObjectFunction.mockResolvedValue(expectedResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await deleteFunctionToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("Test_BO-v2", "get_user_data");
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "Delete Business Object Function Test_BO-v2.get_user_data",
+          expect.any(Function)
+        );
+      });
+
+      it('should handle errors when business object does not exist', async () => {
+        const testParams = {
+          businessObjectName: "NonExistentBO",
+          functionName: "testFunction"
+        };
+
+        mockSimplifierClient.deleteServerBusinessObjectFunction.mockRejectedValue(
+          new Error("Business Object 'NonExistentBO' not found")
+        );
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            await fn();
+            return { content: [{ type: "text", text: "Success" }] };
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({ error: `Tool ${caption} failed: ${error}` })
+              }]
+            };
+          }
+        });
+
+        await deleteFunctionToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("NonExistentBO", "testFunction");
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "Delete Business Object Function NonExistentBO.testFunction",
+          expect.any(Function)
+        );
+      });
+
+      it('should handle errors when function does not exist', async () => {
+        const testParams = {
+          businessObjectName: "TestBO",
+          functionName: "nonExistentFunction"
+        };
+
+        mockSimplifierClient.deleteServerBusinessObjectFunction.mockRejectedValue(
+          new Error("Function 'nonExistentFunction' not found in Business Object 'TestBO'")
+        );
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            await fn();
+            return { content: [{ type: "text", text: "Success" }] };
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({ error: `Tool ${caption} failed: ${error}` })
+              }]
+            };
+          }
+        });
+
+        await deleteFunctionToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "nonExistentFunction");
+      });
+
+      it('should handle errors when function is not deletable', async () => {
+        const testParams = {
+          businessObjectName: "TestBO",
+          functionName: "protectedFunction"
+        };
+
+        mockSimplifierClient.deleteServerBusinessObjectFunction.mockRejectedValue(
+          new Error("Function 'protectedFunction' cannot be deleted: still in use by other components")
+        );
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            await fn();
+            return { content: [{ type: "text", text: "Success" }] };
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({ error: `Tool ${caption} failed: ${error}` })
+              }]
+            };
+          }
+        });
+
+        await deleteFunctionToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "protectedFunction");
+      });
+
+      it('should return the string response from API on successful deletion', async () => {
+        const testParams = {
+          businessObjectName: "TestBO",
+          functionName: "testFunction"
+        };
+
+        const expectedResponse = "Deleted successfully";
+
+        mockSimplifierClient.deleteServerBusinessObjectFunction.mockResolvedValue(expectedResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          expect(result).toBe("Deleted successfully");
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await deleteFunctionToolHandler(testParams);
+
+        expect(mockWrapToolResult).toHaveBeenCalled();
+      });
+
+      it('should handle multiple consecutive deletions', async () => {
+        const testParams1 = {
+          businessObjectName: "TestBO",
+          functionName: "function1"
+        };
+
+        const testParams2 = {
+          businessObjectName: "TestBO",
+          functionName: "function2"
+        };
+
+        mockSimplifierClient.deleteServerBusinessObjectFunction
+          .mockResolvedValueOnce("Function 'function1' deleted")
+          .mockResolvedValueOnce("Function 'function2' deleted");
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await deleteFunctionToolHandler(testParams1);
+        await deleteFunctionToolHandler(testParams2);
+
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledTimes(2);
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenNthCalledWith(1, "TestBO", "function1");
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenNthCalledWith(2, "TestBO", "function2");
       });
     });
   });
