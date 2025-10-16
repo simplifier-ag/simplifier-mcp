@@ -626,13 +626,14 @@ export interface TokenDefaultSource {
 }
 
 /**
- * Token with SYSTEM_REFERENCE source
+ * SYSTEM_REFERENCE source - references system-managed credentials
+ * Used by Token and SingleSignOn login methods
+ * (so it is either a SimplifierToken or a SAP SSO token (strangely compared to oAuth2 no clientName of the AuthClient is selected - it is assumed, that there is only one...))
  */
-export interface TokenSystemReferenceSource {
-  type: 'Token';
+export interface SystemReferenceSource {
+  type: string; // Runtime value: 'Token' | 'SingleSignOn'
   source: 3; // SYSTEM_REFERENCE
   jsonClass?: string;
-  key?: string;
 }
 
 /**
@@ -675,16 +676,6 @@ export interface SSODefaultSource {
 }
 
 /**
- * SingleSignOn (SSO) with SYSTEM_REFERENCE source
- */
-export interface SSOSystemReferenceSource {
-  type: 'SingleSignOn';
-  source: 3; // SYSTEM_REFERENCE
-  jsonClass?: string;
-  key?: string;
-}
-
-/**
  * Union type for all source configurations
  * Discriminated by 'type' (login method type) and 'source' (source ID)
  */
@@ -693,13 +684,12 @@ export type SimplifierLoginMethodSourceConfiguration =
   | OAuth2DefaultOrReferenceSource
   | TokenDefaultSource
   | TokenProvidedSource
-  | TokenSystemReferenceSource
   | CertificateDefaultSource
+  | SystemReferenceSource
   | ProfileReferenceSource
   | UserAttributeSource
   | SSOWithExtProviderSource
-  | SSODefaultSource
-  | SSOSystemReferenceSource;
+  | SSODefaultSource;
 
 // ===== CONFIGURATION TYPES (Discriminated by type) =====
 
