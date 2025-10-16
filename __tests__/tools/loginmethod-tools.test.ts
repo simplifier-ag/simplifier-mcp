@@ -43,7 +43,8 @@ describe('registerLoginMethodTools', () => {
     mockSimplifierClient = {
       getLoginMethodDetails: jest.fn(),
       createLoginMethod: jest.fn(),
-      updateLoginMethod: jest.fn()
+      updateLoginMethod: jest.fn(),
+      listOAuth2Clients: jest.fn()
     } as any;
 
     // Get the mocked functions
@@ -617,6 +618,273 @@ describe('registerLoginMethodTools', () => {
 
       expect((request.sourceConfiguration as any).changeToken).toBe(true);
       expect((request.sourceConfiguration as any).token).toBe("newSecretToken456");
+    });
+  });
+
+
+  describe('OAuth2 client name validation', () => {
+    let toolHandler: Function;
+
+    beforeEach(() => {
+      registerLoginMethodTools(mockServer, mockSimplifierClient);
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
+    });
+
+    it('should succeed when OAuth2 Default source has valid client name', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        sourceType: "Default" as const,
+        name: "MyOAuth",
+        description: "OAuth with valid client",
+        oauth2ClientName: "infraOIDC"
+      };
+
+      // Mock available OAuth2 clients
+      mockSimplifierClient.listOAuth2Clients.mockResolvedValue({
+        authSettings: [
+          { name: "infraOIDC", mechanism: "OAuth2", description: "Test client", hasIcon: false },
+          { name: "testClient", mechanism: "OAuth2", description: "Another client", hasIcon: false }
+        ]
+      });
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.listOAuth2Clients).toHaveBeenCalled();
+      expect(mockSimplifierClient.createLoginMethod).toHaveBeenCalled();
+    });
+
+    it('should fail when OAuth2 Default source has invalid client name', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        sourceType: "Default" as const,
+        name: "MyOAuth",
+        description: "OAuth with invalid client",
+        oauth2ClientName: "nonExistentClient"
+      };
+
+      // Mock available OAuth2 clients
+      mockSimplifierClient.listOAuth2Clients.mockResolvedValue({
+        authSettings: [
+          { name: "infraOIDC", mechanism: "OAuth2", description: "Test client", hasIcon: false },
+          { name: "testClient", mechanism: "OAuth2", description: "Another client", hasIcon: false }
+        ]
+      });
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        try {
+          await fn();
+          return { content: [{ type: "text", text: "Success" }] };
+        } catch (error: any) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({ error: error.message })
+            }]
+          };
+        }
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.listOAuth2Clients).toHaveBeenCalled();
+      expect(mockSimplifierClient.createLoginMethod).not.toHaveBeenCalled();
+    });
+
+    it('should fail when OAuth2 Default source missing client name', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        sourceType: "Default" as const,
+        name: "MyOAuth",
+        description: "OAuth without client name"
+        // oauth2ClientName is missing
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        try {
+          await fn();
+          return { content: [{ type: "text", text: "Success" }] };
+        } catch (error: any) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({ error: error.message })
+            }]
+          };
+        }
+      });
+
+      await toolHandler(testParams);
+
+      // Mapper throws error before validation runs, so listOAuth2Clients is never called
+      expect(mockSimplifierClient.listOAuth2Clients).not.toHaveBeenCalled();
+      expect(mockSimplifierClient.createLoginMethod).not.toHaveBeenCalled();
+    });
+
+    it('should succeed when OAuth2 Reference source has valid client name', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        sourceType: "Reference" as const,
+        name: "MyOAuth",
+        description: "OAuth with reference",
+        oauth2ClientName: "testClient"
+      };
+
+      // Mock available OAuth2 clients
+      mockSimplifierClient.listOAuth2Clients.mockResolvedValue({
+        authSettings: [
+          { name: "infraOIDC", mechanism: "OAuth2", description: "Test client", hasIcon: false },
+          { name: "testClient", mechanism: "OAuth2", description: "Another client", hasIcon: false }
+        ]
+      });
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.listOAuth2Clients).toHaveBeenCalled();
+      expect(mockSimplifierClient.createLoginMethod).toHaveBeenCalled();
+    });
+
+    it('should fail when OAuth2 Reference source has invalid client name', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        sourceType: "Reference" as const,
+        name: "MyOAuth",
+        description: "OAuth with bad reference",
+        oauth2ClientName: "badClient"
+      };
+
+      // Mock available OAuth2 clients
+      mockSimplifierClient.listOAuth2Clients.mockResolvedValue({
+        authSettings: [
+          { name: "infraOIDC", mechanism: "OAuth2", description: "Test client", hasIcon: false },
+          { name: "testClient", mechanism: "OAuth2", description: "Another client", hasIcon: false }
+        ]
+      });
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        try {
+          await fn();
+          return { content: [{ type: "text", text: "Success" }] };
+        } catch (error: any) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({ error: error.message })
+            }]
+          };
+        }
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.listOAuth2Clients).toHaveBeenCalled();
+      expect(mockSimplifierClient.createLoginMethod).not.toHaveBeenCalled();
+    });
+
+    it('should skip validation for OAuth2 ProfileReference source', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        sourceType: "ProfileReference" as const,
+        name: "MyOAuth",
+        description: "OAuth from profile",
+        profileKey: "myOAuthKey"
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      // Should NOT call listOAuth2Clients for ProfileReference
+      expect(mockSimplifierClient.listOAuth2Clients).not.toHaveBeenCalled();
+      expect(mockSimplifierClient.createLoginMethod).toHaveBeenCalled();
+    });
+
+    it('should skip validation for OAuth2 UserAttributeReference source', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        sourceType: "UserAttributeReference" as const,
+        name: "MyOAuth",
+        description: "OAuth from user attribute",
+        userAttributeName: "oauthAttr",
+        userAttributeCategory: "auth"
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      // Should NOT call listOAuth2Clients for UserAttributeReference
+      expect(mockSimplifierClient.listOAuth2Clients).not.toHaveBeenCalled();
+      expect(mockSimplifierClient.createLoginMethod).toHaveBeenCalled();
+    });
+
+    it('should handle empty OAuth2 client list', async () => {
+      const testParams = {
+        loginMethodType: "OAuth2" as const,
+        sourceType: "Default" as const,
+        name: "MyOAuth",
+        description: "OAuth with no clients available",
+        oauth2ClientName: "anyClient"
+      };
+
+      // Mock empty OAuth2 clients list
+      mockSimplifierClient.listOAuth2Clients.mockResolvedValue({
+        authSettings: []
+      });
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        try {
+          await fn();
+          return { content: [{ type: "text", text: "Success" }] };
+        } catch (error: any) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({ error: error.message })
+            }]
+          };
+        }
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.listOAuth2Clients).toHaveBeenCalled();
+      expect(mockSimplifierClient.createLoginMethod).not.toHaveBeenCalled();
     });
   });
 

@@ -11,6 +11,45 @@ import { TokenTargetAndSourceMapper } from "./loginmethod/TokenTargetAndSourceMa
 /**
  * Register LoginMethod tools for Simplifier Low Code Platform integration
  */
+/**
+ * Validates OAuth2 client name for Default/Reference sources.
+ * Fetches available OAuth2 clients and ensures the provided client name exists.
+ *
+ * @param simplifier - The Simplifier API client
+ * @param params - Tool parameters containing oauth2ClientName
+ * @param sourceType - The source type being used
+ * @throws Error if validation fails or no clients are configured
+ */
+async function checkOAuthClient(
+  simplifier: SimplifierClient,
+  params: { oauth2ClientName?: string | undefined },
+  sourceType: string
+): Promise<void> {
+  // Fetch available OAuth2 clients
+  const oauth2Clients = await simplifier.listOAuth2Clients();
+  const availableClientNames = oauth2Clients.authSettings.map(client => client.name);
+
+  // Handle empty client list
+  if (availableClientNames.length === 0) {
+    throw new Error("No OAuth2 clients configured in Simplifier. Please configure at least one OAuth2 client before creating an OAuth2 login method.");
+  }
+
+  // Check if provided client name exists
+  if (!params.oauth2ClientName) {
+    throw new Error(
+      `OAuth2 client name is required for ${sourceType} source. ` +
+      `Available clients: ${availableClientNames.join(', ')}`
+    );
+  }
+
+  if (!availableClientNames.includes(params.oauth2ClientName)) {
+    throw new Error(
+      `Invalid OAuth2 client name "${params.oauth2ClientName}". ` +
+      `Available clients: ${availableClientNames.join(', ')}`
+    );
+  }
+}
+
 export function registerLoginMethodTools(server: McpServer, simplifier: SimplifierClient): void {
 
   server.tool("loginmethod-update",
@@ -34,7 +73,7 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
       changeToken: z.boolean().optional().default(false).describe("[Token Provided] Set to true when updating to change the token"),
 
       // OAuth2 Default/Reference fields
-      oauth2ClientName: z.string().optional().describe("[OAuth2 Default/Reference] Name of the OAuth2 client (discover via simplifier://oauthclients)"),
+      oauth2ClientName: z.string().optional().describe("[OAuth2 Default/Reference] Name of the OAuth2 client (discover via simplifier://oauthclients). **Important**: The `oauth2ClientName` **MUST** match one of the existing OAuth2 clients configured in Simplifier. You should discover available clients using the `simplifier://oauthclients` resource before creating the login method."),
 
       // ProfileReference fields (UserCredentials and OAuth2)
       profileKey: z.string().optional().describe("[ProfileReference] Key name in the user's profile"),
@@ -83,6 +122,11 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
         // Map source and target using the mapper
         const { source, sourceConfiguration } = mapper.mapSource(sourceType, params, existing);
         const { target, targetConfiguration } = mapper.mapTarget(params.targetType || "Default", params);
+
+        // Validate OAuth2 client name for Default/Reference sources
+        if (params.loginMethodType === "OAuth2" && (sourceType === "Default" || sourceType === "Reference")) {
+          await checkOAuthClient(simplifier, params, sourceType);
+        }
 
         // Build the request object
         const request: any = {
