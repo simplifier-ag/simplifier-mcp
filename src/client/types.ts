@@ -594,13 +594,15 @@ export interface UserCredentialsProfileReferenceSource {
 }
 
 /**
- * UserCredentials with USER_ATTRIBUTE_REFERENCE source - references user attribute
+ * USER_ATTRIBUTE_REFERENCE source - references user attribute by name and category
+ * Used by UserCredentials, Token, and Certificate login methods
  */
-export interface UserCredentialsUserAttributeSource {
-  type: 'UserCredentials';
+export interface UserAttributeSource {
+  type: string; // Runtime value: 'UserCredentials' | 'Token' | 'Certificate' etc.
   source: 5; // USER_ATTRIBUTE_REFERENCE
   jsonClass?: string;
-  key: string; // User attribute key
+  name: string; // User attribute name
+  category: string; // User attribute category
 }
 
 /**
@@ -664,16 +666,6 @@ export interface TokenProvidedSource {
 }
 
 /**
- * Token with USER_ATTRIBUTE_REFERENCE source
- */
-export interface TokenUserAttributeSource {
-  type: 'Token';
-  source: 5; // USER_ATTRIBUTE_REFERENCE
-  jsonClass?: string;
-  key: string; // User attribute key
-}
-
-/**
  * Certificate with DEFAULT source - references certificate by identifier
  */
 export interface CertificateDefaultSource {
@@ -688,15 +680,6 @@ export interface CertificateDefaultSource {
 export interface CertificateProfileReferenceSource {
   type: 'Certificate';
   source: 4; // PROFILE_REFERENCE
-  key?: string;
-}
-
-/**
- * Certificate with USER_ATTRIBUTE_REFERENCE source
- */
-export interface CertificateUserAttributeSource {
-  type: 'Certificate';
-  source: 5; // USER_ATTRIBUTE_REFERENCE
   key?: string;
 }
 
@@ -736,17 +719,15 @@ export interface SSOSystemReferenceSource {
 export type SimplifierLoginMethodSourceConfiguration =
   | UserCredentialsDefaultSource
   | UserCredentialsProfileReferenceSource
-  | UserCredentialsUserAttributeSource
   | OAuth2DefaultOrReferenceSource
   | OAuth2ProfileReferenceSource
   | TokenDefaultSource
   | TokenProvidedSource
   | TokenProfileReferenceSource
   | TokenSystemReferenceSource
-  | TokenUserAttributeSource
   | CertificateDefaultSource
   | CertificateProfileReferenceSource
-  | CertificateUserAttributeSource
+  | UserAttributeSource  // Replaces UserCredentialsUserAttributeSource, TokenUserAttributeSource, CertificateUserAttributeSource
   | SSOWithExtProviderSource
   | SSODefaultSource
   | SSOSystemReferenceSource;
