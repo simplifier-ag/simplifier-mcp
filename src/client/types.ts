@@ -584,13 +584,14 @@ export interface UserCredentialsDefaultSource {
 }
 
 /**
- * UserCredentials with PROFILE_REFERENCE source - references user profile attribute
+ * PROFILE_REFERENCE source - references user profile attribute by key
+ * Used by UserCredentials, OAuth2, Token, and Certificate login methods
  */
-export interface UserCredentialsProfileReferenceSource {
-  type: 'UserCredentials';
+export interface ProfileReferenceSource {
+  type: string; // Runtime value: 'UserCredentials' | 'OAuth2' | 'Token' | 'Certificate' etc.
   source: 4; // PROFILE_REFERENCE
   jsonClass?: string;
-  key: string; // Profile attribute key
+  key: string; // Profile attribute key (required)
 }
 
 /**
@@ -616,32 +617,12 @@ export interface OAuth2DefaultOrReferenceSource {
 }
 
 /**
- * OAuth2 with PROFILE_REFERENCE source
- */
-export interface OAuth2ProfileReferenceSource {
-  type: 'OAuth2';
-  source: 4; // PROFILE_REFERENCE
-  jsonClass?: string;
-  key?: string;
-}
-
-/**
  * Token with DEFAULT source
  */
 export interface TokenDefaultSource {
   type: 'Token';
   source: 0; // DEFAULT
   jsonClass?: string;
-}
-
-/**
- * Token with PROFILE_REFERENCE source
- */
-export interface TokenProfileReferenceSource {
-  type: 'Token';
-  source: 4; // PROFILE_REFERENCE
-  jsonClass?: string;
-  key?: string;
 }
 
 /**
@@ -672,15 +653,6 @@ export interface CertificateDefaultSource {
   type: 'Certificate';
   source: 0; // DEFAULT
   identifier?: string; // e.g., "Simplifier: X509 - Certificate (2): WssTestAutomationCrt"
-}
-
-/**
- * Certificate with PROFILE_REFERENCE source
- */
-export interface CertificateProfileReferenceSource {
-  type: 'Certificate';
-  source: 4; // PROFILE_REFERENCE
-  key?: string;
 }
 
 /**
@@ -718,16 +690,13 @@ export interface SSOSystemReferenceSource {
  */
 export type SimplifierLoginMethodSourceConfiguration =
   | UserCredentialsDefaultSource
-  | UserCredentialsProfileReferenceSource
   | OAuth2DefaultOrReferenceSource
-  | OAuth2ProfileReferenceSource
   | TokenDefaultSource
   | TokenProvidedSource
-  | TokenProfileReferenceSource
   | TokenSystemReferenceSource
   | CertificateDefaultSource
-  | CertificateProfileReferenceSource
-  | UserAttributeSource  // Replaces UserCredentialsUserAttributeSource, TokenUserAttributeSource, CertificateUserAttributeSource
+  | ProfileReferenceSource
+  | UserAttributeSource
   | SSOWithExtProviderSource
   | SSODefaultSource
   | SSOSystemReferenceSource;
