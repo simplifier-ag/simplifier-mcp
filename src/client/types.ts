@@ -489,6 +489,15 @@ export interface UserAttributeReferenceSourceConfig {
 }
 
 /**
+ * Empty source configuration for DEFAULT and SYSTEM_REFERENCE sources
+ * Used when no additional configuration is needed (e.g., Token DEFAULT, Token SYSTEM_REFERENCE)
+ * Source IDs: 0 (DEFAULT), 3 (SYSTEM_REFERENCE)
+ */
+export interface EmptySourceConfig {
+  // Intentionally empty - represents {}
+}
+
+/**
  * Target configuration for custom header
  */
 export interface HeaderTargetConfig {
@@ -530,7 +539,7 @@ export interface CreateLoginMethodRequest {
     | OAuth2ClientNameSourceConfig
     | ProfileReferenceSourceConfig
     | UserAttributeReferenceSourceConfig
-    | Record<string, never>; // Empty object for DEFAULT/SYSTEM_REFERENCE sources
+    | EmptySourceConfig;  // Empty configuration for DEFAULT/SYSTEM_REFERENCE sources
   targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
 }
 
@@ -550,7 +559,7 @@ export interface UpdateLoginMethodRequest {
     | OAuth2ClientNameSourceConfig
     | ProfileReferenceSourceConfig
     | UserAttributeReferenceSourceConfig
-    | Record<string, never>; // Empty object for DEFAULT/SYSTEM_REFERENCE sources
+    | EmptySourceConfig;  // Empty configuration for DEFAULT/SYSTEM_REFERENCE sources
   targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
 }
 
