@@ -11,7 +11,7 @@ import {
   SimplifierDataType,
   SimplifierDataTypesResponse,
   SimplifierDataTypeUpdate,
-  UnwrappedSimplifierApiResponse, SimplifierConnectorCallUpdate
+  UnwrappedSimplifierApiResponse, SimplifierConnectorCallUpdate, GenericApiResponse
 } from './types.js';
 
 /**
@@ -140,6 +140,13 @@ export class SimplifierClient {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}`, { method: "GET" })
   }
 
+  async deleteServerBusinessObject(objectName: string): Promise<string> {
+    const oResult = await  this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/businessobjects/server/${objectName}`, {
+      method: "DELETE",
+    })
+    return oResult.message;
+  }
+
   async getServerBusinessObjectFunction(objectName: string, functionName: string): Promise<SimplifierBusinessObjectFunction> {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, { method: "GET" })
   }
@@ -169,6 +176,13 @@ export class SimplifierClient {
         method: "POST",
         body: JSON.stringify(testRequest)
       });
+  }
+
+  async deleteServerBusinessObjectFunction(objectName: string, functionName: string): Promise<string> {
+    const oResult = await this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}`, {
+      method: "DELETE",
+    })
+    return oResult.message;
   }
 
   async createServerBusinessObject(oData: SimplifierBusinessObjectDetails): Promise<string> {
@@ -268,5 +282,19 @@ export class SimplifierClient {
       method: "POST",
       body: JSON.stringify(testRequest)
     });
+  }
+
+  async deleteConnector(connectorName: string): Promise<string> {
+    const oResult = await this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/connectors/${connectorName}`, {
+      method: "DELETE"
+    })
+    return oResult.message;
+  }
+
+  async deleteConnectorCall(connectorName: string, callName: string): Promise<string> {
+    const oResult = await this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`, {
+      method: "DELETE"
+    })
+    return oResult.message;
   }
 }

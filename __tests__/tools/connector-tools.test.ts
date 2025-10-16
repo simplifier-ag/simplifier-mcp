@@ -35,7 +35,9 @@ describe('registerConnectorTools', () => {
       getConnectorCall: jest.fn(),
       createConnectorCall: jest.fn(),
       updateConnectorCall: jest.fn(),
-      testConnectorCall: jest.fn()
+      testConnectorCall: jest.fn(),
+      deleteConnectorCall: jest.fn(),
+      deleteConnector: jest.fn()
     } as any;
 
     // Get the mocked functions
@@ -50,10 +52,10 @@ describe('registerConnectorTools', () => {
   });
 
   describe('function registration', () => {
-    it('should register all three connector tools', () => {
+    it('should register all five connector tools', () => {
       registerConnectorTools(mockServer, mockSimplifierClient);
 
-      expect(mockServer.tool).toHaveBeenCalledTimes(3);
+      expect(mockServer.tool).toHaveBeenCalledTimes(5);
 
       // Check that readFile was called with the correct paths
       expect(mockReadFile).toHaveBeenCalledWith("tools/docs/create-or-update-connector.md");
@@ -120,6 +122,41 @@ describe('registerConnectorTools', () => {
           title: "Test a Connector Call",
           readOnlyHint: true,
           destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
+        }),
+        expect.any(Function)
+      );
+
+      // Check fourth tool (connector-call-delete)
+      expect(mockServer.tool).toHaveBeenNthCalledWith(4,
+        "connector-call-delete",
+        expect.any(String),
+        expect.objectContaining({
+          connectorName: expect.any(Object),
+          callName: expect.any(Object)
+        }),
+        expect.objectContaining({
+          title: "Delete a Connector Call",
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: true,
+          openWorldHint: false
+        }),
+        expect.any(Function)
+      );
+
+      // Check fifth tool (connector-delete)
+      expect(mockServer.tool).toHaveBeenNthCalledWith(5,
+        "connector-delete",
+        expect.any(String),
+        expect.objectContaining({
+          connectorName: expect.any(Object)
+        }),
+        expect.objectContaining({
+          title: "Delete a Connector",
+          readOnlyHint: false,
+          destructiveHint: true,
           idempotentHint: true,
           openWorldHint: false
         }),
@@ -1741,6 +1778,227 @@ describe('registerConnectorTools', () => {
         });
 
         await toolHandler(testParams);
+      });
+    });
+  });
+
+  describe('connector-call-delete tool', () => {
+    let deleteCallToolHandler: Function;
+
+    beforeEach(() => {
+      registerConnectorTools(mockServer, mockSimplifierClient);
+      // Get the delete call tool handler (fourth tool registered)
+      deleteCallToolHandler = mockServer.tool.mock.calls[3][4];
+    });
+
+    describe('delete call tool registration', () => {
+      it('should register delete call tool with correct schema', () => {
+        registerConnectorTools(mockServer, mockSimplifierClient);
+
+        const deleteCallToolCall = mockServer.tool.mock.calls[3];
+        const schema = deleteCallToolCall[2];
+
+        // Test required fields exist
+        expect(schema.connectorName).toBeDefined();
+        expect(schema.callName).toBeDefined();
+
+        // Test valid data passes validation
+        expect(() => schema.connectorName.parse("TestConnector")).not.toThrow();
+        expect(() => schema.callName.parse("testCall")).not.toThrow();
+
+        // Test that fields are required
+        expect(() => schema.connectorName.parse(undefined)).toThrow();
+        expect(() => schema.callName.parse(undefined)).toThrow();
+        expect(() => schema.connectorName.parse(null)).toThrow();
+        expect(() => schema.callName.parse(null)).toThrow();
+      });
+    });
+
+    describe('delete call tool handler', () => {
+      it('should successfully delete a connector call', async () => {
+        const testParams = {
+          connectorName: "TestConnector",
+          callName: "testCall"
+        };
+
+        const expectedResponse = "Connector call 'testCall' deleted successfully from Connector 'TestConnector'";
+
+        mockSimplifierClient.deleteConnectorCall.mockResolvedValue(expectedResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{type: "text", text: JSON.stringify(result, null, 2)}]
+          };
+        });
+
+        await deleteCallToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteConnectorCall).toHaveBeenCalledWith("TestConnector", "testCall");
+        expect(mockWrapToolResult).toHaveBeenCalledWith(
+          "delete connector call TestConnector.testCall",
+          expect.any(Function)
+        );
+      });
+
+      it('should handle errors when connector call is not deletable', async () => {
+        const testParams = {
+          connectorName: "TestConnector",
+          callName: "protectedCall"
+        };
+
+        mockSimplifierClient.deleteConnectorCall.mockRejectedValue(
+          new Error("Connector call 'protectedCall' cannot be deleted: still in use")
+        );
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            await fn();
+            return {content: [{type: "text", text: "Success"}]};
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({error: `Tool ${caption} failed: ${error}`})
+              }]
+            };
+          }
+        });
+
+        await deleteCallToolHandler(testParams);
+
+        expect(mockSimplifierClient.deleteConnectorCall).toHaveBeenCalledWith("TestConnector", "protectedCall");
+      });
+
+      it('should return the string response from API on successful deletion', async () => {
+        const testParams = {
+          connectorName: "TestConnector",
+          callName: "testCall"
+        };
+
+        const expectedResponse = "Deleted successfully";
+
+        mockSimplifierClient.deleteConnectorCall.mockResolvedValue(expectedResponse);
+
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          expect(result).toBe("Deleted successfully");
+          return {
+            content: [{type: "text", text: JSON.stringify(result, null, 2)}]
+          };
+        });
+
+        await deleteCallToolHandler(testParams);
+
+        expect(mockWrapToolResult).toHaveBeenCalled();
+      });
+
+    });
+
+
+    describe('connector-delete tool', () => {
+      let deleteConnectorToolHandler: Function;
+
+      beforeEach(() => {
+        registerConnectorTools(mockServer, mockSimplifierClient);
+        // Get the delete connector tool handler (fifth tool registered)
+        deleteConnectorToolHandler = mockServer.tool.mock.calls[4][4];
+      });
+
+      describe('delete connector tool registration', () => {
+        it('should register delete connector tool with correct schema', () => {
+          registerConnectorTools(mockServer, mockSimplifierClient);
+
+          const deleteConnectorToolCall = mockServer.tool.mock.calls[4];
+          const schema = deleteConnectorToolCall[2];
+
+          // Test required fields exist
+          expect(schema.connectorName).toBeDefined();
+
+          // Test valid data passes validation
+          expect(() => schema.connectorName.parse("TestConnector")).not.toThrow();
+
+          // Test that connectorName is required
+          expect(() => schema.connectorName.parse(undefined)).toThrow();
+          expect(() => schema.connectorName.parse(null)).toThrow();
+        });
+      });
+
+      describe('delete connector tool handler', () => {
+        it('should successfully delete a connector', async () => {
+          const testParams = {
+            connectorName: "TestConnector"
+          };
+
+          const expectedResponse = "Connector 'TestConnector' deleted successfully";
+
+          mockSimplifierClient.deleteConnector.mockResolvedValue(expectedResponse);
+
+          mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+            const result = await fn();
+            return {
+              content: [{type: "text", text: JSON.stringify(result, null, 2)}]
+            };
+          });
+
+          await deleteConnectorToolHandler(testParams);
+
+          expect(mockSimplifierClient.deleteConnector).toHaveBeenCalledWith("TestConnector");
+          expect(mockWrapToolResult).toHaveBeenCalledWith(
+            "delete connector TestConnector",
+            expect.any(Function)
+          );
+        });
+
+        it('should handle errors when connector is not deletable', async () => {
+          const testParams = {
+            connectorName: "ProtectedConnector"
+          };
+
+          mockSimplifierClient.deleteConnector.mockRejectedValue(
+            new Error("Connector 'ProtectedConnector' cannot be deleted: still in use by Business Objects")
+          );
+
+          mockWrapToolResult.mockImplementation(async (caption, fn) => {
+            try {
+              await fn();
+              return {content: [{type: "text", text: "Success"}]};
+            } catch (error) {
+              return {
+                content: [{
+                  type: "text",
+                  text: JSON.stringify({error: `Tool ${caption} failed: ${error}`})
+                }]
+              };
+            }
+          });
+
+          await deleteConnectorToolHandler(testParams);
+
+          expect(mockSimplifierClient.deleteConnector).toHaveBeenCalledWith("ProtectedConnector");
+        });
+
+        it('should return the string response from API on successful deletion', async () => {
+          const testParams = {
+            connectorName: "TestConnector"
+          };
+
+          const expectedResponse = "Deleted successfully";
+
+          mockSimplifierClient.deleteConnector.mockResolvedValue(expectedResponse);
+
+          mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+            const result = await fn();
+            expect(result).toBe("Deleted successfully");
+            return {
+              content: [{type: "text", text: JSON.stringify(result, null, 2)}]
+            };
+          });
+
+          await deleteConnectorToolHandler(testParams);
+
+          expect(mockWrapToolResult).toHaveBeenCalled();
+        });
       });
     });
   });
