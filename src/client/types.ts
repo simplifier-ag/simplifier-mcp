@@ -454,6 +454,16 @@ export interface UserCredentialsProvidedSourceConfig {
 }
 
 /**
+ * Source configuration for Token with Provided source (token value)
+ * Source ID: 1 (PROVIDED)
+ */
+export interface TokenProvidedSourceConfig {
+  token: string;
+  /** Only used in updates - set to true to change the token */
+  changeToken?: boolean;
+}
+
+/**
  * Source configuration for OAuth2 with Default/Reference source (OAuth2 client)
  * Source IDs: 0 (DEFAULT), 2 (REFERENCE)
  */
@@ -511,14 +521,16 @@ export interface QueryTargetConfig {
 export interface CreateLoginMethodRequest {
   name: string;
   description: string;
-  loginMethodType: "UserCredentials" | "OAuth2";
-  source: 0 | 1 | 2 | 4 | 5;
+  loginMethodType: "UserCredentials" | "OAuth2" | "Token";
+  source: 0 | 1 | 2 | 3 | 4 | 5;
   target: 0 | 1 | 2;
   sourceConfiguration:
     | UserCredentialsProvidedSourceConfig
+    | TokenProvidedSourceConfig
     | OAuth2ClientNameSourceConfig
     | ProfileReferenceSourceConfig
-    | UserAttributeReferenceSourceConfig;
+    | UserAttributeReferenceSourceConfig
+    | Record<string, never>; // Empty object for DEFAULT/SYSTEM_REFERENCE sources
   targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
 }
 
@@ -529,14 +541,16 @@ export interface CreateLoginMethodRequest {
 export interface UpdateLoginMethodRequest {
   name: string;
   description: string;
-  loginMethodType: "UserCredentials" | "OAuth2";
-  source: 0 | 1 | 2 | 4 | 5;
+  loginMethodType: "UserCredentials" | "OAuth2" | "Token";
+  source: 0 | 1 | 2 | 3 | 4 | 5;
   target: 0 | 1 | 2;
   sourceConfiguration:
     | UserCredentialsProvidedSourceConfig
+    | TokenProvidedSourceConfig
     | OAuth2ClientNameSourceConfig
     | ProfileReferenceSourceConfig
-    | UserAttributeReferenceSourceConfig;
+    | UserAttributeReferenceSourceConfig
+    | Record<string, never>; // Empty object for DEFAULT/SYSTEM_REFERENCE sources
   targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
 }
 
@@ -639,6 +653,27 @@ export interface TokenSystemReferenceSource {
 }
 
 /**
+ * Token with PROVIDED source - stores token value directly
+ */
+export interface TokenProvidedSource {
+  type: 'Token';
+  source: 1; // PROVIDED
+  jsonClass?: string;
+  token?: string; // May be masked when retrieved
+  changeToken?: boolean;
+}
+
+/**
+ * Token with USER_ATTRIBUTE_REFERENCE source
+ */
+export interface TokenUserAttributeSource {
+  type: 'Token';
+  source: 5; // USER_ATTRIBUTE_REFERENCE
+  jsonClass?: string;
+  key: string; // User attribute key
+}
+
+/**
  * Certificate with DEFAULT source - references certificate by identifier
  */
 export interface CertificateDefaultSource {
@@ -705,8 +740,10 @@ export type SimplifierLoginMethodSourceConfiguration =
   | OAuth2DefaultOrReferenceSource
   | OAuth2ProfileReferenceSource
   | TokenDefaultSource
+  | TokenProvidedSource
   | TokenProfileReferenceSource
   | TokenSystemReferenceSource
+  | TokenUserAttributeSource
   | CertificateDefaultSource
   | CertificateProfileReferenceSource
   | CertificateUserAttributeSource

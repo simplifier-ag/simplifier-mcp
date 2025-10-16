@@ -463,6 +463,163 @@ describe('registerLoginMethodTools', () => {
     });
   });
 
+  describe('Token LoginMethod - create and update', () => {
+    let toolHandler: Function;
+
+    beforeEach(() => {
+      registerLoginMethodTools(mockServer, mockSimplifierClient);
+      toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
+    });
+
+    it('should create Token with PROVIDED source', async () => {
+      const testParams = {
+        loginMethodType: "Token" as const,
+        sourceType: "Provided" as const,
+        name: "TokenProvided",
+        description: "Token with provided token value",
+        token: "mySecretToken123"
+      };
+
+      const expectedRequest = {
+        name: "TokenProvided",
+        description: "Token with provided token value",
+        loginMethodType: "Token",
+        source: 1,
+        target: 0,
+        sourceConfiguration: {
+          token: "mySecretToken123"
+        }
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      expect(mockSimplifierClient.createLoginMethod).toHaveBeenCalledWith(expectedRequest);
+    });
+
+    it('should not include changeToken in Token create request', async () => {
+      const testParams = {
+        loginMethodType: "Token" as const,
+        sourceType: "Provided" as const,
+        name: "TokenProvided",
+        description: "Test",
+        token: "secret",
+        changeToken: true // This should be ignored for creation
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockRejectedValue(new Error("Not found"));
+      mockSimplifierClient.createLoginMethod.mockResolvedValue("Created");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Created" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[FIRST_ARG];
+
+      // Should not include changeToken for creation
+      expect(request.sourceConfiguration).not.toHaveProperty('changeToken');
+    });
+
+    it('should update Token description without changing token', async () => {
+      const testParams = {
+        loginMethodType: "Token" as const,
+        sourceType: "Provided" as const,
+        name: "TokenProvided",
+        description: "Updated description only",
+        token: "<not relevant>",
+        changeToken: false
+      };
+
+      const existingLoginMethod: SimplifierLoginMethodDetailsRaw = {
+        name: "TokenProvided",
+        description: "Old description",
+        loginMethodType: {
+          technicalName: "Token",
+          i18n: "Token",
+          descriptionI18n: "Token-based authentication",
+          sources: [],
+          targets: [],
+          supportedConnectors: ["REST"]
+        },
+        source: 1,
+        target: 0,
+        sourceConfiguration: {},
+        configuration: {}
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockResolvedValue(existingLoginMethod);
+      mockSimplifierClient.updateLoginMethod.mockResolvedValue("Updated");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Updated" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.updateLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[SECOND_ARG];
+
+      expect((request.sourceConfiguration as any).changeToken).toBe(false);
+      expect(request.description).toBe("Updated description only");
+    });
+
+    it('should update Token with changeToken set to true', async () => {
+      const testParams = {
+        loginMethodType: "Token" as const,
+        sourceType: "Provided" as const,
+        name: "TokenProvided",
+        description: "Changing token",
+        token: "newSecretToken456",
+        changeToken: true
+      };
+
+      const existingLoginMethod: SimplifierLoginMethodDetailsRaw = {
+        name: "TokenProvided",
+        description: "Changing token",
+        loginMethodType: {
+          technicalName: "Token",
+          i18n: "Token",
+          descriptionI18n: "Token-based authentication",
+          sources: [],
+          targets: [],
+          supportedConnectors: ["REST"]
+        },
+        source: 1,
+        target: 0,
+        sourceConfiguration: {},
+        configuration: {}
+      };
+
+      mockSimplifierClient.getLoginMethodDetails.mockResolvedValue(existingLoginMethod);
+      mockSimplifierClient.updateLoginMethod.mockResolvedValue("Updated");
+
+      mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+        await fn();
+        return { content: [{ type: "text", text: "Updated" }] };
+      });
+
+      await toolHandler(testParams);
+
+      const callArgs = mockSimplifierClient.updateLoginMethod.mock.calls[FIRST_CALL];
+      const request = callArgs[SECOND_ARG];
+
+      expect((request.sourceConfiguration as any).changeToken).toBe(true);
+      expect((request.sourceConfiguration as any).token).toBe("newSecretToken456");
+    });
+  });
+
   describe('error handling', () => {
     let toolHandler: Function;
 
