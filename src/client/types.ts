@@ -443,7 +443,8 @@ export interface SimplifierLoginMethodDetailsRaw {
 // ========================================
 
 /**
- * Source configuration for UserCredentials with Provided source (username/password)
+ * Source configuration for UserCredentials with Default/Provided source (username/password)
+ * Source IDs: 0 (DEFAULT), 1 (PROVIDED)
  */
 export interface UserCredentialsProvidedSourceConfig {
   username: string;
@@ -453,38 +454,26 @@ export interface UserCredentialsProvidedSourceConfig {
 }
 
 /**
- * Source configuration for UserCredentials with ProfileReference source
- */
-export interface UserCredentialsProfileRefSourceConfig {
-  key: string;
-}
-
-/**
- * Source configuration for UserCredentials with UserAttributeReference source
- */
-export interface UserCredentialsUserAttrSourceConfig {
-  name: string;
-  category: string;
-}
-
-/**
- * Source configuration for OAuth2 with Default/Referenced source (clientName)
+ * Source configuration for OAuth2 with Default/Reference source (OAuth2 client)
+ * Source IDs: 0 (DEFAULT), 2 (REFERENCE)
  */
 export interface OAuth2ClientNameSourceConfig {
   clientName: string;
 }
 
 /**
- * Source configuration for OAuth2 with Profile Reference source
+ * Source configuration for ProfileReference source (used by both UserCredentials and OAuth2)
+ * Source ID: 4 (PROFILE_REFERENCE)
  */
-export interface OAuth2ProfileReferenceSourceConfig {
+export interface ProfileReferenceSourceConfig {
   key: string;
 }
 
 /**
- * Source configuration for OAuth2 with User Attribute Reference source
+ * Source configuration for UserAttributeReference source (used by both UserCredentials and OAuth2)
+ * Source ID: 5 (USER_ATTRIBUTE_REFERENCE)
  */
-export interface OAuth2UserAttributeSourceConfig {
+export interface UserAttributeReferenceSourceConfig {
   name: string;
   category: string;
 }
@@ -527,11 +516,9 @@ export interface CreateLoginMethodRequest {
   target: 0 | 1 | 2;
   sourceConfiguration:
     | UserCredentialsProvidedSourceConfig
-    | UserCredentialsProfileRefSourceConfig
-    | UserCredentialsUserAttrSourceConfig
     | OAuth2ClientNameSourceConfig
-    | OAuth2ProfileReferenceSourceConfig
-    | OAuth2UserAttributeSourceConfig;
+    | ProfileReferenceSourceConfig
+    | UserAttributeReferenceSourceConfig;
   targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
 }
 
@@ -547,11 +534,9 @@ export interface UpdateLoginMethodRequest {
   target: 0 | 1 | 2;
   sourceConfiguration:
     | UserCredentialsProvidedSourceConfig
-    | UserCredentialsProfileRefSourceConfig
-    | UserCredentialsUserAttrSourceConfig
     | OAuth2ClientNameSourceConfig
-    | OAuth2ProfileReferenceSourceConfig
-    | OAuth2UserAttributeSourceConfig;
+    | ProfileReferenceSourceConfig
+    | UserAttributeReferenceSourceConfig;
   targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
 }
 
