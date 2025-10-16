@@ -669,7 +669,7 @@ describe('registerLoginMethodTools', () => {
     it('should create OAuth2 login method with default header', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        sourceType: "ClientReference" as const,
+        sourceType: "Default" as const,
         name: "TestOAuth",
         description: "OAuth with infraOIDC",
         oauth2ClientName: "infraOIDC",
@@ -702,7 +702,7 @@ describe('registerLoginMethodTools', () => {
     it('should create OAuth2 login method with custom header', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        sourceType: "ClientReference" as const,
+        sourceType: "Default" as const,
         name: "TestOAuth",
         description: "OAuth with custom header",
         oauth2ClientName: "infraOIDC",
@@ -737,7 +737,7 @@ describe('registerLoginMethodTools', () => {
     it('should create OAuth2 login method with query parameter', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        sourceType: "ClientReference" as const,
+        sourceType: "Default" as const,
         name: "TestOAuth",
         description: "OAuth as query param",
         oauth2ClientName: "infraOIDC",
@@ -954,10 +954,10 @@ describe('registerLoginMethodTools', () => {
       toolHandler = mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_HANDLER];
     });
 
-    it('should default to "Provided" sourceType for UserCredentials when sourceType is omitted', async () => {
+    it('should default to "Default" sourceType for UserCredentials when sourceType is omitted', async () => {
       const testParams = {
         loginMethodType: "UserCredentials" as const,
-        // sourceType omitted - should default to "Provided"
+        // sourceType omitted - should default to "Default"
         name: "TestBasicAuth",
         description: "BasicAuth with default source",
         username: "admin",
@@ -977,15 +977,15 @@ describe('registerLoginMethodTools', () => {
       const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
       const request = callArgs[FIRST_ARG];
 
-      expect(request.source).toBe(1); // Provided source
+      expect(request.source).toBe(0); // Default source
       expect(request.sourceConfiguration).toHaveProperty('username');
       expect(request.sourceConfiguration).toHaveProperty('password');
     });
 
-    it('should default to "ClientReference" sourceType for OAuth2 when sourceType is omitted', async () => {
+    it('should default to "Default" sourceType for OAuth2 when sourceType is omitted', async () => {
       const testParams = {
         loginMethodType: "OAuth2" as const,
-        // sourceType omitted - should default to "ClientReference"
+        // sourceType omitted - should default to "Default"
         name: "TestOAuth",
         description: "OAuth with default source",
         oauth2ClientName: "infraOIDC",
@@ -1005,7 +1005,7 @@ describe('registerLoginMethodTools', () => {
       const callArgs = mockSimplifierClient.createLoginMethod.mock.calls[FIRST_CALL];
       const request = callArgs[FIRST_ARG];
 
-      expect(request.source).toBe(0); // ClientReference source
+      expect(request.source).toBe(0); // Default source
       expect(request.sourceConfiguration).toHaveProperty('clientName');
     });
   });

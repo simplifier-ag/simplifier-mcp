@@ -20,16 +20,16 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
       description: z.string().describe("Description of the login method"),
 
       // Source type (applies to both UserCredentials and OAuth2)
-      sourceType: z.enum(["Provided", "ClientReference", "ProfileReference", "UserAttributeReference"]).optional()
-        .describe("Source type: Provided (default for UserCredentials - username/password), ClientReference (default for OAuth2 - OAuth2 client), ProfileReference (user profile key), UserAttributeReference (user attribute)"),
+      sourceType: z.enum(["Default", "Provided", "Reference", "ProfileReference", "UserAttributeReference"]).optional()
+        .describe("Source type: Default (system default - credentials for UserCredentials, OAuth2 client for OAuth2), Provided (UserCredentials - username/password), Reference (OAuth2 - OAuth2 client reference), ProfileReference (user profile key), UserAttributeReference (user attribute)"),
 
-      // UserCredentials Provided source fields
-      username: z.string().optional().describe("[UserCredentials Provided] Username for basic authentication"),
-      password: z.string().optional().describe("[UserCredentials Provided] Password for basic authentication"),
-      changePassword: z.boolean().optional().default(false).describe("[UserCredentials Provided] Set to true when updating to change the password"),
+      // UserCredentials Default/Provided source fields
+      username: z.string().optional().describe("[UserCredentials Default/Provided] Username for basic authentication"),
+      password: z.string().optional().describe("[UserCredentials Default/Provided] Password for basic authentication"),
+      changePassword: z.boolean().optional().default(false).describe("[UserCredentials Default/Provided] Set to true when updating to change the password"),
 
-      // ClientReference fields (OAuth2)
-      oauth2ClientName: z.string().optional().describe("[OAuth2 ClientReference] Name of the OAuth2 client (discover via simplifier://oauthclients)"),
+      // OAuth2 Default/Reference fields
+      oauth2ClientName: z.string().optional().describe("[OAuth2 Default/Reference] Name of the OAuth2 client (discover via simplifier://oauthclients)"),
 
       // ProfileReference fields (UserCredentials and OAuth2)
       profileKey: z.string().optional().describe("[ProfileReference] Key name in the user's profile"),

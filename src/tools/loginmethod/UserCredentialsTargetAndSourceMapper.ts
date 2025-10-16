@@ -8,18 +8,31 @@ import { TargetAndSourceMapper, SourceMapping, TargetMapping } from "./TargetAnd
 export class UserCredentialsTargetAndSourceMapper implements TargetAndSourceMapper {
 
   getDefaultSourceType(): string {
-    return "Provided";
+    return "Default";
   }
 
   mapSource(sourceType: string, params: any, existing?: any): SourceMapping {
-    let source: 1 | 4 | 5;
+    let source: 0 | 1 | 4 | 5;
     let sourceConfiguration: any;
 
     switch (sourceType) {
-      case "Provided":
-        // Validate required fields for Provided source
+      case "Default":
+        // DEFAULT (0) - UserCredentials default, same config as Provided
         if (!params.username || !params.password) {
-          throw new Error("UserCredentials with Provided source requires 'username' and 'password' fields");
+          throw new Error("UserCredentials Default source requires 'username' and 'password' fields");
+        }
+        source = 0;
+        sourceConfiguration = {
+          username: params.username,
+          password: params.password,
+          ...(existing && { changePassword: params.changePassword })
+        };
+        break;
+
+      case "Provided":
+        // PROVIDED (1) - Explicitly provided credentials, same config as Default
+        if (!params.username || !params.password) {
+          throw new Error("UserCredentials Provided source requires 'username' and 'password' fields");
         }
         source = 1;
         sourceConfiguration = {
@@ -30,6 +43,7 @@ export class UserCredentialsTargetAndSourceMapper implements TargetAndSourceMapp
         break;
 
       case "ProfileReference":
+        // PROFILE_REFERENCE (4)
         if (!params.profileKey) {
           throw new Error("UserCredentials ProfileReference requires 'profileKey' field");
         }
@@ -38,6 +52,7 @@ export class UserCredentialsTargetAndSourceMapper implements TargetAndSourceMapp
         break;
 
       case "UserAttributeReference":
+        // USER_ATTRIBUTE_REFERENCE (5)
         if (!params.userAttributeName || !params.userAttributeCategory) {
           throw new Error("UserCredentials UserAttributeReference requires 'userAttributeName' and 'userAttributeCategory' fields");
         }

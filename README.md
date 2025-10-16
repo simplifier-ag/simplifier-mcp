@@ -17,6 +17,7 @@ The Simplifier MCP Server allows AI assistants to interact with the Simplifier L
 ```
 claude mcp add --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud -- simplifier npx @simplifierag/simplifier-mcp@latest
 ```
+If your Simplifier is hosted on premise, then the `SIMPLIFIER_BASE_URL` of your DEV instance will be different from the mentioned schema.
 #### After a new login to Simplifier
 With every login to Simplifier your SimplifierToken will change. So you will have to:
  - exit your AI agent (in this example claude),

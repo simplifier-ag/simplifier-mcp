@@ -8,23 +8,34 @@ import { TargetAndSourceMapper, SourceMapping, TargetMapping } from "./TargetAnd
 export class OAuthTargetAndSourceMapper implements TargetAndSourceMapper {
 
   getDefaultSourceType(): string {
-    return "ClientReference";
+    return "Default";
   }
 
   mapSource(sourceType: string, params: any, _existing?: any): SourceMapping {
-    let source: 0 | 4 | 5;
+    let source: 0 | 2 | 4 | 5;
     let sourceConfiguration: any;
 
     switch (sourceType) {
-      case "ClientReference":
+      case "Default":
+        // DEFAULT (0) - OAuth2 client reference is the default for OAuth2
         if (!params.oauth2ClientName) {
-          throw new Error("OAuth2 ClientReference requires 'oauth2ClientName' field");
+          throw new Error("OAuth2 Default source requires 'oauth2ClientName' field");
         }
         source = 0;
         sourceConfiguration = { clientName: params.oauth2ClientName };
         break;
 
+      case "Reference":
+        // REFERENCE (2) - User-selectable reference source
+        if (!params.oauth2ClientName) {
+          throw new Error("OAuth2 Reference source requires 'oauth2ClientName' field");
+        }
+        source = 2;
+        sourceConfiguration = { clientName: params.oauth2ClientName };
+        break;
+
       case "ProfileReference":
+        // PROFILE_REFERENCE (4)
         if (!params.profileKey) {
           throw new Error("OAuth2 ProfileReference requires 'profileKey' field");
         }
@@ -33,6 +44,7 @@ export class OAuthTargetAndSourceMapper implements TargetAndSourceMapper {
         break;
 
       case "UserAttributeReference":
+        // USER_ATTRIBUTE_REFERENCE (5)
         if (!params.userAttributeName || !params.userAttributeCategory) {
           throw new Error("OAuth2 UserAttributeReference requires 'userAttributeName' and 'userAttributeCategory' fields");
         }
