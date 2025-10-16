@@ -187,7 +187,6 @@ This allows you to test connector calls with real data and see the results.
         };
 
         const result = await simplifier.testConnectorCall(connectorName, callName, testRequest);
-        // return result;
 
         // Format the response nicely
         if (result.success) {
@@ -205,4 +204,46 @@ This allows you to test connector calls with real data and see the results.
         }
       });
     });
+
+
+  server.tool("connector-call-delete",
+    `# Delete a Connector call`,
+    {
+      connectorName: z.string()
+        .describe("Name of the Connector to modify"),
+      callName: z.string()
+        .describe("Name of the connector call to delete")
+    },
+    {
+      title: "Delete a Connector Call",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    ({ connectorName, callName }) => {
+      return wrapToolResult(`delete connector call ${connectorName}.${callName}`, async () => {
+        return await simplifier.deleteConnectorCall(connectorName, callName);
+      });
+    });
+
+  server.tool("connector-delete", `# Delete a Connector`,
+    {
+      connectorName: z.string()
+        .describe("Name of the Connector to delete"),
+    },
+    {
+      title: "Delete a Connector",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    ({ connectorName }) => {
+      return wrapToolResult(`delete connector ${connectorName}`, async () => {
+        return await simplifier.deleteConnector(connectorName);
+      });
+    });
+
+
 }

@@ -376,5 +376,44 @@ This allows you to test your functions with real data and see the results.
       });
     });
 
+
+
+  server.tool("businessobject-delete", `# Delete an existing Business Object`,
+    {
+      name: z.string()
+    },
+    {
+      title: "Delete a Business Object",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    async ({name}) => {
+      return wrapToolResult(`Delete Business Object ${name}`, async () => {
+        return await simplifier.deleteServerBusinessObject(name);
+      })
+    });
+
+
+  server.tool("businessobject-function-delete", `# Delete an existing Business Object Function`,
+    {
+      businessObjectName: z.string(),
+      functionName: z.string()
+    },
+    {
+      title: "Delete a Business Object Function",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    async ({businessObjectName, functionName}) => {
+      return wrapToolResult(`Delete Business Object Function ${businessObjectName}.${functionName}`, async () => {
+        return await simplifier.deleteServerBusinessObjectFunction(businessObjectName, functionName);
+      })
+    });
+
+
 }
 
