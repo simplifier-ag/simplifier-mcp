@@ -175,7 +175,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
         );
       });
 
-      it('should return namespace list through wrapper', async () => {
+      it('should return namespace list with dynamic URIs based on weight', async () => {
         const testUri = new URL('simplifier://datatypes/namespaces');
         mockClient.getDataTypes.mockResolvedValue(mockDataTypesResponse);
 
@@ -196,6 +196,18 @@ describe('DataTypes Resources (Namespace-based)', () => {
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.availableResources).toBeDefined();
         expect(resultData.availableResources).toHaveLength(4); // root + 3 namespaces
+
+        // Check that URIs are dynamically generated based on weight
+        const rootResource = resultData.availableResources.find((r: any) => r.name === 'root');
+        expect(rootResource).toBeDefined();
+        expect(rootResource.weight).toBe(70); // 7 types * 10 + 0 fields * 2
+        expect(rootResource.uri).toBe('simplifier://datatypes/namespace/withDetails'); // weight < 2000
+
+        const testConnectorResource = resultData.availableResources.find((r: any) => r.name === 'con/TestConnector');
+        expect(testConnectorResource).toBeDefined();
+        expect(testConnectorResource.weight).toBe(32); // 3 types * 10 + 1 field * 2
+        expect(testConnectorResource.uri).toBe('simplifier://datatypes/namespace/withDetails/con/TestConnector'); // weight < 2000
+
         expect(resultData.resourcePatterns).toEqual([
           "simplifier://datatypes/namespace/noDetails - Root namespace datatypes (minimal: name, id, category, detailUri only)",
           "simplifier://datatypes/namespace/withDetails - Root namespace datatypes (with all fields + detailUri)",
@@ -205,6 +217,54 @@ describe('DataTypes Resources (Namespace-based)', () => {
           "simplifier://datatype/{namespace}/{dataTypeName} - Single datatype in specific namespace"
         ]);
         expect(resultData.recommendation).toContain("prefer using the single datatype patterns");
+      });
+
+      it('should use noDetails URI for heavy namespaces (weight > 2000)', async () => {
+        // Create a heavy namespace with many datatypes (201 types × 10 = 2010 > 2000)
+        const heavyDataTypesResponse = {
+          ...mockDataTypesResponse,
+          nameSpaces: ['heavy/namespace'],
+          domainTypes: [
+            ...mockDataTypesResponse.domainTypes,
+            ...Array(201).fill(null).map((_, i) => ({
+              id: `HEAVY_DOMAIN_${i}`,
+              name: `HeavyDomain${i}`,
+              nameSpace: 'heavy/namespace',
+              category: 'domain' as const,
+              description: `Heavy domain type ${i}`,
+              baseType: 'String',
+              isStruct: false,
+              fields: [],
+              properties: [],
+              editable: true,
+              tags: [],
+              assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+            }))
+          ]
+        };
+
+        const testUri = new URL('simplifier://datatypes/namespaces');
+        mockClient.getDataTypes.mockResolvedValue(heavyDataTypesResponse);
+
+        mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
+          const result = await fn();
+          return {
+            contents: [{
+              uri: uri.href,
+              text: JSON.stringify(result, null, 2),
+              mimeType: 'application/json'
+            }]
+          };
+        });
+
+        const result = await namespacesHandler(testUri, {}, createMockExtra());
+
+        const resultData = JSON.parse(result.contents[0].text as string);
+        const heavyResource = resultData.availableResources.find((r: any) => r.name === 'heavy/namespace');
+
+        expect(heavyResource).toBeDefined();
+        expect(heavyResource.weight).toBeGreaterThan(2000); // Should be 201 types * 10 = 2010 > 2000
+        expect(heavyResource.uri).toBe('simplifier://datatypes/namespace/noDetails/heavy/namespace'); // weight > 2000
       });
     });
 

@@ -148,22 +148,39 @@ HINT: consider not using this resource, due to performance considerations - if y
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
-        // const MAX_WEIGHT_WITH_DETAILS_SUGGESTED = 2000
+        const MAX_WEIGHT_WITH_DETAILS_SUGGESTED = 2000;
+
+        // Helper function to build URI based on weight
+        const getNamespaceUri = (namespace: string, weight: number): string => {
+          const variant = weight > MAX_WEIGHT_WITH_DETAILS_SUGGESTED ? 'noDetails' : 'withDetails';
+
+          if (namespace === '') {
+            // Root namespace
+            return `simplifier://datatypes/namespace/${variant}`;
+          } else {
+            // Specific namespace
+            return `simplifier://datatypes/namespace/${variant}/${namespace}`;
+          }
+        };
+
         const dataTypes = await simplifier.getDataTypes();
+        const rootWeight = calculateWeight('', dataTypes);
+
         const allNamespaceResources = [
           {
-            uri: "simplifier://datatypes/namespace/",
+            uri: getNamespaceUri('', rootWeight),
             name: "root",
             description: "Root namespace - contains base types and datatypes without namespace",
-            // datatypeCount: calculateDatatypeCount('', dataTypes),
-            weight: calculateWeight('', dataTypes)
+            weight: rootWeight
           },
-          ...dataTypes.nameSpaces.map(ns => ({
-            uri: `simplifier://datatypes/namespace/${ns}`,
-            name: ns,
-            // datatypeCount: calculateDatatypeCount(ns, dataTypes),
-            weight: calculateWeight(ns, dataTypes)
-          }))
+          ...dataTypes.nameSpaces.map(ns => {
+            const weight = calculateWeight(ns, dataTypes);
+            return {
+              uri: getNamespaceUri(ns, weight),
+              name: ns,
+              weight: weight
+            };
+          })
         ];
 
         return {
