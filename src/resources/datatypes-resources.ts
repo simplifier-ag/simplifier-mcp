@@ -207,12 +207,18 @@ Returns all datatypes that don't belong to any specific namespace, plus all base
           ...dataTypes.collectionTypes.filter(ct => !ct.nameSpace)
         ];
 
+        // Add detailUri to each datatype
+        const addDetailUri = <T extends { name: string }>(dt: T) => ({
+          ...dt,
+          detailUri: `simplifier://datatype/${dt.name}`
+        });
+
         return {
           namespace: "(root - no namespace)",
-          baseTypes: BASE_TYPES,
-          domainTypes: dataTypes.domainTypes.filter(dt => !dt.nameSpace),
-          structTypes: dataTypes.structTypes.filter(st => !st.nameSpace),
-          collectionTypes: dataTypes.collectionTypes.filter(ct => !ct.nameSpace),
+          baseTypes: BASE_TYPES.map(addDetailUri),
+          domainTypes: dataTypes.domainTypes.filter(dt => !dt.nameSpace).map(addDetailUri),
+          structTypes: dataTypes.structTypes.filter(st => !st.nameSpace).map(addDetailUri),
+          collectionTypes: dataTypes.collectionTypes.filter(ct => !ct.nameSpace).map(addDetailUri),
           totalTypes: rootTypes.length
         };
       });
@@ -248,11 +254,17 @@ Returns datatypes belonging to a specific namespace:
         const namespaceStruct = dataTypes.structTypes.filter(st => st.nameSpace === requestedNamespace);
         const namespaceCollection = dataTypes.collectionTypes.filter(ct => ct.nameSpace === requestedNamespace);
 
+        // Add detailUri to each datatype with namespace
+        const addDetailUri = <T extends { name: string }>(dt: T) => ({
+          ...dt,
+          detailUri: `simplifier://datatype/${requestedNamespace}/${dt.name}`
+        });
+
         return {
           namespace: requestedNamespace,
-          domainTypes: namespaceDomain,
-          structTypes: namespaceStruct,
-          collectionTypes: namespaceCollection,
+          domainTypes: namespaceDomain.map(addDetailUri),
+          structTypes: namespaceStruct.map(addDetailUri),
+          collectionTypes: namespaceCollection.map(addDetailUri),
           totalTypes: namespaceDomain.length + namespaceStruct.length + namespaceCollection.length
         };
       });
