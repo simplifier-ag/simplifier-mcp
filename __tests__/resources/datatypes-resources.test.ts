@@ -137,18 +137,16 @@ describe('DataTypes Resources (Namespace-based)', () => {
   };
 
   describe('registerDataTypesResources', () => {
-    it('should register nine datatypes resources', () => {
+    it('should register seven datatypes resources', () => {
       registerDataTypesResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(9);
+      expect(mockServer.resource).toHaveBeenCalledTimes(7);
 
       // Check that specific resources are registered
       const calls = mockServer.resource.mock.calls;
       const resourceNames = calls.map(call => call[0]);
 
       expect(resourceNames).toContain('datatypes-namespaces-list');
-      expect(resourceNames).toContain('datatypes-root-namespace');
-      expect(resourceNames).toContain('datatypes-by-namespace');
       expect(resourceNames).toContain('datatypes-root-namespace-nodetails');
       expect(resourceNames).toContain('datatypes-root-namespace-withdetails');
       expect(resourceNames).toContain('datatypes-by-namespace-nodetails');
@@ -210,16 +208,16 @@ describe('DataTypes Resources (Namespace-based)', () => {
       });
     });
 
-    describe('root namespace handler', () => {
+    describe('root namespace withDetails handler', () => {
       let rootNamespaceHandler: any;
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        rootNamespaceHandler = mockServer.resource.mock.calls[5][3]; // Sixth resource (root namespace)
+        rootNamespaceHandler = mockServer.resource.mock.calls[2][3]; // Third resource (root namespace withDetails)
       });
 
-      it('should return root namespace data', async () => {
-        const testUri = new URL('simplifier://datatypes/namespace/');
+      it('should return root namespace data with details', async () => {
+        const testUri = new URL('simplifier://datatypes/namespace/withDetails');
         mockClient.getDataTypes.mockResolvedValue(mockDataTypesResponse);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
@@ -241,21 +239,22 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(resultData.namespace).toBe('(root - no namespace)');
         expect(resultData.baseTypes).toHaveLength(6); // Hardcoded base types
         expect(resultData.domainTypes).toHaveLength(1); // Email without namespace
-        expect(resultData.totalTypes).toBeGreaterThan(0);
+        expect(resultData.structTypes).toBeDefined();
+        expect(resultData.collectionTypes).toBeDefined();
       });
     });
 
-    describe('specific namespace filtering handler', () => {
+    describe('specific namespace withDetails handler', () => {
       let namespaceHandler: any;
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        namespaceHandler = mockServer.resource.mock.calls[6][3]; // Seventh resource (by namespace)
+        namespaceHandler = mockServer.resource.mock.calls[4][3]; // Fifth resource (by namespace withDetails)
       });
 
 
-      it('should return specific namespace data', async () => {
-        const testUri = new URL('simplifier://datatypes/namespace/con/TestConnector');
+      it('should return specific namespace data with details', async () => {
+        const testUri = new URL('simplifier://datatypes/namespace/withDetails/con/TestConnector');
         const variables = { namespace: 'con/TestConnector' };
         mockClient.getDataTypes.mockResolvedValue(mockDataTypesResponse);
 
@@ -279,11 +278,10 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(resultData.domainTypes).toHaveLength(1); // NamespacedDomainType
         expect(resultData.structTypes).toHaveLength(1); // EmailAddress_Struct
         expect(resultData.collectionTypes).toHaveLength(1); // StringArray
-        expect(resultData.totalTypes).toBe(3);
       });
 
       it('should handle errors through wrapResourceResult', async () => {
-        const testUri = new URL('simplifier://datatypes/namespace/invalid');
+        const testUri = new URL('simplifier://datatypes/namespace/withDetails/invalid');
         const variables = { namespace: 'invalid' };
         const testError = new Error('API Error');
 
@@ -323,7 +321,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        singleDatatypeWithNamespaceHandler = mockServer.resource.mock.calls[7][3]; // Eighth resource (datatype with namespace)
+        singleDatatypeWithNamespaceHandler = mockServer.resource.mock.calls[5][3]; // Sixth resource (datatype with namespace)
       });
 
       it('should return single datatype with namespace', async () => {
@@ -414,7 +412,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        singleDatatypeRootHandler = mockServer.resource.mock.calls[8][3]; // Ninth resource (datatype root)
+        singleDatatypeRootHandler = mockServer.resource.mock.calls[6][3]; // Seventh resource (datatype root)
       });
 
       it('should return single datatype from root namespace', async () => {
@@ -531,13 +529,11 @@ describe('DataTypes Resources (Namespace-based)', () => {
       it('should register all datatype resources successfully', () => {
         registerDataTypesResources(mockServer, mockClient);
 
-        // Verify that all nine resources are registered
-        expect(mockServer.resource).toHaveBeenCalledTimes(9);
+        // Verify that all seven resources are registered
+        expect(mockServer.resource).toHaveBeenCalledTimes(7);
 
         // Verify resource names
         expect(mockServer.resource).toHaveBeenCalledWith('datatypes-namespaces-list', expect.any(String), expect.any(Object), expect.any(Function));
-        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
-        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-by-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
         expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace-nodetails', expect.any(Object), expect.any(Object), expect.any(Function));
         expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace-withdetails', expect.any(Object), expect.any(Object), expect.any(Function));
         expect(mockServer.resource).toHaveBeenCalledWith('datatypes-by-namespace-nodetails', expect.any(Object), expect.any(Object), expect.any(Function));
