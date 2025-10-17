@@ -1,4 +1,4 @@
-import { registerDataTypesResources } from '../../src/resources/datatypes-resources';
+import { registerDataTypesResources, calculateDatatypeCount, calculateWeight } from '../../src/resources/datatypes-resources';
 import { SimplifierClient } from '../../src/client/simplifier-client';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SimplifierDataTypesResponse } from '../../src/client/types';
@@ -535,6 +535,56 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(mockServer.resource).toHaveBeenCalledWith('datatype-with-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
         expect(mockServer.resource).toHaveBeenCalledWith('datatype-root', expect.any(Object), expect.any(Object), expect.any(Function));
       });
+    });
+  });
+
+  describe('calculateDatatypeCount', () => {
+    it('should count datatypes in root namespace including base types', () => {
+      const count = calculateDatatypeCount('', mockDataTypesResponse);
+
+      // Base types (6 hardcoded) + Email (1 domain without namespace) = 7
+      expect(count).toBe(7); // 6 base + 1 domain
+    });
+
+    it('should count datatypes in specific namespace', () => {
+      const count = calculateDatatypeCount('con/TestConnector', mockDataTypesResponse);
+
+      // NamespacedDomainType (1) + EmailAddress_Struct (1) + StringArray (1) = 3
+      expect(count).toBe(3);
+    });
+
+    it('should return 0 for non-existent namespace', () => {
+      const count = calculateDatatypeCount('con/NonExistent', mockDataTypesResponse);
+
+      expect(count).toBe(0);
+    });
+  });
+
+  describe('calculateWeight', () => {
+    it('should calculate weight for root namespace', () => {
+      const weight = calculateWeight('', mockDataTypesResponse);
+
+      // datatypeCount = 7 (6 base + 1 domain)
+      // struct fields = 0 (no structs in root namespace)
+      // weight = (10 × 7) + (2 × 0) = 70
+      expect(weight).toBe(70);
+    });
+
+    it('should calculate weight for namespace with struct fields', () => {
+      const weight = calculateWeight('con/TestConnector', mockDataTypesResponse);
+
+      // datatypeCount = 3 (1 domain + 1 struct + 1 collection)
+      // struct fields = 1 (EmailAddress_Struct has 1 field: name)
+      // weight = (10 × 3) + (2 × 1) = 30 + 2 = 32
+      expect(weight).toBe(32);
+    });
+
+    it('should return 0 for non-existent namespace', () => {
+      const weight = calculateWeight('con/NonExistent', mockDataTypesResponse);
+
+      // datatypeCount = 0, struct fields = 0
+      // weight = (10 × 0) + (2 × 0) = 0
+      expect(weight).toBe(0);
     });
   });
 });

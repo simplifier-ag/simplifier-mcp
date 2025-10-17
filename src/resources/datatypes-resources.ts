@@ -1,7 +1,7 @@
 import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
-import {SimplifierDataType} from "../client/types.js";
+import {SimplifierDataType, SimplifierDataTypesResponse} from "../client/types.js";
 
 // Base types that never change - hardcoded for performance
 const BASE_TYPES: SimplifierDataType[] = [
@@ -85,6 +85,54 @@ const BASE_TYPES: SimplifierDataType[] = [
   }
 ];
 
+/**
+ * Calculate datatype count for a namespace
+ * @param namespace - namespace string (empty string for root)
+ * @param dataTypes - all datatypes response
+ * @returns count of all datatypes in namespace
+ */
+export function calculateDatatypeCount(
+  namespace: string,
+  dataTypes: SimplifierDataTypesResponse
+): number {
+  if (namespace === '') {
+    // Root namespace: base types + types without namespace
+    return BASE_TYPES.length +
+           dataTypes.domainTypes.filter(dt => !dt.nameSpace).length +
+           dataTypes.structTypes.filter(st => !st.nameSpace).length +
+           dataTypes.collectionTypes.filter(ct => !ct.nameSpace).length;
+  } else {
+    // Specific namespace: types matching namespace
+    return dataTypes.domainTypes.filter(dt => dt.nameSpace === namespace).length +
+           dataTypes.structTypes.filter(st => st.nameSpace === namespace).length +
+           dataTypes.collectionTypes.filter(ct => ct.nameSpace === namespace).length;
+  }
+}
+
+/**
+ * Calculate weight for a namespace
+ * Weight = (10 × datatypeCount) + (2 × total_struct_fields)
+ * @param namespace - namespace string (empty string for root)
+ * @param dataTypes - all datatypes response
+ * @returns calculated weight
+ */
+export function calculateWeight(
+  namespace: string,
+  dataTypes: SimplifierDataTypesResponse
+): number {
+  const datatypeCount = calculateDatatypeCount(namespace, dataTypes);
+
+  // Get struct types for this namespace
+  const structTypes = namespace === ''
+    ? dataTypes.structTypes.filter(st => !st.nameSpace)
+    : dataTypes.structTypes.filter(st => st.nameSpace === namespace);
+
+  // Sum all fields from struct types
+  const totalFields = structTypes.reduce((sum, st) => sum + st.fields.length, 0);
+
+  return (10 * datatypeCount) + (2 * totalFields);
+}
+
 export function registerDataTypesResources(server: McpServer, simplifier: SimplifierClient): void {
 
   const noListCallback = { list: undefined }
@@ -105,11 +153,15 @@ HINT: consider not using this resource, due to performance considerations - if y
           {
             uri: "simplifier://datatypes/namespace/",
             name: "root",
-            description: "Root namespace - contains base types and datatypes without namespace"
+            description: "Root namespace - contains base types and datatypes without namespace",
+            datatypeCount: calculateDatatypeCount('', dataTypes),
+            weight: calculateWeight('', dataTypes)
           },
           ...dataTypes.nameSpaces.map(ns => ({
             uri: `simplifier://datatypes/namespace/${ns}`,
-            name: ns
+            name: ns,
+            datatypeCount: calculateDatatypeCount(ns, dataTypes),
+            weight: calculateWeight(ns, dataTypes)
           }))
         ];
 
