@@ -137,10 +137,10 @@ describe('DataTypes Resources (Namespace-based)', () => {
   };
 
   describe('registerDataTypesResources', () => {
-    it('should register five datatypes resources', () => {
+    it('should register nine datatypes resources', () => {
       registerDataTypesResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(5);
+      expect(mockServer.resource).toHaveBeenCalledTimes(9);
 
       // Check that specific resources are registered
       const calls = mockServer.resource.mock.calls;
@@ -149,6 +149,10 @@ describe('DataTypes Resources (Namespace-based)', () => {
       expect(resourceNames).toContain('datatypes-namespaces-list');
       expect(resourceNames).toContain('datatypes-root-namespace');
       expect(resourceNames).toContain('datatypes-by-namespace');
+      expect(resourceNames).toContain('datatypes-root-namespace-nodetails');
+      expect(resourceNames).toContain('datatypes-root-namespace-withdetails');
+      expect(resourceNames).toContain('datatypes-by-namespace-nodetails');
+      expect(resourceNames).toContain('datatypes-by-namespace-withdetails');
       expect(resourceNames).toContain('datatype-with-namespace');
       expect(resourceNames).toContain('datatype-root');
     });
@@ -195,8 +199,10 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(resultData.availableResources).toBeDefined();
         expect(resultData.availableResources).toHaveLength(4); // root + 3 namespaces
         expect(resultData.resourcePatterns).toEqual([
-          "simplifier://datatypes/namespace/ - Root namespace datatypes",
-          "simplifier://datatypes/namespace/{namespace} - Datatypes by specific namespace",
+          "simplifier://datatypes/namespace/noDetails - Root namespace datatypes (minimal: name, id, category, detailUri only)",
+          "simplifier://datatypes/namespace/withDetails - Root namespace datatypes (with all fields + detailUri)",
+          "simplifier://datatypes/namespace/noDetails/{namespace} - Namespace datatypes (minimal: name, id, category, detailUri only)",
+          "simplifier://datatypes/namespace/withDetails/{namespace} - Namespace datatypes (with all fields + detailUri)",
           "simplifier://datatype/{dataTypeName} - Single datatype in root namespace",
           "simplifier://datatype/{namespace}/{dataTypeName} - Single datatype in specific namespace"
         ]);
@@ -209,7 +215,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        rootNamespaceHandler = mockServer.resource.mock.calls[1][3]; // Second resource (root namespace)
+        rootNamespaceHandler = mockServer.resource.mock.calls[5][3]; // Sixth resource (root namespace)
       });
 
       it('should return root namespace data', async () => {
@@ -244,7 +250,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        namespaceHandler = mockServer.resource.mock.calls[2][3]; // Third resource (by namespace)
+        namespaceHandler = mockServer.resource.mock.calls[6][3]; // Seventh resource (by namespace)
       });
 
 
@@ -317,7 +323,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        singleDatatypeWithNamespaceHandler = mockServer.resource.mock.calls[3][3]; // Fourth resource (datatype with namespace)
+        singleDatatypeWithNamespaceHandler = mockServer.resource.mock.calls[7][3]; // Eighth resource (datatype with namespace)
       });
 
       it('should return single datatype with namespace', async () => {
@@ -408,7 +414,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
       beforeEach(() => {
         registerDataTypesResources(mockServer, mockClient);
-        singleDatatypeRootHandler = mockServer.resource.mock.calls[4][3]; // Fifth resource (datatype root)
+        singleDatatypeRootHandler = mockServer.resource.mock.calls[8][3]; // Ninth resource (datatype root)
       });
 
       it('should return single datatype from root namespace', async () => {
@@ -525,13 +531,17 @@ describe('DataTypes Resources (Namespace-based)', () => {
       it('should register all datatype resources successfully', () => {
         registerDataTypesResources(mockServer, mockClient);
 
-        // Verify that all five resources are registered
-        expect(mockServer.resource).toHaveBeenCalledTimes(5);
+        // Verify that all nine resources are registered
+        expect(mockServer.resource).toHaveBeenCalledTimes(9);
 
         // Verify resource names
         expect(mockServer.resource).toHaveBeenCalledWith('datatypes-namespaces-list', expect.any(String), expect.any(Object), expect.any(Function));
         expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
         expect(mockServer.resource).toHaveBeenCalledWith('datatypes-by-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
+        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace-nodetails', expect.any(Object), expect.any(Object), expect.any(Function));
+        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-root-namespace-withdetails', expect.any(Object), expect.any(Object), expect.any(Function));
+        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-by-namespace-nodetails', expect.any(Object), expect.any(Object), expect.any(Function));
+        expect(mockServer.resource).toHaveBeenCalledWith('datatypes-by-namespace-withdetails', expect.any(Object), expect.any(Object), expect.any(Function));
         expect(mockServer.resource).toHaveBeenCalledWith('datatype-with-namespace', expect.any(Object), expect.any(Object), expect.any(Function));
         expect(mockServer.resource).toHaveBeenCalledWith('datatype-root', expect.any(Object), expect.any(Object), expect.any(Function));
       });

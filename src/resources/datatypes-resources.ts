@@ -154,13 +154,13 @@ HINT: consider not using this resource, due to performance considerations - if y
             uri: "simplifier://datatypes/namespace/",
             name: "root",
             description: "Root namespace - contains base types and datatypes without namespace",
-            datatypeCount: calculateDatatypeCount('', dataTypes),
+            // datatypeCount: calculateDatatypeCount('', dataTypes),
             weight: calculateWeight('', dataTypes)
           },
           ...dataTypes.nameSpaces.map(ns => ({
             uri: `simplifier://datatypes/namespace/${ns}`,
             name: ns,
-            datatypeCount: calculateDatatypeCount(ns, dataTypes),
+            // datatypeCount: calculateDatatypeCount(ns, dataTypes),
             weight: calculateWeight(ns, dataTypes)
           }))
         ];
@@ -168,12 +168,193 @@ HINT: consider not using this resource, due to performance considerations - if y
         return {
           availableResources: allNamespaceResources,
           resourcePatterns: [
-            "simplifier://datatypes/namespace/ - Root namespace datatypes",
-            "simplifier://datatypes/namespace/{namespace} - Datatypes by specific namespace",
+            "simplifier://datatypes/namespace/noDetails - Root namespace datatypes (minimal: name, id, category, detailUri only)",
+            "simplifier://datatypes/namespace/withDetails - Root namespace datatypes (with all fields + detailUri)",
+            "simplifier://datatypes/namespace/noDetails/{namespace} - Namespace datatypes (minimal: name, id, category, detailUri only)",
+            "simplifier://datatypes/namespace/withDetails/{namespace} - Namespace datatypes (with all fields + detailUri)",
             "simplifier://datatype/{dataTypeName} - Single datatype in root namespace",
             "simplifier://datatype/{namespace}/{dataTypeName} - Single datatype in specific namespace"
           ],
-          recommendation: "For best performance and to avoid consuming too much context, prefer using the single datatype patterns (simplifier://datatype/...) over namespace patterns when you know the specific datatype name."
+          recommendation: "For best performance and to avoid consuming too much context, prefer using the single datatype patterns (simplifier://datatype/...) when you know the specific datatype name, or use noDetails variants for lightweight responses."
+        };
+      });
+    }
+  );
+
+  // IMPORTANT: Register specific paths BEFORE wildcard patterns to ensure correct routing
+
+  // Resource for root namespace with minimal details (only name, id, category, detailUri)
+  const rootNamespaceNoDetailsTemplate = new ResourceTemplate("simplifier://datatypes/namespace/noDetails", noListCallback);
+
+  server.resource("datatypes-root-namespace-nodetails", rootNamespaceNoDetailsTemplate, {
+      title: "Root Namespace DataTypes (Minimal Details)",
+      mimeType: "application/json",
+      description: `# Get DataTypes in Root Namespace with minimal fields
+
+Returns all datatypes that don't belong to any specific namespace, plus all base types.
+Each datatype includes only: **name**, **id**, **category**, and **detailUri**.
+
+- **Base Types**: String, Integer, Boolean, Date, Float, Any (hardcoded)
+- **Domain Types**: Custom types without namespace
+- **Struct Types**: Structured types without namespace
+- **Collection Types**: Collection types without namespace
+
+**Use this variant for lightweight responses when you only need basic identification fields.**`
+    },
+    async (uri: URL) => {
+      return wrapResourceResult(uri, async () => {
+        const dataTypes = await simplifier.getDataTypes();
+
+        // Function to extract minimal fields and add detailUri
+        const toMinimal = <T extends { name: string; id: string; category: string }>(dt: T) => ({
+          name: dt.name,
+          id: dt.id,
+          category: dt.category,
+          detailUri: `simplifier://datatype/${dt.name}`
+        });
+
+        return {
+          namespace: "(root - no namespace)",
+          baseTypes: BASE_TYPES.map(toMinimal),
+          domainTypes: dataTypes.domainTypes.filter(dt => !dt.nameSpace).map(toMinimal),
+          structTypes: dataTypes.structTypes.filter(st => !st.nameSpace).map(toMinimal),
+          collectionTypes: dataTypes.collectionTypes.filter(ct => !ct.nameSpace).map(toMinimal)
+        };
+      });
+    }
+  );
+
+  // Resource for root namespace WITH details (includes detailUri field)
+  const rootNamespaceWithDetailsTemplate = new ResourceTemplate("simplifier://datatypes/namespace/withDetails", noListCallback);
+
+  server.resource("datatypes-root-namespace-withdetails", rootNamespaceWithDetailsTemplate, {
+      title: "Root Namespace DataTypes (With Details)",
+      mimeType: "application/json",
+      description: `# Get DataTypes in Root Namespace with detailUri field
+
+Returns all datatypes that don't belong to any specific namespace, plus all base types.
+
+- **Base Types**: String, Integer, Boolean, Date, Float, Any (hardcoded)
+- **Domain Types**: Custom types without namespace
+- **Struct Types**: Structured types without namespace
+- **Collection Types**: Collection types without namespace
+
+Each datatype includes a detailUri field: \`simplifier://datatype/{dataTypeName}\``
+    },
+    async (uri: URL) => {
+      return wrapResourceResult(uri, async () => {
+        const dataTypes = await simplifier.getDataTypes();
+
+        // Add detailUri to each datatype
+        const addDetailUri = <T extends { name: string }>(dt: T) => ({
+          ...dt,
+          detailUri: `simplifier://datatype/${dt.name}`
+        });
+
+        return {
+          namespace: "(root - no namespace)",
+          baseTypes: BASE_TYPES.map(addDetailUri),
+          domainTypes: dataTypes.domainTypes.filter(dt => !dt.nameSpace).map(addDetailUri),
+          structTypes: dataTypes.structTypes.filter(st => !st.nameSpace).map(addDetailUri),
+          collectionTypes: dataTypes.collectionTypes.filter(ct => !ct.nameSpace).map(addDetailUri)
+        };
+      });
+    }
+  );
+
+  // Resource for specific namespace with minimal details (only name, id, category, detailUri)
+  const namespaceNoDetailsTemplate = new ResourceTemplate("simplifier://datatypes/namespace/noDetails/{+namespace}", noListCallback);
+
+  server.resource("datatypes-by-namespace-nodetails", namespaceNoDetailsTemplate, {
+      title: "DataTypes by Specific Namespace (Minimal Details)",
+      mimeType: "application/json",
+      description: `# Get DataTypes filtered by specific namespace with minimal fields
+
+Returns datatypes belonging to a specific namespace.
+Each datatype includes only: **name**, **id**, **category**, and **detailUri**.
+
+- **Domain Types**: Custom types in this namespace
+- **Struct Types**: Structured types in this namespace
+- **Collection Types**: Collection types in this namespace
+
+**Use this variant for lightweight responses when you only need basic identification fields or when the complete result would be too big.**`
+    },
+    async (uri: URL, _variables) => {
+      return wrapResourceResult(uri, async () => {
+        const dataTypes = await simplifier.getDataTypes();
+        // Extract namespace from URI path, handling forward slashes
+        const pathParts = uri.pathname.split('/');
+        const namespaceIndex = pathParts.findIndex(part => part === 'namespace');
+        // Skip 'noDetails' part to get actual namespace
+        const namespaceParts = pathParts.slice(namespaceIndex + 1);
+        const requestedNamespace = namespaceParts.slice(1).join('/'); // Skip 'noDetails'
+
+        // Specific namespace: return only types in that namespace
+        const namespaceDomain = dataTypes.domainTypes.filter(dt => dt.nameSpace === requestedNamespace);
+        const namespaceStruct = dataTypes.structTypes.filter(st => st.nameSpace === requestedNamespace);
+        const namespaceCollection = dataTypes.collectionTypes.filter(ct => ct.nameSpace === requestedNamespace);
+
+        // Function to extract minimal fields and add detailUri with namespace
+        const toMinimal = <T extends { name: string; id: string; category: string }>(dt: T) => ({
+          name: dt.name,
+          id: dt.id,
+          category: dt.category,
+          detailUri: `simplifier://datatype/${requestedNamespace}/${dt.name}`
+        });
+
+        return {
+          namespace: requestedNamespace,
+          domainTypes: namespaceDomain.map(toMinimal),
+          structTypes: namespaceStruct.map(toMinimal),
+          collectionTypes: namespaceCollection.map(toMinimal),
+        };
+      });
+    }
+  );
+
+  // Resource for specific namespace WITH details (includes detailUri field)
+  const namespaceWithDetailsTemplate = new ResourceTemplate("simplifier://datatypes/namespace/withDetails/{+namespace}", noListCallback);
+
+  server.resource("datatypes-by-namespace-withdetails", namespaceWithDetailsTemplate, {
+      title: "DataTypes by Specific Namespace (With Details)",
+      mimeType: "application/json",
+      description: `# Get DataTypes filtered by specific namespace with detailUri field
+
+Returns datatypes belonging to a specific namespace.
+This variant includes the detailUri field for each datatype.
+
+- **Domain Types**: Custom types in this namespace
+- **Struct Types**: Structured types in this namespace
+- **Collection Types**: Collection types in this namespace
+
+Each datatype includes a detailUri field: \`simplifier://datatype/{namespace}/{dataTypeName}\``
+    },
+    async (uri: URL, _variables) => {
+      return wrapResourceResult(uri, async () => {
+        const dataTypes = await simplifier.getDataTypes();
+        // Extract namespace from URI path, handling forward slashes
+        const pathParts = uri.pathname.split('/');
+        const namespaceIndex = pathParts.findIndex(part => part === 'namespace');
+        // Skip 'withDetails' part to get actual namespace
+        const namespaceParts = pathParts.slice(namespaceIndex + 1);
+        const requestedNamespace = namespaceParts.slice(1).join('/'); // Skip 'withDetails'
+
+        // Specific namespace: return only types in that namespace
+        const namespaceDomain = dataTypes.domainTypes.filter(dt => dt.nameSpace === requestedNamespace);
+        const namespaceStruct = dataTypes.structTypes.filter(st => st.nameSpace === requestedNamespace);
+        const namespaceCollection = dataTypes.collectionTypes.filter(ct => ct.nameSpace === requestedNamespace);
+
+        // Add detailUri to each datatype with namespace
+        const addDetailUri = <T extends { name: string }>(dt: T) => ({
+          ...dt,
+          detailUri: `simplifier://datatype/${requestedNamespace}/${dt.name}`
+        });
+
+        return {
+          namespace: requestedNamespace,
+          domainTypes: namespaceDomain.map(addDetailUri),
+          structTypes: namespaceStruct.map(addDetailUri),
+          collectionTypes: namespaceCollection.map(addDetailUri)
         };
       });
     }
