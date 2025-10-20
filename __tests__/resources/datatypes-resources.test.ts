@@ -210,9 +210,9 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
         expect(resultData.resourcePatterns).toEqual([
           "simplifier://datatypes/namespace/noDetails - Root namespace datatypes (minimal: name, id, category, detailUri only)",
-          "simplifier://datatypes/namespace/withDetails - Root namespace datatypes (with all fields + detailUri)",
+          "simplifier://datatypes/namespace/withDetails - Root namespace datatypes (with all fields + detailUri) **Important:** cannot be used with large results",
           "simplifier://datatypes/namespace/noDetails/{namespace} - Namespace datatypes (minimal: name, id, category, detailUri only)",
-          "simplifier://datatypes/namespace/withDetails/{namespace} - Namespace datatypes (with all fields + detailUri)",
+          "simplifier://datatypes/namespace/withDetails/{namespace} - Namespace datatypes (with all fields + detailUri) **Important:** cannot be used with large results",
           "simplifier://datatype/{dataTypeName} - Single datatype in root namespace",
           "simplifier://datatype/{namespace}/{dataTypeName} - Single datatype in specific namespace"
         ]);
