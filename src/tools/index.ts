@@ -4,6 +4,7 @@ import {registerServerBusinessObjectTools} from "./server-businessobject-tools.j
 import {registerServerDatatypeTools} from "./server-datatype-tools.js";
 import {registerConnectorTools} from "./connector-tools.js";
 import {registerLoginMethodTools} from "./loginmethod-tools.js";
+import {registerLoggingTools} from "./logging-tools.js";
 
 /**
  * Register Tools for Simplifier Low Code Platform integration
@@ -13,6 +14,7 @@ export function registerTools(server: McpServer, simplifier: SimplifierClient) {
   registerServerDatatypeTools(server, simplifier)
   registerConnectorTools(server, simplifier)
   registerLoginMethodTools(server, simplifier)
+  registerLoggingTools(server, simplifier)
 }
 
 

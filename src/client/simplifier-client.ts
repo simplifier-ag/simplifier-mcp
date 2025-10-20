@@ -1,22 +1,33 @@
-import { config } from '../config.js';
-import { login } from "./basicauth.js";
+import {config} from '../config.js';
+import {login} from "./basicauth.js";
 import {
-  BusinessObjectTestRequest, BusinessObjectTestResponse,
-  SimplifierApiResponse,
-  SimplifierBusinessObjectDetails,
-  SimplifierBusinessObjectFunction,
-  SimplifierConnectorCallDetails,
-  SimplifierConnectorCallsResponse, SimplifierConnectorDetails, SimplifierConnectorListResponse,
-  SimplifierConnectorUpdate, ConnectorTestRequest, ConnectorTestResponse,
-  SimplifierDataType,
-  SimplifierDataTypesResponse,
-  SimplifierDataTypeUpdate,
-  SimplifierLoginMethodsResponse,
-    SimplifierLoginMethodDetailsRaw,
-    SimplifierOAuth2ClientsResponse,
+    BusinessObjectTestRequest,
+    BusinessObjectTestResponse,
+    ConnectorTestRequest,
+    ConnectorTestResponse,
     CreateLoginMethodRequest,
+    GenericApiResponse,
+    SimplifierApiResponse,
+    SimplifierBusinessObjectDetails,
+    SimplifierBusinessObjectFunction,
+    SimplifierConnectorCallDetails,
+    SimplifierConnectorCallsResponse,
+    SimplifierConnectorCallUpdate,
+    SimplifierConnectorDetails,
+    SimplifierConnectorListResponse,
+    SimplifierConnectorUpdate,
+    SimplifierDataType,
+    SimplifierDataTypesResponse,
+    SimplifierDataTypeUpdate,
+    SimplifierLogEntryDetails,
+    SimplifierLoginMethodDetailsRaw,
+    SimplifierLoginMethodsResponse,
+    SimplifierLogListOptions,
+    SimplifierLogListResponse,
+    SimplifierLogPagesResponse,
+    SimplifierOAuth2ClientsResponse,
+    UnwrappedSimplifierApiResponse,
     UpdateLoginMethodRequest,
-    UnwrappedSimplifierApiResponse, SimplifierConnectorCallUpdate, GenericApiResponse
 } from './types.js';
 
 /**
@@ -335,5 +346,37 @@ export class SimplifierClient {
       body: JSON.stringify(request)
     });
     return `Successfully updated Login Method '${name}'`;
+  }
+
+  // Logging API methods
+  async listLogEntriesPaginated(pageNo: number, pageSize: number, options?: SimplifierLogListOptions): Promise<SimplifierLogListResponse> {
+    const params = this.optionsToQueryParams(options)
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `/UserInterface/api/logging/list/page/${pageNo}/pagesize/${pageSize}?${queryString}`
+      : `/UserInterface/api/logging/list/page/${pageNo}/pagesize/${pageSize}`;
+
+    return await this.makeUnwrappedRequest(url);
+  }
+
+  async getLogPages(pageSize: number = 50, options?: SimplifierLogListOptions): Promise<SimplifierLogPagesResponse> {
+    const params = this.optionsToQueryParams(options)
+    params.append('pagesize', pageSize.toString())
+
+    return await this.makeUnwrappedRequest(`/UserInterface/api/logging/pages?${params}`);
+  }
+
+  async getLogEntry(id: string): Promise<SimplifierLogEntryDetails> {
+    return await this.makeUnwrappedRequest(`/UserInterface/api/logging/entry/${id}`);
+  }
+
+  optionsToQueryParams(options?: SimplifierLogListOptions): URLSearchParams {
+    const params = new URLSearchParams();
+    if (options?.logLevel !== undefined) params.append('logLevel', options.logLevel.toString());
+    if (options?.since) params.append('since', options.since);
+    if (options?.from) params.append('from', options.from);
+    if (options?.until) params.append('until', options.until);
+    return params;
   }
 }

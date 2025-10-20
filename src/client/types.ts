@@ -186,9 +186,10 @@ export interface SimplifierDataTypeProperty {
   value: string;
 }
 
-/**
+/*
  * Business Object Function Testing Types
  */
+
 export interface BusinessObjectTestRequest {
   parameters: BusinessObjectTestParameter[];
 }
@@ -232,9 +233,10 @@ export interface ConnectorTestResponse {
   message?: string;
 }
 
-/**
+/*
  * Connector Types
  */
+
 export interface SimplifierConnectorListResponse {
   connectors: SimplifierConnector[];
 }
@@ -829,3 +831,43 @@ export type SimplifierLoginMethodTargetConfiguration =
   | HeaderTargetConfiguration
   | QueryTargetConfiguration;
 
+/*
+ * Logging Types
+ */
+
+export interface SimplifierLogEntry {
+  id: string;
+  entryDate: string;
+  level: number;
+  messageKey: string;
+  messageParams: any[];
+  hasDetails: boolean;
+  category: string;
+}
+
+export interface SimplifierLogEntryDetails extends SimplifierLogEntry {
+  details?: string;
+  context: any[];
+}
+
+export interface SimplifierLogListResponse {
+  list: SimplifierLogEntry[];
+}
+
+export interface SimplifierLogPagesResponse {
+  pagesize: number;
+  pages: number;
+}
+
+/**
+ * Represents options for configuring log listing in Simplifier.
+ * `from` and `until` always have to be used together.
+ */
+export type SimplifierLogListOptions = {
+  logLevel?: number;
+  since?: string;
+  pageNo?: number;
+  pageSize?: number;
+  from?: string;
+  until?: string;
+};
