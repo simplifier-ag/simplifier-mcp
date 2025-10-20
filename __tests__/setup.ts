@@ -38,7 +38,8 @@ jest.mock('../src/resources/index', () => ({
 }));
 
 jest.mock('../src/prompts/index', () => ({
-  prompts: []
+  prompts: [],
+  registerPrompts: jest.fn()
 }));
 
 dotenv.config({ path: '.env.test' });

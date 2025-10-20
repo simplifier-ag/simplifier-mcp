@@ -3,6 +3,7 @@ import {SimplifierClient} from "./client/simplifier-client.js";
 import {registerTools} from "./tools/index.js";
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {registerResources} from "./resources/index.js";
+import {registerPrompts} from "./prompts/index.js";
 
 export class SimplifierMCPServer {
   private server: McpServer;
@@ -48,6 +49,7 @@ do not guess or try to find the available methods via debugging.
   private setupHandlers(mcpServer: McpServer, apiClient: SimplifierClient): void {
     registerResources(mcpServer, apiClient);
     registerTools(mcpServer, apiClient);
+    registerPrompts(mcpServer, apiClient);
   }
 
   public async run(): Promise<void> {
