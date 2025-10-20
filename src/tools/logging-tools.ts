@@ -18,7 +18,9 @@ export function registerLoggingTools(server: McpServer, simplifier: SimplifierCl
     `# Get recent log entries from Simplifier
 
 This tool provides access to the Simplifier logging system. You can filter logs by level and time range.
-If no filters are used, it returns the ${DEFAULT_PAGE_SIZE} most recent log entries.
+If no filters are used, it returns the ${DEFAULT_PAGE_SIZE} most recent log entries. If you are expecting to find some
+logs but they are missing, ask the user to check whether logging for execution is set to the right level in the Simplifier
+server settings.
 
 **Log Levels:**
 - 0 = Debug
