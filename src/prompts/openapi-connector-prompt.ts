@@ -45,8 +45,23 @@ ${isUrl
    - Base URL / servers
    - Authentication requirements (API keys, OAuth, etc.)
    - Version information
+   
+## Phase 2: Authentication 
+In case the API needs to be authenticated with OAuth and you can find a configured oauthclient with simplifier://oauthclients,
+that fits by the name, then create a login method with the name ${finalConnectorName}OAuthLM and that OAuth client.
 
-## Phase 2: Analyze and Present Endpoints
+In case the API needs an API-key, that has to be passed as a header, then create a Login Method of type token with a custom
+header name according to the API key header name. Ask the user for the API-key - otherwise the user can update the key in the login
+method himself.
+
+In case the API needs an API-key, that has to be passed as a query parameter, then each connector call needs the additional input parameter configured.
+
+In case we have not yet handeled authentication and the API supports Basic Auth, then create a login method with the name ${finalConnectorName}BasicLM of
+the type UserCredentials and ask the user for username and password.
+
+Assign the eventually created LM to the connector in the end.
+
+## Phase 3: Analyze and Present Endpoints
 
 Analyze all available endpoints in the specification and present them to the user in this format:
 
@@ -72,7 +87,7 @@ Authentication: Bearer Token (API Key in header)
 Base URL: https://api.example.com/v1
 \`\`\`
 
-## Phase 3: User Selection
+## Phase 4: User Selection
 
 After presenting the endpoints, ask the user:
 "Which endpoints would you like to implement? You can specify:
@@ -82,18 +97,18 @@ After presenting the endpoints, ask the user:
 
 Wait for user response before proceeding to Phase 4.
 
-## Phase 4: Create Connector and Components
+## Phase 5: Create Connector and Components
 
 Once the user has selected endpoints, create:
 
-### 4.1 Connector Configuration
+### 5.1 Connector Configuration
 - **Name**: ${finalConnectorName}
 - **Namespace**: con/${finalConnectorName}
 - **Base URL**: From OpenAPI spec
 - **Authentication**: Configure based on OpenAPI security schemes
 - **Headers**: Any required default headers
 
-### 4.2 For Each Selected Endpoint:
+### 5.2 For Each Selected Endpoint:
 
 #### Create Request/Response Datatypes:
 - Analyze request body schema → Create request datatype
@@ -112,13 +127,13 @@ Once the user has selected endpoints, create:
 - **Response**: Link to response datatype
 - **Documentation**: From OpenAPI description
 
-### 4.3 Create All Components:
+### 5.3 Create All Components:
 Use the Simplifier MCP tools to create:
 1. All datatypes (in dependency order - base types first)
 2. The connector
 3. All connector calls
 
-### 4.4 Provide Summary:
+### 5.4 Provide Summary:
 Generate a summary report:
 \`\`\`
 ✅ Connector Created: ${finalConnectorName}
@@ -200,9 +215,6 @@ export function registerOpenAPIConnectorPrompt(
       ),
       connector_name: z.string().optional().describe(
         'Custom name for the connector (optional, defaults to the API title from the OpenAPI spec)'
-      ),
-      namespace: z.string().optional().describe(
-        'Target namespace for the connector and datatypes (optional, defaults to "api")'
       )
     },
     openAPIConnectorPromptCallback

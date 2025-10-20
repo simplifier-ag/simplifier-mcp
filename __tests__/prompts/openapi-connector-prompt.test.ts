@@ -7,15 +7,14 @@ describe('OpenAPI Connector Prompt', () => {
     it('should generate prompt text with URL input', () => {
       const result = generateOpenAPIConnectorPromptText(
         'https://api.example.com/openapi.yaml',
-        'ExampleAPI',
-        'integrations'
+        'ExampleAPI'
       );
 
       expect(result).toContain('Create Simplifier Connector from OpenAPI Specification');
       expect(result).toContain('https://api.example.com/openapi.yaml');
       expect(result).toContain('Fetch the OpenAPI specification from:');
       expect(result).toContain('**Name**: ExampleAPI');
-      expect(result).toContain('**Namespace**: integrations');
+      expect(result).toContain('**Namespace**: con/ExampleAPI');
     });
 
     it('should generate prompt text with inline spec input', () => {
@@ -33,7 +32,7 @@ describe('OpenAPI Connector Prompt', () => {
       );
 
       expect(result).toContain('**Name**: <will be derived from OpenAPI spec>');
-      expect(result).toContain('**Namespace**: api');
+      expect(result).toContain('**Namespace**: con/<will be derived from OpenAPI spec>');
     });
 
     it('should include all phases in the prompt', () => {
@@ -42,9 +41,10 @@ describe('OpenAPI Connector Prompt', () => {
       );
 
       expect(result).toContain('## Phase 1: Fetch and Parse OpenAPI Specification');
-      expect(result).toContain('## Phase 2: Analyze and Present Endpoints');
-      expect(result).toContain('## Phase 3: User Selection');
-      expect(result).toContain('## Phase 4: Create Connector and Components');
+      expect(result).toContain('## Phase 2: Authentication');
+      expect(result).toContain('## Phase 3: Analyze and Present Endpoints');
+      expect(result).toContain('## Phase 4: User Selection');
+      expect(result).toContain('## Phase 5: Create Connector and Components');
     });
 
     it('should include guidelines and available tools', () => {
@@ -64,8 +64,7 @@ describe('OpenAPI Connector Prompt', () => {
     it('should return GetPromptResult with correct structure', () => {
       const args = {
         openapi_url_or_spec: 'https://api.example.com/openapi.yaml',
-        connector_name: 'ExampleAPI',
-        namespace: 'integrations'
+        connector_name: 'ExampleAPI'
       };
 
       const result = openAPIConnectorPromptCallback(args);
@@ -85,7 +84,7 @@ describe('OpenAPI Connector Prompt', () => {
       const result = openAPIConnectorPromptCallback(args);
 
       expect(result.messages[0].content.text).toContain('<will be derived from OpenAPI spec>');
-      expect(result.messages[0].content.text).toContain('**Namespace**: api');
+      expect(result.messages[0].content.text).toContain('**Namespace**: con/<will be derived from OpenAPI spec>');
     });
   });
 
@@ -128,7 +127,6 @@ describe('OpenAPI Connector Prompt', () => {
       const argsSchema = mockPrompt.mock.calls[0][2];
       expect(argsSchema).toHaveProperty('openapi_url_or_spec');
       expect(argsSchema).toHaveProperty('connector_name');
-      expect(argsSchema).toHaveProperty('namespace');
     });
 
     it('should register prompt with callback function', () => {
