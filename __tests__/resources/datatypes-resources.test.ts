@@ -302,6 +302,40 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(resultData.structTypes).toBeDefined();
         expect(resultData.collectionTypes).toBeDefined();
       });
+
+      it('should throw error when root namespace weight exceeds limit', async () => {
+        // Create a very heavy root namespace (310 types × 10 = 3100 > 3000)
+        const veryHeavyDataTypesResponse = {
+          ...mockDataTypesResponse,
+          domainTypes: [
+            ...mockDataTypesResponse.domainTypes,
+            ...Array(310).fill(null).map((_, i) => ({
+              id: `VERY_HEAVY_DOMAIN_${i}`,
+              name: `VeryHeavyDomain${i}`,
+              category: 'domain' as const,
+              description: `Very heavy domain type ${i}`,
+              baseType: 'String',
+              isStruct: false,
+              fields: [],
+              properties: [],
+              editable: true,
+              tags: [],
+              assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+            }))
+          ]
+        };
+
+        const testUri = new URL('simplifier://datatypes/namespace/withDetails');
+        mockClient.getDataTypes.mockResolvedValue(veryHeavyDataTypesResponse);
+
+        mockWrapResourceResult.mockImplementation(async (_uri: URL, fn: () => any) => {
+          await fn(); // This should throw
+        });
+
+        await expect(async () => {
+          await rootNamespaceHandler(testUri, {}, createMockExtra());
+        }).rejects.toThrow('The result is expected to be too big. Please use: simplifier://datatypes/namespace/noDetails');
+      });
     });
 
     describe('specific namespace withDetails handler', () => {
@@ -338,6 +372,43 @@ describe('DataTypes Resources (Namespace-based)', () => {
         expect(resultData.domainTypes).toHaveLength(1); // NamespacedDomainType
         expect(resultData.structTypes).toHaveLength(1); // EmailAddress_Struct
         expect(resultData.collectionTypes).toHaveLength(1); // StringArray
+      });
+
+      it('should throw error when specific namespace weight exceeds limit', async () => {
+        // Create a very heavy namespace (310 types × 10 = 3100 > 3000)
+        const veryHeavyDataTypesResponse = {
+          ...mockDataTypesResponse,
+          nameSpaces: ['con/HeavyConnector'],
+          domainTypes: [
+            ...mockDataTypesResponse.domainTypes,
+            ...Array(310).fill(null).map((_, i) => ({
+              id: `HEAVY_DOMAIN_${i}`,
+              name: `HeavyDomain${i}`,
+              nameSpace: 'con/HeavyConnector',
+              category: 'domain' as const,
+              description: `Heavy domain type ${i}`,
+              baseType: 'String',
+              isStruct: false,
+              fields: [],
+              properties: [],
+              editable: true,
+              tags: [],
+              assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+            }))
+          ]
+        };
+
+        const testUri = new URL('simplifier://datatypes/namespace/withDetails/con/HeavyConnector');
+        const variables = { namespace: 'con/HeavyConnector' };
+        mockClient.getDataTypes.mockResolvedValue(veryHeavyDataTypesResponse);
+
+        mockWrapResourceResult.mockImplementation(async (_uri: URL, fn: () => any) => {
+          await fn(); // This should throw
+        });
+
+        await expect(async () => {
+          await namespaceHandler(testUri, variables, createMockExtra());
+        }).rejects.toThrow('The result is expected to be too big. Please use: simplifier://datatypes/namespace/noDetails/con/HeavyConnector');
       });
 
       it('should handle errors through wrapResourceResult', async () => {

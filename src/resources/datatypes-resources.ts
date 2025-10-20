@@ -148,7 +148,7 @@ HINT: consider not using this resource, due to performance considerations - if y
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
-        const MAX_WEIGHT_WITH_DETAILS_SUGGESTED = 2000;
+        const MAX_WEIGHT_WITH_DETAILS_SUGGESTED = 2000;  // soft limit
 
         // Helper function to build URI based on weight
         const getNamespaceUri = (namespace: string, weight: number): string => {
@@ -187,9 +187,9 @@ HINT: consider not using this resource, due to performance considerations - if y
           availableResources: allNamespaceResources,
           resourcePatterns: [
             "simplifier://datatypes/namespace/noDetails - Root namespace datatypes (minimal: name, id, category, detailUri only)",
-            "simplifier://datatypes/namespace/withDetails - Root namespace datatypes (with all fields + detailUri)",
+            "simplifier://datatypes/namespace/withDetails - Root namespace datatypes (with all fields + detailUri) **Important:** cannot be used with large results",
             "simplifier://datatypes/namespace/noDetails/{namespace} - Namespace datatypes (minimal: name, id, category, detailUri only)",
-            "simplifier://datatypes/namespace/withDetails/{namespace} - Namespace datatypes (with all fields + detailUri)",
+            "simplifier://datatypes/namespace/withDetails/{namespace} - Namespace datatypes (with all fields + detailUri) **Important:** cannot be used with large results",
             "simplifier://datatype/{dataTypeName} - Single datatype in root namespace",
             "simplifier://datatype/{namespace}/{dataTypeName} - Single datatype in specific namespace"
           ],
@@ -199,7 +199,7 @@ HINT: consider not using this resource, due to performance considerations - if y
     }
   );
 
-  // const MAX_WEIGHT_WITH_DETAILS = 3000
+  const MAX_WEIGHT_WITH_DETAILS = 3000;  // hard limit
   // IMPORTANT: Register specific paths BEFORE wildcard patterns to ensure correct routing
 
   // Resource for root namespace with minimal details (only name, id, category, detailUri)
@@ -263,6 +263,12 @@ Each datatype includes a detailUri field: \`simplifier://datatype/{dataTypeName}
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
         const dataTypes = await simplifier.getDataTypes();
+
+        // Check weight limit for withDetails variant
+        const weight = calculateWeight('', dataTypes);
+        if (weight > MAX_WEIGHT_WITH_DETAILS) {
+          throw new Error('The result is expected to be too big. Please use: simplifier://datatypes/namespace/noDetails');
+        }
 
         // Add detailUri to each datatype
         const addDetailUri = <T extends { name: string }>(dt: T) => ({
@@ -357,6 +363,12 @@ Each datatype includes a detailUri field: \`simplifier://datatype/{namespace}/{d
         // Skip 'withDetails' part to get actual namespace
         const namespaceParts = pathParts.slice(namespaceIndex + 1);
         const requestedNamespace = namespaceParts.slice(1).join('/'); // Skip 'withDetails'
+
+        // Check weight limit for withDetails variant
+        const weight = calculateWeight(requestedNamespace, dataTypes);
+        if (weight > MAX_WEIGHT_WITH_DETAILS) {
+          throw new Error(`The result is expected to be too big. Please use: simplifier://datatypes/namespace/noDetails/${requestedNamespace}`);
+        }
 
         // Specific namespace: return only types in that namespace
         const namespaceDomain = dataTypes.domainTypes.filter(dt => dt.nameSpace === requestedNamespace);
