@@ -1,0 +1,153 @@
+# GitHub Actions CI/CD Workflow for Simplifier MCP Server
+# Runs unit tests, publishes test results, and publishes to npm
+
+name: CI/CD
+
+# If we later decide to not create releases on 
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+    paths-ignore:
+      - 'README.md'
+      - 'README_DEV.md'
+      - 'CLAUDE.md'
+      - '.gitignore'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths-ignore:
+      - 'README.md'
+      - 'README_DEV.md'
+      - 'CLAUDE.md'
+      - '.gitignore'
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Run unit tests
+        run: npm test -- --ci --coverage --testResultsProcessor=jest-junit
+        env:
+          JEST_JUNIT_OUTPUT_DIR: ${{ runner.temp }}/test-results
+          JEST_JUNIT_OUTPUT_NAME: test-results.xml
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          junit_files: '${{ runner.temp }}/test-results/test-results.xml'
+          check_name: 'Unit Tests'
+
+      - name: Test MCP Server functionality
+        run: |
+          echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
+        env:
+          SIMPLIFIER_BASE_URL: 'http://localhost:8080'
+          SIMPLIFIER_TOKEN: TEST
+
+  publish-to-npm:
+    name: Publish to NPM
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    # Only publish to npm on main branch and when not a pull request
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Configure git for version tagging
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions"
+
+      # NOTE: Using [skip ci] in commit message to prevent infinite workflow loop
+      # When we push the updated package.json back to git, [skip ci] prevents
+      # the workflow from triggering again on that version bump commit
+      - name: Bump patch version with [skip ci]
+        run: |
+          git status
+          echo "--"
+          npm version patch -m "chore: bump version to %s [skip ci]"
+          echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
+      - name: Publish to NPM
+        run: npm publish --access public
+
+      # Push version commit and tag to GitHub
+      # The version commit includes [skip ci] so it won't trigger another workflow run
+      - name: Push version commit and tag to GitHub
+        if: success()
+        run: |
+          echo "Current branch info:"
+          echo "  ref: ${{ github.ref }}"
+          echo "  ref_name: ${{ github.ref_name }}"
+          echo "Pushing version bump commit (with [skip ci]) to GitHub"
+          git push origin HEAD:${{ github.ref }}
+          echo "Pushing tag to GitHub"
+          git push origin "v${{ env.PACKAGE_VERSION }}"
+
+      - name: Update workflow summary and log success
+        if: success()
+        run: |
+          echo "::notice::Successfully published @simplifierag/simplifier-mcp@${{ env.PACKAGE_VERSION }} to npm"
+          echo "=========================================="
+          echo "🎉 SUCCESSFUL NPM PUBLICATION"
+          echo "=========================================="
+          echo "Package: @simplifierag/simplifier-mcp"
+          echo "Version: ${{ env.PACKAGE_VERSION }}"
+          echo "Published to: https://www.npmjs.com/package/@simplifierag/simplifier-mcp"
+          echo "Install with: npm install @simplifierag/simplifier-mcp"
+          echo "=========================================="
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          ## 🎉 NPM Publication Successful
+
+          - **Package**: @simplifierag/simplifier-mcp
+          - **Version**: ${{ env.PACKAGE_VERSION }}
+          - **Registry**: [npm](https://www.npmjs.com/package/@simplifierag/simplifier-mcp)
+          - **Install**: \`npm install @simplifierag/simplifier-mcp\`
+          EOF
