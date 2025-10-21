@@ -28,6 +28,9 @@ on:
 permissions:
   id-token: write  # Required for OIDC
   contents: read
+  # Required for test result publishing:
+  checks: write
+  pull-requests: write
 
 jobs:
   build-and-test:
@@ -58,10 +61,9 @@ jobs:
 
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
+        if: (!cancelled())
         with:
-          junit_files: '${{ runner.temp }}/test-results/test-results.xml'
-          check_name: 'Unit Tests'
+          files: 'test-results/**/*.xml'
 
       - name: Test MCP Server functionality
         run: |
