@@ -26,7 +26,6 @@ on:
       - '.gitignore'
 
 permissions:
-  id-token: write  # Required for OIDC
   contents: read
   # Required for test result publishing:
   checks: write
@@ -76,6 +75,9 @@ jobs:
     name: Publish to NPM
     needs: build-and-test
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for OIDC
+      contents: write
     # Only publish to npm on main branch and when not a pull request
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
