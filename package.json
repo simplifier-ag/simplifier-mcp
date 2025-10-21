@@ -4,6 +4,10 @@
   "description": "MCP Server for Simplifier Low Code Platform - enables creation of Connectors and BusinessObjects",
   "main": "dist/index.js",
   "type": "module",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/simplifier-ag/simplifier-mcp.git"
+  },
   "bin": {
     "simplifier-mcp": "./dist/index.js"
   },
