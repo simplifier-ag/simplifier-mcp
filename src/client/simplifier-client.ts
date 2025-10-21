@@ -147,6 +147,9 @@ export class SimplifierClient {
     })
   }
 
+  async ping(): Promise<boolean> {
+    return this.makeUnwrappedRequest<{msg: string}>(`/client/2.0/ping`).then(response => response.msg === "pong");
+  }
 
   async getServerBusinessObjects(): Promise<SimplifierBusinessObjectDetails[]> {
     return this.makeRequest("/UserInterface/api/businessobjects/server", { method: "GET" })

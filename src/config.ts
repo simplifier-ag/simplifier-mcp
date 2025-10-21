@@ -35,4 +35,13 @@ export function validateConfig(): Config {
   };
 }
 
+/**
+ * Returns the configuration, including just the base URL for display purposes
+ */
+export function getConfig(): { baseUrl: string } {
+  return {
+    baseUrl: config.simplifierBaseUrl
+  };
+}
+
 export const config = validateConfig();
