@@ -55,7 +55,7 @@ jobs:
       - name: Run unit tests
         run: npm test -- --ci --coverage --testResultsProcessor=jest-junit
         env:
-          JEST_JUNIT_OUTPUT_DIR: ${{ runner.temp }}/test-results
+          JEST_JUNIT_OUTPUT_DIR: test-results
           JEST_JUNIT_OUTPUT_NAME: test-results.xml
 
       - name: Publish test results
