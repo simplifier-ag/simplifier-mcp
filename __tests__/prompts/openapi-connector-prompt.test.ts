@@ -42,9 +42,10 @@ describe('OpenAPI Connector Prompt', () => {
 
       expect(result).toContain('## Phase 1: Fetch and Parse OpenAPI Specification');
       expect(result).toContain('## Phase 2: Authentication');
-      expect(result).toContain('## Phase 3: Analyze and Present Endpoints');
-      expect(result).toContain('## Phase 4: User Selection');
-      expect(result).toContain('## Phase 5: Create Connector and Components');
+      expect(result).toContain('## Phase 3: User Selections for Authentication');
+      expect(result).toContain('## Phase 4: Analyze and Present Endpoints');
+      expect(result).toContain('## Phase 5: User Selection for Endpoints');
+      expect(result).toContain('## Phase 6: Create Connector and Components');
     });
 
     it('should include guidelines and available tools', () => {
