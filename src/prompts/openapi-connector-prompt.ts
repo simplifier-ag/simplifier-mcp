@@ -47,21 +47,52 @@ ${isUrl
    - Version information
    
 ## Phase 2: Authentication 
-In case the API needs to be authenticated with OAuth and you can find a configured oauthclient with simplifier://oauthclients,
-that fits by the name, then create a login method with the name ${finalConnectorName}OAuthLM and that OAuth client.
+Fetch the existing Login Methods with simplifier://loginmethods. Match the Login Methods by type with the authentication
+requirements of the API described in the OpenAPI Specification.
 
+In case the API requires an OAuth Token, then fetch the OAuth Clients from simplifier://oauthclients. In case the user
+does not select an existing Logine Method in Phase 3.1, we will present the OAuth Clients to the user.
+
+List the Login Methods and show them to the user before Phase 3.1.
+
+The authentication requirements can be complex. We will guide the user through this flow of steps:
+1. Present existing Login Methods and let the user select one, or skip this step
+2. In case of OAuth (and if no Login Method has been selected in the step before), then present the existing OAuth Clients and let the user select one, or skip this step
+3. In case of Basic Auth (and if no Login Method has been selected or created in the steps before) then aks the user about username/password or skip this step
+4. In case of need of an API Key in a Header (and if no Login Method has been selected or created in the steps before) ask the user for the API Key or skip this step
+
+Details about step 4:
+In case the API needs an API-key, that has to be passed as a query parameter, then each connector call needs the additional input parameter configured.
+Only in case the API needs an API-key, that has to be passed as a header, then create a Login Method of type token with a custom
+header name according to the API key header name. 
+
+Assign the eventually created or selected Login Method to the connector in the end.
+
+## Phase 3: User Selections for Authentication
+
+### 3.1 Ask user for Login Method
+In case existing Login Methods, that fit by name and by type (e.g. Token, OAuth or UserCredentials), are found with simplifier://loginmethods,
+then ask the user, whether and which Login Method to assign in the end:
+"Shall one of the existing Login Methods be used?"
+
+### 3.2 Ask user about creating an OAuth Login Method
+In case OAuth is required and no fitting Login Method is existing, but auth clients are existing (simplifier://oauthclients), then
+present the list of oauth clients to the user and ask whether and based on which client a Login Method should be created:
+"Shall a Login Method ${finalConnectorName}OAuthLM be created based on one of these OAuth Clients?"
+
+### 3.3 Ask user about creating Login Method for Basic Auth
+In case we have not yet handeled authentication and the API supports Basic Auth, then create a login method with the name ${finalConnectorName}BasicLM of
+the type UserCredentials and ask the user for username and password. Also give the option, that the user can later create and assign a
+login method himself:
+"Enter Username and Password to create the Login Mehtod ${finalConnectorName}BasicLM or alternatively later create and assign a Login Method yourself."
+ 
+### 3.4 Ask user about creating Login Method for API Key 
 In case the API needs an API-key, that has to be passed as a header, then create a Login Method of type token with a custom
 header name according to the API key header name. Ask the user for the API-key - otherwise the user can update the key in the login
-method himself.
+method himself:
+"Give the API key for the Login Method"
 
-In case the API needs an API-key, that has to be passed as a query parameter, then each connector call needs the additional input parameter configured.
-
-In case we have not yet handeled authentication and the API supports Basic Auth, then create a login method with the name ${finalConnectorName}BasicLM of
-the type UserCredentials and ask the user for username and password.
-
-Assign the eventually created LM to the connector in the end.
-
-## Phase 3: Analyze and Present Endpoints
+## Phase 4: Analyze and Present Endpoints
 
 Analyze all available endpoints in the specification and present them to the user in this format:
 
@@ -87,7 +118,7 @@ Authentication: Bearer Token (API Key in header)
 Base URL: https://api.example.com/v1
 \`\`\`
 
-## Phase 4: User Selection
+## Phase 5: User Selection for Endpoints
 
 After presenting the endpoints, ask the user:
 "Which endpoints would you like to implement? You can specify:
@@ -97,18 +128,18 @@ After presenting the endpoints, ask the user:
 
 Wait for user response before proceeding to Phase 4.
 
-## Phase 5: Create Connector and Components
+## Phase 6: Create Connector and Components
 
 Once the user has selected endpoints, create:
 
-### 5.1 Connector Configuration
+### 6.1 Connector Configuration
 - **Name**: ${finalConnectorName}
 - **Namespace**: con/${finalConnectorName}
 - **Base URL**: From OpenAPI spec
 - **Authentication**: Configure based on OpenAPI security schemes
 - **Headers**: Any required default headers
 
-### 5.2 For Each Selected Endpoint:
+### 6.2 For Each Selected Endpoint:
 
 #### Create Request/Response Datatypes:
 - Analyze request body schema → Create request datatype
@@ -127,13 +158,13 @@ Once the user has selected endpoints, create:
 - **Response**: Link to response datatype
 - **Documentation**: From OpenAPI description
 
-### 5.3 Create All Components:
+### 6.3 Create All Components:
 Use the Simplifier MCP tools to create:
 1. All datatypes (in dependency order - base types first)
 2. The connector
 3. All connector calls
 
-### 5.4 Provide Summary:
+### 6.4 Provide Summary:
 Generate a summary report:
 \`\`\`
 ✅ Connector Created: ${finalConnectorName}
