@@ -1,11 +1,12 @@
 # Simplifier MCP Server
 
-An MCP (Model Context Protocol) server that enables integration with the **[Simplifier Low Code Platform](simplifier.io/platform/)**. This server provides tools and capabilities for creating and managing Simplifier Connectors and BusinessObjects through the platform's REST API.
+A MCP server (Model Context Protocol) that enables integration of AI assistants with the **[Simplifier Low Code Platform](simplifier.io/platform/)**. 
+It provides tools and resources for creating and managing Simplifier Connectors and BusinessObjects.
 
 
 ## Overview
 
-The Simplifier MCP Server allows AI assistants to interact with the Simplifier Low Code Platform to:
+The Simplifier MCP Server allows to interact with a Simplifier instance to:
 
 - **Manage Connectors and Logins**: Integration components that connect external systems
 - **Manage Business Objects**: Server-side executed JavaScript functions for business logic
@@ -14,10 +15,12 @@ The Simplifier MCP Server allows AI assistants to interact with the Simplifier L
 - **Execute Connector Calls**: Call external systems via Simplifier Connector
 - **Access platform resources**: Browse connectors, business objects, and system information
 
-See also [community.simplifier.io](https://community.simplifier.io/doc/getting-started/basic-concept-technology/ai/)
 
 
 ## Usage
+
+Check out [Simplifier Community Docs](https://community.simplifier.io/doc/current-release/extend/setup-mcp-to-interact-with-ai-models/)
+on how to use and set up the MCP server best.
 
 ### Add the MCP to claude code ...
 ```
