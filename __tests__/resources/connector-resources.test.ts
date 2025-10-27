@@ -252,7 +252,7 @@ describe('Connector Resources', () => {
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.connectors).toHaveLength(2);
         expect(resultData.totalCount).toBe(2);
-        expect(resultData.connectors[0].uri).toBe('simplifier://connectors/TestConnector');
+        expect(resultData.connectors[0].uri).toBe('simplifier://connector/TestConnector');
         expect(resultData.connectors[0].name).toBe('TestConnector');
         expect(resultData.resourcePatterns).toHaveLength(4);
       });
@@ -294,7 +294,7 @@ describe('Connector Resources', () => {
       });
 
       it('should return connector details', async () => {
-        const testUri = new URL('simplifier://connectors/TestConnector');
+        const testUri = new URL('simplifier://connector/TestConnector');
         mockClient.getConnector.mockResolvedValue(mockConnectorDetails);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
@@ -315,11 +315,11 @@ describe('Connector Resources', () => {
         expect(resultData.connector.name).toBe('TestConnector');
         expect(resultData.connector.active).toBe(true);
         expect(resultData.relatedResources).toHaveLength(1);
-        expect(resultData.relatedResources[0].uri).toBe('simplifier://connectors/TestConnector/calls');
+        expect(resultData.relatedResources[0].uri).toBe('simplifier://connector/TestConnector/calls');
       });
 
       it('should throw error if connector name is missing', async () => {
-        const testUri = new URL('simplifier://connectors/');
+        const testUri = new URL('simplifier://connector/');
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           try {
@@ -353,7 +353,7 @@ describe('Connector Resources', () => {
       });
 
       it('should return connector calls list', async () => {
-        const testUri = new URL('simplifier://connectors/TestConnector/calls');
+        const testUri = new URL('simplifier://connector/TestConnector/calls');
         mockClient.listConnectorCalls.mockResolvedValue(mockConnectorCallsResponse);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
@@ -374,7 +374,7 @@ describe('Connector Resources', () => {
         expect(resultData.connectorName).toBe('TestConnector');
         expect(resultData.calls).toHaveLength(2);
         expect(resultData.calls[0].name).toBe('getData');
-        expect(resultData.calls[0].uri).toBe('simplifier://connectors/TestConnector/calls/getData');
+        expect(resultData.calls[0].uri).toBe('simplifier://connector/TestConnector/call/getData');
         expect(resultData.totalCount).toBe(2);
       });
     });
@@ -388,7 +388,7 @@ describe('Connector Resources', () => {
       });
 
       it('should return connector call details', async () => {
-        const testUri = new URL('simplifier://connectors/TestConnector/calls/getData');
+        const testUri = new URL('simplifier://connector/TestConnector/call/getData');
         mockClient.getConnectorCall.mockResolvedValue(mockConnectorCallDetails);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
@@ -413,7 +413,7 @@ describe('Connector Resources', () => {
       });
 
       it('should throw error if connector name is missing', async () => {
-        const testUri = new URL('simplifier://connectors//calls/getData');
+        const testUri = new URL('simplifier://connector//call/getData');
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           try {
@@ -438,7 +438,7 @@ describe('Connector Resources', () => {
       });
 
       it('should throw error if call name is missing', async () => {
-        const testUri = new URL('simplifier://connectors/TestConnector/calls/');
+        const testUri = new URL('simplifier://connector/TestConnector/call/');
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           try {

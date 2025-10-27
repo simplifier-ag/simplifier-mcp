@@ -13,13 +13,13 @@ export function registerConnectorResources(server: McpServer, simplifier: Simpli
       description: `# Get the list of all Connectors
 
 This resource provides the entry point for discovering all available connectors in the Simplifier instance.
-Each connector can be accessed via simplifier://connectors/{connectorName} for detailed information.`
+Each connector can be accessed via simplifier://connector/{connectorName} for detailed information.`
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
         const response = await simplifier.listConnectors();
         const connectorResources = response.connectors.map(connector => ({
-          uri: `simplifier://connectors/${connector.name}`,
+          uri: `simplifier://connector/${connector.name}`,
           name: connector.name,
           description: connector.description,
           type: connector.connectorType.technicalName,
@@ -32,9 +32,9 @@ Each connector can be accessed via simplifier://connectors/{connectorName} for d
           totalCount: response.connectors.length,
           resourcePatterns: [
             "simplifier://connectors - List all connectors",
-            "simplifier://connectors/{connectorName} - Specific connector details",
-            "simplifier://connectors/{connectorName}/calls - List connector calls",
-            "simplifier://connectors/{connectorName}/calls/{callName} - Specific call details"
+            "simplifier://connector/{connectorName} - Specific connector details",
+            "simplifier://connector/{connectorName}/calls - List connector calls",
+            "simplifier://connector/{connectorName}/call/{callName} - Specific call details"
           ]
         };
       });
@@ -42,7 +42,7 @@ Each connector can be accessed via simplifier://connectors/{connectorName} for d
   );
 
   // Resource template for specific connector details
-  const connectorDetailsTemplate = new ResourceTemplate("simplifier://connectors/{connectorName}", noListCallback);
+  const connectorDetailsTemplate = new ResourceTemplate("simplifier://connector/{connectorName}", noListCallback);
 
   server.resource("connector-details", connectorDetailsTemplate, {
       title: "Connector Details",
@@ -50,7 +50,7 @@ Each connector can be accessed via simplifier://connectors/{connectorName} for d
       description: `# Get detailed information about a specific connector
 
 Returns connector configuration, endpoints, and metadata.
-Use simplifier://connectors/{connectorName}/calls to see available calls for this connector.`
+Use simplifier://connector/{connectorName}/calls to see available calls for this connector.`
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
@@ -67,7 +67,7 @@ Use simplifier://connectors/{connectorName}/calls to see available calls for thi
           connector,
           relatedResources: [
             {
-              uri: `simplifier://connectors/${connectorName}/calls`,
+              uri: `simplifier://connector/${connectorName}/calls`,
               description: "List all calls for this connector"
             }
           ]
@@ -77,7 +77,7 @@ Use simplifier://connectors/{connectorName}/calls to see available calls for thi
   );
 
   // Resource template for connector calls list
-  const connectorCallsListTemplate = new ResourceTemplate("simplifier://connectors/{connectorName}/calls", noListCallback);
+  const connectorCallsListTemplate = new ResourceTemplate("simplifier://connector/{connectorName}/calls", noListCallback);
 
   server.resource("connector-calls-list", connectorCallsListTemplate, {
       title: "Connector Calls List",
@@ -85,7 +85,7 @@ Use simplifier://connectors/{connectorName}/calls to see available calls for thi
       description: `# Get all calls available for a specific connector
 
 Returns a list of all callable operations for the connector.
-Each call can be accessed via simplifier://connectors/{connectorName}/calls/{callName} for detailed parameter information.`
+Each call can be accessed via simplifier://connector/{connectorName}/call/{callName} for detailed parameter information.`
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
@@ -98,7 +98,7 @@ Each call can be accessed via simplifier://connectors/{connectorName}/calls/{cal
 
         const response = await simplifier.listConnectorCalls(connectorName);
         const callResources = response.connectorCalls.map(call => ({
-          uri: `simplifier://connectors/${connectorName}/calls/${call.name}`,
+          uri: `simplifier://connector/${connectorName}/call/${call.name}`,
           name: call.name,
           description: call.description,
           inputParameters: call.amountOfInputParameters,
@@ -116,7 +116,7 @@ Each call can be accessed via simplifier://connectors/{connectorName}/calls/{cal
   );
 
   // Resource template for specific connector call details
-  const connectorCallDetailsTemplate = new ResourceTemplate("simplifier://connectors/{connectorName}/calls/{callName}", noListCallback);
+  const connectorCallDetailsTemplate = new ResourceTemplate("simplifier://connector/{connectorName}/call/{callName}", noListCallback);
 
   server.resource("connector-call-details", connectorCallDetailsTemplate, {
       title: "Connector Call Details",

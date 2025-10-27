@@ -15,14 +15,14 @@ export function registerServerBusinessObjectResources(server: McpServer, simplif
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
         return (await simplifier.getServerBusinessObjects()).map(bo => ({
-          name: bo.name, uri: `simplifier://businessobjects/${bo.name}`
+          name: bo.name, uri: `simplifier://businessobject/${bo.name}`
         }))
       })
     }
   );
 
   server.resource( "businessobject-details",
-    new ResourceTemplate("simplifier://businessobjects/{objectName}", noListCallback), {
+    new ResourceTemplate("simplifier://businessobject/{objectName}", noListCallback), {
       title: "Business Object Details",
       mimeType: "application/json",
       description: `#Get details of a server side Business Object`
@@ -33,14 +33,14 @@ export function registerServerBusinessObjectResources(server: McpServer, simplif
         return {
           ...oDetails,
           functions: (oDetails.functionNames as string[]).map(fName => {
-            return `simplifier://businessobjects/${objectName}/functions/${fName}`
+            return `simplifier://businessobject/${objectName}/function/${fName}`
           })
         }
       })
     }
   );
 
-  server.resource( "businessobject-function",  new ResourceTemplate("simplifier://businessobjects/{objectName}/functions/{functionName}", noListCallback), {
+  server.resource( "businessobject-function",  new ResourceTemplate("simplifier://businessobject/{objectName}/function/{functionName}", noListCallback), {
       title: "Server Business Object Function",
       mimeType: "application/json",
       description: `

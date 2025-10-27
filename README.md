@@ -1,21 +1,30 @@
 # Simplifier MCP Server
 
-An MCP (Model Context Protocol) server that enables integration with the **Simplifier Low Code Platform**. This server provides tools and capabilities for creating and managing Simplifier Connectors and BusinessObjects through the platform's REST API.
+A MCP server (Model Context Protocol) that enables integration of AI assistants with the **[Simplifier Low Code Platform](simplifier.io/platform/)**. 
+It provides tools and resources for creating and managing Simplifier Connectors and BusinessObjects.
+
 
 ## Overview
 
-The Simplifier MCP Server allows AI assistants to interact with the Simplifier Low Code Platform to:
+The Simplifier MCP Server allows to interact with a Simplifier instance to:
 
-- **Create and manage Simplifier Connectors**: Integration components that connect external systems
-- **Create and manage BusinessObjects (BOs)**: Server-side executed JavaScript functions for business logic
-- **Execute BusinessObjects**: Run JavaScript functions with parameters and retrieve results
+- **Manage Connectors and Logins**: Integration components that connect external systems
+- **Manage Business Objects**: Server-side executed JavaScript functions for business logic
+- **Manage Data Types**: Data structures for interacting with Connectors and internal objects
+- **Execute Business Object Functions**: Run JavaScript functions with parameters and retrieve results
+- **Execute Connector Calls**: Call external systems via Simplifier Connector
 - **Access platform resources**: Browse connectors, business objects, and system information
+
+
 
 ## Usage
 
+Check out [Simplifier Community Docs](https://community.simplifier.io/doc/current-release/extend/setup-mcp-to-interact-with-ai-models/)
+on how to use and set up the MCP server best.
+
 ### Add the MCP to claude code ...
 ```
-claude mcp add --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud -- simplifier npx @simplifierag/simplifier-mcp@latest
+claude mcp add simplifier npx @simplifierag/simplifier-mcp@latest --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud
 ```
 If your Simplifier is hosted on premise, then the `SIMPLIFIER_BASE_URL` of your DEV instance will be different from the mentioned schema.
 #### After a new login to Simplifier

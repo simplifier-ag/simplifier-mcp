@@ -161,11 +161,11 @@ describe('Server Business Objects Resources', () => {
         expect(resultData).toHaveLength(2);
         expect(resultData[0]).toEqual({
           name: 'TestObject1',
-          uri: 'simplifier://businessobjects/TestObject1'
+          uri: 'simplifier://businessobject/TestObject1'
         });
         expect(resultData[1]).toEqual({
           name: 'TestObject2',
-          uri: 'simplifier://businessobjects/TestObject2'
+          uri: 'simplifier://businessobject/TestObject2'
         });
       });
 
@@ -201,7 +201,7 @@ describe('Server Business Objects Resources', () => {
       });
 
       it('should call wrapResourceResult with correct parameters', async () => {
-        const testUri = new URL('simplifier://businessobjects/TestObject');
+        const testUri = new URL('simplifier://businessobject/TestObject');
         const variables = { objectName: 'TestObject' };
         mockWrapResourceResult.mockResolvedValue({ contents: [] });
 
@@ -214,7 +214,7 @@ describe('Server Business Objects Resources', () => {
       });
 
       it('should call getServerBusinessObjectDetails through the wrapper', async () => {
-        const testUri = new URL('simplifier://businessobjects/MyBusinessObject');
+        const testUri = new URL('simplifier://businessobject/MyBusinessObject');
         const variables = { objectName: 'MyBusinessObject' };
         const mockBusinessObject: SimplifierBusinessObjectDetails = {
           name: 'My Business Object',
@@ -255,14 +255,14 @@ describe('Server Business Objects Resources', () => {
         const resultData = JSON.parse(result.contents[0].text);
         expect(resultData.name).toBe('My Business Object');
         expect(resultData.functions).toEqual([
-          'simplifier://businessobjects/MyBusinessObject/functions/processData',
-          'simplifier://businessobjects/MyBusinessObject/functions/validateInput'
+          'simplifier://businessobject/MyBusinessObject/function/processData',
+          'simplifier://businessobject/MyBusinessObject/function/validateInput'
         ]);
         expect(result.contents[0].mimeType).toBe('application/json');
       });
 
       it('should handle errors through wrapResourceResult', async () => {
-        const testUri = new URL('simplifier://businessobjects/NonExistentObject');
+        const testUri = new URL('simplifier://businessobject/NonExistentObject');
         const variables = { objectName: 'NonExistentObject' };
         const testError = new Error('Object not found');
 
@@ -307,7 +307,7 @@ describe('Server Business Objects Resources', () => {
       });
 
       it('should call wrapResourceResult with correct parameters', async () => {
-        const testUri = new URL('simplifier://businessobjects/TestObject/functions/testFunction');
+        const testUri = new URL('simplifier://businessobject/TestObject/function/testFunction');
         const variables = { objectName: 'TestObject', functionName: 'testFunction' };
         mockWrapResourceResult.mockResolvedValue({ contents: [] });
 
@@ -320,7 +320,7 @@ describe('Server Business Objects Resources', () => {
       });
 
       it('should call getServerBusinessObjectFunction through the wrapper', async () => {
-        const testUri = new URL('simplifier://businessobjects/MyBusinessObject/functions/myFunction');
+        const testUri = new URL('simplifier://businessobject/MyBusinessObject/function/myFunction');
         const variables = { objectName: 'MyBusinessObject', functionName: 'myFunction' };
         const mockBusinessObjectFunction = {
           businessObjectName: 'MyBusinessObject',
@@ -375,7 +375,7 @@ describe('Server Business Objects Resources', () => {
       });
 
       it('should handle errors through wrapResourceResult', async () => {
-        const testUri = new URL('simplifier://businessobjects/NonExistentObject/functions/nonExistentFunction');
+        const testUri = new URL('simplifier://businessobject/NonExistentObject/function/nonExistentFunction');
         const variables = { objectName: 'NonExistentObject', functionName: 'nonExistentFunction' };
         const testError = new Error('Function not found');
 
@@ -415,7 +415,7 @@ describe('Server Business Objects Resources', () => {
   describe('integration with real data', () => {
 
     it('should handle business object details retrieval', async () => {
-      const testUri = new URL('simplifier://businessobjects/DetailedObject');
+      const testUri = new URL('simplifier://businessobject/DetailedObject');
       const variables = { objectName: 'DetailedObject' };
       const detailedBusinessObject: SimplifierBusinessObjectDetails = {
         name: 'Detailed Business Object',
@@ -459,14 +459,14 @@ describe('Server Business Objects Resources', () => {
       expect(resultData.functionNames).toHaveLength(3);
       expect(resultData.functionNames[0]).toBe('execute');
       expect(resultData.functions).toEqual([
-        'simplifier://businessobjects/DetailedObject/functions/execute',
-        'simplifier://businessobjects/DetailedObject/functions/preProcess',
-        'simplifier://businessobjects/DetailedObject/functions/postProcess'
+        'simplifier://businessobject/DetailedObject/function/execute',
+        'simplifier://businessobject/DetailedObject/function/preProcess',
+        'simplifier://businessobject/DetailedObject/function/postProcess'
       ]);
     });
 
     it('should handle business object function details retrieval', async () => {
-      const testUri = new URL('simplifier://businessobjects/FunctionObject/functions/processData');
+      const testUri = new URL('simplifier://businessobject/FunctionObject/function/processData');
       const variables = { objectName: 'FunctionObject', functionName: 'processData' };
       const functionDetails = {
         businessObjectName: 'FunctionObject',
