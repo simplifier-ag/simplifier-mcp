@@ -224,8 +224,10 @@ yourself do not need to be added, but you can access own functions like Simplifi
       functionName: z.string(),
       description: z.string().optional().default(""),
       code: z.string().optional().default("return {};").describe("JavaScript function code"),
-      validateIn: z.boolean().optional().default(false),
-      validateOut: z.boolean().optional().default(false),
+      validateIn: z.boolean().optional().default(false)
+        .describe(`If true, validates that all mandatory input parameters are present before execution. Catches missing parameters early with clear validation errors (HTTP 422). If false, allows incomplete requests through, resulting in backend errors (HTTP 500).`),
+      validateOut: z.boolean().optional().default(false)
+        .describe(`If true, validates and filters the output response against the defined datatype structure, returning only defined fields. If false, returns the complete raw API response without filtering or validation.`),
       inputParameters: z.array(z.object({
         name: z.string(),
         description: z.string().optional().default(""),
