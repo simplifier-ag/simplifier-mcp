@@ -1,33 +1,33 @@
 import {config} from '../config.js';
 import {login} from "./basicauth.js";
 import {
-    BusinessObjectTestRequest,
-    BusinessObjectTestResponse,
-    ConnectorTestRequest,
-    ConnectorTestResponse,
-    CreateLoginMethodRequest,
-    GenericApiResponse,
-    SimplifierApiResponse,
-    SimplifierBusinessObjectDetails,
-    SimplifierBusinessObjectFunction,
-    SimplifierConnectorCallDetails,
-    SimplifierConnectorCallsResponse,
-    SimplifierConnectorCallUpdate,
-    SimplifierConnectorDetails,
-    SimplifierConnectorListResponse,
-    SimplifierConnectorUpdate,
-    SimplifierDataType,
-    SimplifierDataTypesResponse,
-    SimplifierDataTypeUpdate,
-    SimplifierLogEntryDetails,
-    SimplifierLoginMethodDetailsRaw,
-    SimplifierLoginMethodsResponse,
-    SimplifierLogListOptions,
-    SimplifierLogListResponse,
-    SimplifierLogPagesResponse,
-    SimplifierOAuth2ClientsResponse,
-    UnwrappedSimplifierApiResponse,
-    UpdateLoginMethodRequest,
+  BusinessObjectTestRequest,
+  BusinessObjectTestResponse,
+  ConnectorTestRequest,
+  ConnectorTestResponse,
+  CreateLoginMethodRequest,
+  GenericApiResponse,
+  SimplifierApiResponse,
+  SimplifierBusinessObjectDetails,
+  SimplifierBusinessObjectFunction,
+  SimplifierConnectorCallDetails,
+  SimplifierConnectorCallsResponse,
+  SimplifierConnectorCallUpdate,
+  SimplifierConnectorDetails,
+  SimplifierConnectorListResponse,
+  SimplifierConnectorUpdate,
+  SimplifierDataType,
+  SimplifierDataTypesResponse,
+  SimplifierDataTypeUpdate, SimplifierInstance, SimplifierInstanceSettings,
+  SimplifierLogEntryDetails,
+  SimplifierLoginMethodDetailsRaw,
+  SimplifierLoginMethodsResponse,
+  SimplifierLogListOptions,
+  SimplifierLogListResponse,
+  SimplifierLogPagesResponse,
+  SimplifierOAuth2ClientsResponse,
+  UnwrappedSimplifierApiResponse,
+  UpdateLoginMethodRequest,
 } from './types.js';
 
 /**
@@ -379,4 +379,13 @@ export class SimplifierClient {
     if (options?.until) params.append('until', options.until);
     return params;
   }
+
+
+  // Instance settings
+
+  async getInstanceSettings(): Promise<SimplifierInstance[]> {
+    const oInstanceSettings: SimplifierInstanceSettings = await this.makeUnwrappedRequest(`/UserInterface/api/InstanceSettings`);
+    return oInstanceSettings.instanceSettings;
+  }
+
 }
