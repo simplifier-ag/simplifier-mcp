@@ -19,7 +19,12 @@ export function registerConnectorTools(server: McpServer, simplifier: Simplifier
         .describe(`maximum duration of a call in seconds`),
       endpointConfiguration: z.object({
         endpoint: z.string()
-          .describe(`The name of an existing endpoint, defined at the Simplifier server landscape`),
+          .describe(`The name of an existing instance, defined at the Simplifier server landscape.
+          **Use the name of the active instance, provided by simplifier://server-active-instance when creating 
+          a connector endpoint for the server, you are currently working on.**
+          HINT: In error messages, endpoint names are often eclosed in brackets [] or quotes for readability. 
+          **When using endpoint name from error message, strip off brackets and quotes**
+          `),
         certificates: z.array(z.string()),
         configuration: z.any().optional()
           .describe(`The properties, defined by this object are specific to the chosen connectorType`),

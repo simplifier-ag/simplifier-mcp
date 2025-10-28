@@ -871,3 +871,16 @@ export type SimplifierLogListOptions = {
   from?: string;
   until?: string;
 };
+
+export interface SimplifierInstance {
+  name: string;
+  url: string;
+  description: string;
+  type: string;
+  active: boolean;
+}
+
+export interface SimplifierInstanceSettings {
+  instanceSettings: SimplifierInstance[]
+}
+
