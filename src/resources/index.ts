@@ -10,7 +10,7 @@ import {registerUserApiDocumentation} from "./documentation/user-api-documentati
 import {registerLoggingApiDocumentation} from "./documentation/logging-api-documentation.js";
 import {registerUtilsApiDocumentation} from "./documentation/utils-api-documentation.js";
 import { registerConnectorApiDocumentation } from "./documentation/connector-api-documentation.js";
-import {registerServerEnvironmentResources} from "./server-environment-resources";
+import {registerServerEnvironmentResources} from "./server-environment-resources.js";
 
 /**
  * Resources for Simplifier Low Code Platform integration
