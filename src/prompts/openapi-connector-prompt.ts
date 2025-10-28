@@ -51,7 +51,7 @@ Fetch the existing Login Methods with simplifier://loginmethods. Match the Login
 requirements of the API described in the OpenAPI Specification.
 
 In case the API requires an OAuth Token, then fetch the OAuth Clients from simplifier://oauthclients. In case the user
-does not select an existing Logine Method in Phase 3.1, we will present the OAuth Clients to the user.
+does not select an existing Login Method in Phase 3.1, we will present the OAuth Clients to the user.
 
 List the Login Methods and show them to the user before Phase 3.1.
 
