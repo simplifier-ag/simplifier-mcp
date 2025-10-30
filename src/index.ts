@@ -13,18 +13,13 @@
  */
 
 import { SimplifierMCPServer } from './server.js';
+import { DisplayConfig, getConfig } from './config.js';
+import { SimplifierClient } from './client/simplifier-client.js';
+import { startErrorServer } from './error-server.js';
 
-async function main() {
-  try {
-    // Import dependencies
-    const { SimplifierClient } = await import('./client/simplifier-client.js');
-    const { getConfig } = await import('./config.js');
-    const { startErrorServer } = await import('./error-server.js');
-
+async function checkConnection(config: DisplayConfig) {
     // Check connection to Simplifier before starting the MCP server
-    const config = getConfig();
     const client = new SimplifierClient();
-
     console.error('Checking connection to Simplifier...');
 
     try {
@@ -42,10 +37,11 @@ async function main() {
         });
 
         // Keep process alive to serve the error page
-        return;
+        return false;
       }
 
       console.error('Connection to Simplifier successful!');
+      return true;
     } catch (error) {
       // Network error, authentication error, or other connection issue
       console.error('Failed to connect to Simplifier:', error);
@@ -76,8 +72,19 @@ async function main() {
         baseUrl: config.baseUrl
       });
 
-      // Keep process alive to serve the error page
-      return;
+      return false;
+    }
+}
+
+async function main() {
+  try {
+    const config = getConfig();
+
+    if(!config.skipConnectionTest) {
+      if(!checkConnection(config)) {
+        // do not exit while error server is running
+        return;
+      }
     }
 
     // Connection successful, start the MCP server

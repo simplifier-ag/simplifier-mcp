@@ -6,6 +6,13 @@ export interface Config {
   simplifierBaseUrl: string;
   simplifierToken?: string | undefined;
   credentialsFile?: string | undefined;
+  skipConnectionTest: boolean;
+}
+
+// Config without sensitive data
+export interface DisplayConfig {
+  baseUrl: string;
+  skipConnectionTest: boolean;
 }
 
 export function validateConfig(): Config {
@@ -31,16 +38,18 @@ export function validateConfig(): Config {
   return {
     simplifierBaseUrl,
     simplifierToken: process.env.SIMPLIFIER_TOKEN,
-    credentialsFile: process.env.SIMPLIFIER_CREDENTIALS_FILE
+    credentialsFile: process.env.SIMPLIFIER_CREDENTIALS_FILE,
+    skipConnectionTest: process.env.SIMPLIFIER_SKIP_CONNECTION_TEST ? process.env.SIMPLIFIER_SKIP_CONNECTION_TEST !== "false" : false,
   };
 }
 
 /**
  * Returns the configuration, including just the base URL for display purposes
  */
-export function getConfig(): { baseUrl: string } {
+export function getConfig(): DisplayConfig {
   return {
-    baseUrl: config.simplifierBaseUrl
+    baseUrl: config.simplifierBaseUrl,
+    skipConnectionTest: config.skipConnectionTest,
   };
 }
 
