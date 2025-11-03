@@ -406,7 +406,6 @@ Returns complete datatype information including:
   - **domain**: Extended types (scalar) - Custom scalar types
   - **collection**: Collection types (non-scalar) - Lists and arrays
   - **struct**: Struct types (non-scalar) - Complex structured types
-  - **any**: Any types (non-scalar) - Generic any type
 - **Metadata**: Description, editability, tags, and project assignments
 
 **URI Format**: \`simplifier://datatype/{namespace}/{dataTypeName}\`
