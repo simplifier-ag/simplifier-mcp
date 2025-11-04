@@ -185,11 +185,19 @@ whether validateOut is set to true - in this case values will be filtered to fit
       openWorldHint: false
     }, async ({ connectorName, callName, parameters }) => {
       return wrapToolResult(`test connector call ${connectorName}.${callName}`, async () => {
-        // Convert user input to API format
-        const testParameters: ConnectorTestParameter[] = (parameters || []).map(p => ({
-          name: p.name,
-          value: p.value
-        }));
+        const connectorParameters = (await simplifier.getConnectorCall(connectorName, callName)).connectorCallParameters
+
+        const testParameters: ConnectorTestParameter[]  = await Promise.all(connectorParameters.map(async cparam => {
+          const dataType = await simplifier.getDataTypeById(cparam.dataType.name)
+          return {
+            name: cparam.name,
+            constValue: cparam.constValue,
+            value: parameters.find(p => p.name === cparam.name)?.value || parameters.find(p => p.name === cparam.alias)?.value || cparam.constValue,
+            alias: cparam?.alias,
+            dataType: dataType,
+            transfer: true,
+          } satisfies ConnectorTestParameter;
+        }))
 
         const testRequest: ConnectorTestRequest = {
           parameters: testParameters
@@ -202,13 +210,13 @@ whether validateOut is set to true - in this case values will be filtered to fit
           return {
             success: true,
             message: `Connector call '${callName}' executed successfully`,
-            result: result.result
+            result: result.result,
           };
         } else {
           return {
             success: false,
             message: `Connector call '${callName}' execution failed`,
-            error: result.error || result.message || "Unknown error"
+            error: result.error || result.message || "Unknown error",
           };
         }
       });
