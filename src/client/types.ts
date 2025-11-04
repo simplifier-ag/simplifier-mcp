@@ -217,9 +217,14 @@ export interface BusinessObjectTestResponse {
   message?: string;
 }
 
+
 export interface ConnectorTestParameter {
   name: string;
   value: unknown;
+  alias?: string|undefined;
+  constValue?: unknown | undefined;
+  dataType: SimplifierDataType;
+  transfer: boolean;
 }
 
 export interface ConnectorTestRequest {
