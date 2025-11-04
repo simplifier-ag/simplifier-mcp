@@ -351,7 +351,7 @@ describe('registerConnectorTools', () => {
 
         await toolHandler(testParams);
 
-        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("NewConnector");
+        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("NewConnector", "MCP Tool: connector-update");
         expect(mockSimplifierClient.createConnector).toHaveBeenCalledWith(expect.objectContaining({
           name: expectedData.name,
           description: expectedData.description,
@@ -429,7 +429,7 @@ describe('registerConnectorTools', () => {
 
         await toolHandler(testParams);
 
-        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("ExistingConnector");
+        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("ExistingConnector", "MCP Tool: connector-update");
         expect(mockSimplifierClient.updateConnector).toHaveBeenCalledWith(expect.objectContaining({
           name: "ExistingConnector",
           description: "Updated connector description",
@@ -492,7 +492,7 @@ describe('registerConnectorTools', () => {
 
         const result = await toolHandler(testParams);
 
-        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("ErrorConnector");
+        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("ErrorConnector", "MCP Tool: connector-update");
         expect(mockSimplifierClient.createConnector).toHaveBeenCalledWith(expect.any(Object));
         expect(result.isError).toBe(true);
         expect(result.content[0].text).toContain("failed");
@@ -868,7 +868,7 @@ describe('registerConnectorTools', () => {
 
         await toolHandler(testParams);
 
-        expect(mockSimplifierClient.getConnectorCall).toHaveBeenCalledWith("TestConnector", "newCall");
+        expect(mockSimplifierClient.getConnectorCall).toHaveBeenCalledWith("TestConnector", "newCall", "MCP Tool: connector-call-update");
         expect(mockSimplifierClient.createConnectorCall).toHaveBeenCalledWith(
           "TestConnector",
           expect.objectContaining({
@@ -1073,7 +1073,7 @@ describe('registerConnectorTools', () => {
 
         await toolHandler(testParams);
 
-        expect(mockSimplifierClient.getConnectorCall).toHaveBeenCalledWith("ExistingConnector", "existingCall");
+        expect(mockSimplifierClient.getConnectorCall).toHaveBeenCalledWith("ExistingConnector", "existingCall", "MCP Tool: connector-call-update");
         expect(mockSimplifierClient.updateConnectorCall).toHaveBeenCalledWith(
           "ExistingConnector",
           expect.objectContaining({
@@ -1278,7 +1278,7 @@ describe('registerConnectorTools', () => {
 
         const result = await toolHandler(testParams);
 
-        expect(mockSimplifierClient.getConnectorCall).toHaveBeenCalledWith("ErrorConnector", "errorCall");
+        expect(mockSimplifierClient.getConnectorCall).toHaveBeenCalledWith("ErrorConnector", "errorCall", "MCP Tool: connector-call-update");
         expect(mockSimplifierClient.createConnectorCall).toHaveBeenCalledWith("ErrorConnector", expect.any(Object));
         expect(result.isError).toBe(true);
         expect(result.content[0].text).toContain("failed");
@@ -1337,7 +1337,7 @@ describe('registerConnectorTools', () => {
 
         const result = await toolHandler(testParams);
 
-        expect(mockSimplifierClient.getConnectorCall).toHaveBeenCalledWith("ErrorConnector", "errorCall");
+        expect(mockSimplifierClient.getConnectorCall).toHaveBeenCalledWith("ErrorConnector", "errorCall", "MCP Tool: connector-call-update");
         expect(mockSimplifierClient.updateConnectorCall).toHaveBeenCalledWith("ErrorConnector", expect.any(Object));
         expect(result.isError).toBe(true);
         expect(result.content[0].text).toContain("failed");
@@ -1516,7 +1516,8 @@ describe('registerConnectorTools', () => {
         expect(mockSimplifierClient.testConnectorCall).toHaveBeenCalledWith(
           "TestConnector",
           "simpleCall",
-          expectedTestRequest
+          expectedTestRequest,
+          "MCP Tool: connector-call-test"
         );
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "test connector call TestConnector.simpleCall",
@@ -1564,7 +1565,8 @@ describe('registerConnectorTools', () => {
         expect(mockSimplifierClient.testConnectorCall).toHaveBeenCalledWith(
           "TestConnector",
           "processData",
-          expectedTestRequest
+          expectedTestRequest,
+          "MCP Tool: connector-call-test"
         );
       });
 
@@ -1602,7 +1604,8 @@ describe('registerConnectorTools', () => {
           "multiTypeCall",
           expect.objectContaining({
             parameters: testParams.parameters
-          })
+          }),
+          "MCP Tool: connector-call-test"
         );
       });
 
@@ -1634,7 +1637,8 @@ describe('registerConnectorTools', () => {
         expect(mockSimplifierClient.testConnectorCall).toHaveBeenCalledWith(
           "TestConnector",
           "failingCall",
-          { parameters: [] }
+          { parameters: [] },
+          "MCP Tool: connector-call-test"
         );
       });
 
@@ -1834,7 +1838,7 @@ describe('registerConnectorTools', () => {
 
         await deleteCallToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteConnectorCall).toHaveBeenCalledWith("TestConnector", "testCall");
+        expect(mockSimplifierClient.deleteConnectorCall).toHaveBeenCalledWith("TestConnector", "testCall", "MCP Tool: connector-call-delete");
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "delete connector call TestConnector.testCall",
           expect.any(Function)
@@ -1867,7 +1871,7 @@ describe('registerConnectorTools', () => {
 
         await deleteCallToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteConnectorCall).toHaveBeenCalledWith("TestConnector", "protectedCall");
+        expect(mockSimplifierClient.deleteConnectorCall).toHaveBeenCalledWith("TestConnector", "protectedCall", "MCP Tool: connector-call-delete");
       });
 
       it('should return the string response from API on successful deletion', async () => {
@@ -1943,7 +1947,7 @@ describe('registerConnectorTools', () => {
 
           await deleteConnectorToolHandler(testParams);
 
-          expect(mockSimplifierClient.deleteConnector).toHaveBeenCalledWith("TestConnector");
+          expect(mockSimplifierClient.deleteConnector).toHaveBeenCalledWith("TestConnector", "MCP Tool: connector-delete");
           expect(mockWrapToolResult).toHaveBeenCalledWith(
             "delete connector TestConnector",
             expect.any(Function)
@@ -1975,7 +1979,7 @@ describe('registerConnectorTools', () => {
 
           await deleteConnectorToolHandler(testParams);
 
-          expect(mockSimplifierClient.deleteConnector).toHaveBeenCalledWith("ProtectedConnector");
+          expect(mockSimplifierClient.deleteConnector).toHaveBeenCalledWith("ProtectedConnector", "MCP Tool: connector-delete");
         });
 
         it('should return the string response from API on successful deletion', async () => {

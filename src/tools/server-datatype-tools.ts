@@ -3,6 +3,7 @@ import { z } from "zod";
 import { SimplifierClient } from "../client/simplifier-client.js";
 import { SimplifierDataTypeCategory, SimplifierDataTypeUpdate, SimplifierDataTypeFieldUpdate } from "../client/types.js";
 import { wrapToolResult } from "./toolresult.js";
+import {trackingToolPrefix} from "../client/matomo-tracking.js";
 
 
 export function registerServerDatatypeTools(server: McpServer, simplifier: SimplifierClient): void {
@@ -25,7 +26,8 @@ Datatypes for connectors should be in the namespace "con/$name_of_connector", th
 Deletes the datatype with the given name. The name may be prefixed by the namespace, separated with a slash.
 `;
 
-  server.tool("datatype-update",
+  const toolNameDatatypeUpdate = "datatype-update"
+  server.tool(toolNameDatatypeUpdate,
     datatypeUpdateDescription,
     {
       qualifiedName: z.string(),
@@ -90,8 +92,9 @@ Deletes the datatype with the given name. The name may be prefixed by the namesp
           assignedProjects: projectAssignments || { projectsBefore: [], projectsAfterChange: [] },
         }
 
+        const trackingKey = trackingToolPrefix + toolNameDatatypeUpdate
         let oExisting: any;
-        try { oExisting = await simplifier.getSingleDataType(newTypeName, newTypeNamespace) } catch {}
+        try { oExisting = await simplifier.getSingleDataType(newTypeName, newTypeNamespace, trackingKey) } catch {}
         if (oExisting?.id) {
           return simplifier.updateDataType(data);
         } else {
@@ -100,7 +103,8 @@ Deletes the datatype with the given name. The name may be prefixed by the namesp
       })
     });
 
-  server.tool("datatype-delete",
+  const toolNameDatatypeDelete = "datatype-delete"
+  server.tool(toolNameDatatypeDelete,
     datatypeDeleteDescription,
     {
       qualifiedName: z.string(),
@@ -113,8 +117,9 @@ Deletes the datatype with the given name. The name may be prefixed by the namesp
       openWorldHint: true
     }, async ({ qualifiedName: qualifiedName }) => {
       return wrapToolResult(`delete data type ${qualifiedName}`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameDatatypeDelete
         const { name: name, namespace: namespace } = splitNamespace(qualifiedName);
-        return simplifier.deleteDataType(name, namespace);
+        return simplifier.deleteDataType(name, namespace, trackingKey);
       })
     });
 

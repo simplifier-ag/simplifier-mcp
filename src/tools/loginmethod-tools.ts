@@ -7,6 +7,7 @@ import { TargetAndSourceMapper } from "./loginmethod/TargetAndSourceMapper.js";
 import { UserCredentialsTargetAndSourceMapper } from "./loginmethod/UserCredentialsTargetAndSourceMapper.js";
 import { OAuthTargetAndSourceMapper } from "./loginmethod/OAuthTargetAndSourceMapper.js";
 import { TokenTargetAndSourceMapper } from "./loginmethod/TokenTargetAndSourceMapper.js";
+import {trackingToolPrefix} from "../client/matomo-tracking.js";
 
 /**
  * Register LoginMethod tools for Simplifier Low Code Platform integration
@@ -26,7 +27,7 @@ async function checkOAuthClient(
   sourceType: string
 ): Promise<void> {
   // Fetch available OAuth2 clients
-  const oauth2Clients = await simplifier.listOAuth2Clients();
+  const oauth2Clients = await simplifier.listOAuth2Clients("oauthclients-list");
   const availableClientNames = oauth2Clients.authSettings.map(client => client.name);
 
   // Handle empty client list
@@ -52,7 +53,8 @@ async function checkOAuthClient(
 
 export function registerLoginMethodTools(server: McpServer, simplifier: SimplifierClient): void {
 
-  server.tool("loginmethod-update",
+  const toolNameLoginMethodUpdate = "loginmethod-update"
+  server.tool(toolNameLoginMethodUpdate,
     readFile("tools/docs/create-or-update-loginmethod.md"),
     {
       loginMethodType: z.enum(["UserCredentials", "OAuth2", "Token"])
@@ -112,7 +114,8 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
         // Check if login method exists
         let existing: any;
         try {
-          existing = await simplifier.getLoginMethodDetails(params.name);
+          const trackingKey = trackingToolPrefix + toolNameLoginMethodUpdate
+          existing = await simplifier.getLoginMethodDetails(params.name, trackingKey);
         } catch {
           // Login method doesn't exist, will create
         }

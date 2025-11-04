@@ -249,7 +249,7 @@ describe('Server Business Objects Resources', () => {
 
         const result = await detailsResourceHandler(testUri, variables, createMockExtra());
 
-        expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('MyBusinessObject');
+        expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('MyBusinessObject', 'MCP Resource: businessobject-details');
 
         // Parse and verify the result includes the functions array
         const resultData = JSON.parse(result.contents[0].text);
@@ -292,7 +292,7 @@ describe('Server Business Objects Resources', () => {
 
         const result = await detailsResourceHandler(testUri, variables, createMockExtra());
 
-        expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('NonExistentObject');
+        expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('NonExistentObject', 'MCP Resource: businessobject-details');
         expect(result.contents[0].text).toContain('Could not get data!');
         expect(result.contents[0].text).toContain('Object not found');
       });
@@ -368,7 +368,7 @@ describe('Server Business Objects Resources', () => {
 
         const result = await functionResourceHandler(testUri, variables, createMockExtra());
 
-        expect(mockClient.getServerBusinessObjectFunction).toHaveBeenCalledWith('MyBusinessObject', 'myFunction');
+        expect(mockClient.getServerBusinessObjectFunction).toHaveBeenCalledWith('MyBusinessObject', 'myFunction', 'MCP Resource: businessobject-function');
         expect(result.contents[0].text).toContain('myFunction');
         expect(result.contents[0].text).toContain('JavaScript');
         expect(result.contents[0].mimeType).toBe('application/json');
@@ -405,7 +405,7 @@ describe('Server Business Objects Resources', () => {
 
         const result = await functionResourceHandler(testUri, variables, createMockExtra());
 
-        expect(mockClient.getServerBusinessObjectFunction).toHaveBeenCalledWith('NonExistentObject', 'nonExistentFunction');
+        expect(mockClient.getServerBusinessObjectFunction).toHaveBeenCalledWith('NonExistentObject', 'nonExistentFunction', 'MCP Resource: businessobject-function');
         expect(result.contents[0].text).toContain('Could not get data!');
         expect(result.contents[0].text).toContain('Function not found');
       });
@@ -452,7 +452,7 @@ describe('Server Business Objects Resources', () => {
 
       const result = await detailsResourceHandler(testUri, variables, createMockExtra());
 
-      expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('DetailedObject');
+      expect(mockClient.getServerBusinessObjectDetails).toHaveBeenCalledWith('DetailedObject', 'MCP Resource: businessobject-details');
       const resultData = JSON.parse(result.contents[0].text as string);
       expect(resultData.name).toBe('Detailed Business Object');
       expect(resultData.description).toBe('A detailed business object for comprehensive testing');
@@ -524,7 +524,7 @@ describe('Server Business Objects Resources', () => {
 
       const result = await functionResourceHandler(testUri, variables, createMockExtra());
 
-      expect(mockClient.getServerBusinessObjectFunction).toHaveBeenCalledWith('FunctionObject', 'processData');
+      expect(mockClient.getServerBusinessObjectFunction).toHaveBeenCalledWith('FunctionObject', 'processData', 'MCP Resource: businessobject-function');
       const resultData = JSON.parse(result.contents[0].text as string);
       expect(resultData.name).toBe('processData');
       expect(resultData.description).toBe('Processes input data and returns formatted output');

@@ -2,11 +2,13 @@ import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
 import {SimplifierLoginMethodDetailsRaw, SimplifierLoginMethodDetails} from "../client/types.js";
+import {trackingResourcePrefix} from "../client/matomo-tracking.js";
 
 export function registerLoginMethodResources(server: McpServer, simplifier: SimplifierClient): void {
 
   // Main discoverable login methods resource - shows up in resources/list
-  server.resource("loginmethods-list", "simplifier://loginmethods", {
+  const resourceNameLoginMethodsList = "loginmethods-list"
+  server.resource(resourceNameLoginMethodsList, "simplifier://loginmethods", {
       title: "List All Login Methods",
       mimeType: "application/json",
       description: `# Get the list of all Login Methods
@@ -33,7 +35,8 @@ Login methods handle authentication for connectors, supporting various authentic
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
-        const response = await simplifier.listLoginMethods();
+        const trackingKey = trackingResourcePrefix + resourceNameLoginMethodsList
+        const response = await simplifier.listLoginMethods(trackingKey);
 
         const loginMethodResources = response.loginMethods.map(lm => {
           return {
@@ -60,7 +63,8 @@ Login methods handle authentication for connectors, supporting various authentic
 
   // Individual login method resource template - dynamic URI with {loginMethodName}
   const noListCallback = { list: undefined };
-  server.resource("loginmethod-details", new ResourceTemplate("simplifier://loginmethod/{loginMethodName}", noListCallback), {
+  const resourceNameLoginMethodDetails = "loginmethod-details"
+  server.resource(resourceNameLoginMethodDetails, new ResourceTemplate("simplifier://loginmethod/{loginMethodName}", noListCallback), {
       title: "Get Login Method Details",
       mimeType: "application/json",
       description: `# Get detailed configuration for a specific Login Method
@@ -98,7 +102,8 @@ This resource provides complete configuration details for a login method, includ
           throw new Error('Login method name is required in URI path');
         }
 
-        const rawDetails = await simplifier.getLoginMethodDetails(loginMethodName);
+        const trackingKey = trackingResourcePrefix + resourceNameLoginMethodDetails
+        const rawDetails = await simplifier.getLoginMethodDetails(loginMethodName, trackingKey);
         const details = transformLoginMethodDetails(rawDetails);
 
         // Resolve source and target IDs to names for readability

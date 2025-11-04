@@ -4,6 +4,7 @@ import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapToolResult} from "./toolresult.js";
 import {z} from "zod";
 import {SimplifierBusinessObjectDetails, SimplifierBusinessObjectFunction, BusinessObjectTestRequest, BusinessObjectTestParameter} from "../client/types.js";
+import {trackingToolPrefix} from "../client/matomo-tracking.js";
 
 
 export function registerServerBusinessObjectTools(server: McpServer, simplifier: SimplifierClient): void {
@@ -37,7 +38,8 @@ Business Objects must be assigned to projects using the project assignment param
 \`\`\`
 `;
 
-  server.tool("businessobject-update",
+  const toolNameBusinessObjectUpdate = "businessobject-update"
+  server.tool(toolNameBusinessObjectUpdate,
     businessObjectUpdateDescription,
     {
       name: z.string(),
@@ -60,8 +62,9 @@ Business Objects must be assigned to projects using the project assignment param
       openWorldHint: true
     }, async ( {name, description, dependencies, tags, projectsBefore, projectsAfterChange}) => {
       return wrapToolResult( `create or update Business Object ${name}`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameBusinessObjectUpdate
         let oExisting: any;
-        try { oExisting = await simplifier.getServerBusinessObjectDetails(name) } catch {}
+        try { oExisting = await simplifier.getServerBusinessObjectDetails(name, trackingKey) } catch {}
         const data: SimplifierBusinessObjectDetails = {
           name: name,
           description: description,
@@ -217,7 +220,8 @@ Remember to always add dependencies and follow security best practices when acce
 yourself do not need to be added, but you can access own functions like Simplifier.CurrentBusinessObject.<MethodName>(payload?).
 `;
 
-  server.tool("businessobject-function-update",
+  const toolNameBusinessObjectFunctionUpdate = "businessobject-function-update"
+  server.tool(toolNameBusinessObjectFunctionUpdate,
     functionUpdateDescription,
     {
       businessObjectName: z.string(),
@@ -252,9 +256,10 @@ yourself do not need to be added, but you can access own functions like Simplifi
       openWorldHint: true
     }, async ({ businessObjectName, functionName, description, code, validateIn, validateOut, inputParameters, outputParameters }) => {
       return wrapToolResult(`create or update Business Object function ${businessObjectName}.${functionName}`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameBusinessObjectFunctionUpdate
         let oExisting: any;
         try {
-          oExisting = await simplifier.getServerBusinessObjectFunction(businessObjectName, functionName);
+          oExisting = await simplifier.getServerBusinessObjectFunction(businessObjectName, functionName, trackingKey);
         } catch {}
 
         const functionData: SimplifierBusinessObjectFunction = {
@@ -316,7 +321,8 @@ This allows you to test your functions with real data and see the results.
 - Invalid parameter values → 400/500 error
 `;
 
-  server.tool("businessobject-function-test",
+  const toolNameBusinessObjectFunctionTest = "businessobject-function-test"
+  server.tool(toolNameBusinessObjectFunctionTest,
     functionTestDescription,
     {
       businessObjectName: z.string(),
@@ -349,7 +355,8 @@ This allows you to test your functions with real data and see the results.
           parameters: testParameters
         };
 
-        const result = await simplifier.testServerBusinessObjectFunction(businessObjectName, functionName, testRequest);
+        const trackingKey = trackingToolPrefix + toolNameBusinessObjectFunctionTest
+        const result = await simplifier.testServerBusinessObjectFunction(businessObjectName, functionName, testRequest, trackingKey);
 
         // Format the response nicely
         if (result.success) {
@@ -380,7 +387,8 @@ This allows you to test your functions with real data and see the results.
 
 
 
-  server.tool("businessobject-delete", `# Delete an existing Business Object`,
+  const toolNameBusinessObjectDelete = "businessobject-delete"
+  server.tool(toolNameBusinessObjectDelete, `# Delete an existing Business Object`,
     {
       name: z.string()
     },
@@ -393,12 +401,14 @@ This allows you to test your functions with real data and see the results.
     },
     async ({name}) => {
       return wrapToolResult(`Delete Business Object ${name}`, async () => {
-        return await simplifier.deleteServerBusinessObject(name);
+        const trackingKey = trackingToolPrefix + toolNameBusinessObjectDelete
+        return await simplifier.deleteServerBusinessObject(name, trackingKey);
       })
     });
 
 
-  server.tool("businessobject-function-delete", `# Delete an existing Business Object Function`,
+  const toolNameBusinessObjectFunctionDelete = "businessobject-function-delete"
+  server.tool(toolNameBusinessObjectFunctionDelete, `# Delete an existing Business Object Function`,
     {
       businessObjectName: z.string(),
       functionName: z.string()
@@ -412,7 +422,8 @@ This allows you to test your functions with real data and see the results.
     },
     async ({businessObjectName, functionName}) => {
       return wrapToolResult(`Delete Business Object Function ${businessObjectName}.${functionName}`, async () => {
-        return await simplifier.deleteServerBusinessObjectFunction(businessObjectName, functionName);
+        const trackingKey = trackingToolPrefix + toolNameBusinessObjectFunctionDelete
+        return await simplifier.deleteServerBusinessObjectFunction(businessObjectName, functionName, trackingKey);
       })
     });
 

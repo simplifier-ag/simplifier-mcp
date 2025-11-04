@@ -5,10 +5,12 @@ import {SimplifierClient} from "../client/simplifier-client.js";
 import {SimplifierConnectorCallUpdate, SimplifierConnectorUpdate} from "../client/types.js";
 import {readFile} from "../resourceprovider.js";
 import {wrapToolResult} from "./toolresult.js";
+import {trackingToolPrefix} from "../client/matomo-tracking.js";
 
 export function registerConnectorTools(server: McpServer, simplifier: SimplifierClient): void {
 
-  server.tool("connector-update",
+  const toolNameConnectorUpdate = "connector-update"
+  server.tool(toolNameConnectorUpdate,
     readFile("tools/docs/create-or-update-connector.md"),
     {
       name: z.string(),
@@ -53,8 +55,9 @@ export function registerConnectorTools(server: McpServer, simplifier: Simplifier
     },
     async ( {name, description, connectorType, active, timeoutTime, endpointConfiguration, tags, projectsBefore, projectsAfterChange}) => {
       return wrapToolResult( `create or update Connector ${name}`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameConnectorUpdate
         let oExisting: any;
-        try { oExisting = await simplifier.getConnector(name) } catch {}
+        try { oExisting = await simplifier.getConnector(name, trackingKey) } catch {}
         const oConnectorData = {
           name: name,
           description: description,
@@ -81,7 +84,8 @@ export function registerConnectorTools(server: McpServer, simplifier: Simplifier
     });
 
 
-  server.tool("connector-call-update",
+  const toolNameConnectorCallUpdate = "connector-call-update"
+  server.tool(toolNameConnectorCallUpdate,
     readFile("tools/docs/create-or-update-connectorcall.md"),
     {
       connectorName: z.string()
@@ -128,9 +132,10 @@ export function registerConnectorTools(server: McpServer, simplifier: Simplifier
     },
     async (oArgs) => {
       return wrapToolResult(`create or update Connector call ${oArgs.connectorName}.${oArgs.connectorCallName}`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameConnectorCallUpdate
         let oExisting: any;
         try {
-          oExisting = await simplifier.getConnectorCall(oArgs.connectorName, oArgs.connectorCallName);
+          oExisting = await simplifier.getConnectorCall(oArgs.connectorName, oArgs.connectorCallName, trackingKey);
         } catch {
         }
         const oConnectorCallData = {
@@ -167,7 +172,8 @@ This allows you to test connector calls with real data and see the results.
 whether validateOut is set to true - in this case values will be filtered to fit the datatype.
 `;
 
-  server.tool("connector-call-test",
+  const toolNameConnectorCallTest = "connector-call-test"
+  server.tool(toolNameConnectorCallTest,
     connectorTestDescription,
     {
       connectorName: z.string(),
@@ -185,6 +191,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
       openWorldHint: false
     }, async ({ connectorName, callName, parameters }) => {
       return wrapToolResult(`test connector call ${connectorName}.${callName}`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameConnectorCallTest
         // Convert user input to API format
         const testParameters: ConnectorTestParameter[] = (parameters || []).map(p => ({
           name: p.name,
@@ -195,7 +202,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
           parameters: testParameters
         };
 
-        const result = await simplifier.testConnectorCall(connectorName, callName, testRequest);
+        const result = await simplifier.testConnectorCall(connectorName, callName, testRequest, trackingKey);
 
         // Format the response nicely
         if (result.success) {
@@ -215,7 +222,8 @@ whether validateOut is set to true - in this case values will be filtered to fit
     });
 
 
-  server.tool("connector-call-delete",
+  const toolNameConnectorCallDelete = "connector-call-delete"
+  server.tool(toolNameConnectorCallDelete,
     `# Delete a Connector call`,
     {
       connectorName: z.string()
@@ -232,11 +240,13 @@ whether validateOut is set to true - in this case values will be filtered to fit
     },
     ({ connectorName, callName }) => {
       return wrapToolResult(`delete connector call ${connectorName}.${callName}`, async () => {
-        return await simplifier.deleteConnectorCall(connectorName, callName);
+        const trackingKey = trackingToolPrefix + toolNameConnectorCallDelete
+        return await simplifier.deleteConnectorCall(connectorName, callName, trackingKey);
       });
     });
 
-  server.tool("connector-delete", `# Delete a Connector`,
+  const toolNameConnectorDelete = "connector-delete"
+  server.tool(toolNameConnectorDelete, `# Delete a Connector`,
     {
       connectorName: z.string()
         .describe("Name of the Connector to delete"),
@@ -250,7 +260,8 @@ whether validateOut is set to true - in this case values will be filtered to fit
     },
     ({ connectorName }) => {
       return wrapToolResult(`delete connector ${connectorName}`, async () => {
-        return await simplifier.deleteConnector(connectorName);
+        const trackingKey = trackingToolPrefix + toolNameConnectorDelete
+        return await simplifier.deleteConnector(connectorName, trackingKey);
       });
     });
 

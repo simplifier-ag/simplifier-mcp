@@ -169,7 +169,7 @@ describe('registerServerDatatypeTools', () => {
 
       await toolHandler(testParams);
 
-      expect(mockSimplifierClient.getSingleDataType).toHaveBeenCalledWith("MyStruct", "bo/TestBO");
+      expect(mockSimplifierClient.getSingleDataType).toHaveBeenCalledWith("MyStruct", "bo/TestBO", "MCP Tool: datatype-update");
       expect(mockSimplifierClient.createDataType).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "MyStruct",
@@ -231,7 +231,7 @@ describe('registerServerDatatypeTools', () => {
 
       await toolHandler(testParams);
 
-      expect(mockSimplifierClient.getSingleDataType).toHaveBeenCalledWith("ExistingStruct", "bo/TestBO");
+      expect(mockSimplifierClient.getSingleDataType).toHaveBeenCalledWith("ExistingStruct", "bo/TestBO", "MCP Tool: datatype-update");
       expect(mockSimplifierClient.updateDataType).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "ExistingStruct",
@@ -465,7 +465,7 @@ describe('registerServerDatatypeTools', () => {
 
       await toolHandler(testParams);
 
-      expect(mockSimplifierClient.getSingleDataType).toHaveBeenCalledWith("SimpleType", undefined);
+      expect(mockSimplifierClient.getSingleDataType).toHaveBeenCalledWith("SimpleType", undefined, "MCP Tool: datatype-update");
       expect(mockSimplifierClient.createDataType).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "SimpleType",
@@ -501,7 +501,7 @@ describe('registerServerDatatypeTools', () => {
 
       await toolHandler(testParams);
 
-      expect(mockSimplifierClient.deleteDataType).toHaveBeenCalledWith("MyType", "bo/TestBO");
+      expect(mockSimplifierClient.deleteDataType).toHaveBeenCalledWith("MyType", "bo/TestBO", "MCP Tool: datatype-delete");
       expect(mockWrapToolResult).toHaveBeenCalledWith(
         "delete data type bo/TestBO/MyType",
         expect.any(Function)
@@ -526,7 +526,7 @@ describe('registerServerDatatypeTools', () => {
 
       await toolHandler(testParams);
 
-      expect(mockSimplifierClient.deleteDataType).toHaveBeenCalledWith("SimpleType", undefined);
+      expect(mockSimplifierClient.deleteDataType).toHaveBeenCalledWith("SimpleType", undefined, "MCP Tool: datatype-delete");
     });
   });
 

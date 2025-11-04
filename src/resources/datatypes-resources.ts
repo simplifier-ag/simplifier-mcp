@@ -2,6 +2,7 @@ import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
 import {SimplifierDataType, SimplifierDataTypesResponse} from "../client/types.js";
+import {trackingResourcePrefix} from "../client/matomo-tracking";
 
 // Base types that never change - hardcoded for performance
 const BASE_TYPES: SimplifierDataType[] = [
@@ -137,8 +138,13 @@ export function registerDataTypesResources(server: McpServer, simplifier: Simpli
 
   const noListCallback = { list: undefined }
 
+
+
+
   // Main discoverable datatypes resource - shows up in resources/list
-  server.resource("datatypes-namespaces-list", "simplifier://datatypes/namespaces", {
+  const resourceNamedatatypeNamespacesList = "datatypes-namespaces-list"
+
+  server.resource(resourceNamedatatypeNamespacesList, "simplifier://datatypes/namespaces", {
       title: "List NameSpaces of DataTypes",
       mimeType: "application/json",
       description: `# Get the list of all DataType namespaces and access patterns
@@ -163,7 +169,8 @@ HINT: consider not using this resource, due to performance considerations - if y
           }
         };
 
-        const dataTypes = await simplifier.getDataTypes();
+        const trackingKey = trackingResourcePrefix + resourceNamedatatypeNamespacesList
+        const dataTypes = await simplifier.getDataTypes(trackingKey);
         const rootWeight = calculateWeight('', dataTypes);
 
         const allNamespaceResources = [
@@ -202,10 +209,12 @@ HINT: consider not using this resource, due to performance considerations - if y
   const MAX_WEIGHT_WITH_DETAILS = 3000;  // hard limit
   // IMPORTANT: Register specific paths BEFORE wildcard patterns to ensure correct routing
 
+
   // Resource for root namespace with minimal details (only name, id, category, detailUri)
+  const resourceNameDatatypesRootNamespaceNoDetails = "datatypes-root-namespace-nodetails"
   const rootNamespaceNoDetailsTemplate = new ResourceTemplate("simplifier://datatypes/namespace/noDetails", noListCallback);
 
-  server.resource("datatypes-root-namespace-nodetails", rootNamespaceNoDetailsTemplate, {
+  server.resource(resourceNameDatatypesRootNamespaceNoDetails, rootNamespaceNoDetailsTemplate, {
       title: "Root Namespace DataTypes (Minimal Details)",
       mimeType: "application/json",
       description: `# Get DataTypes in Root Namespace with minimal fields
@@ -222,7 +231,8 @@ Each datatype includes only: **name**, **id**, **category**, and **detailUri**.
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
-        const dataTypes = await simplifier.getDataTypes();
+        const trackingKey = trackingResourcePrefix + resourceNameDatatypesRootNamespaceNoDetails;
+        const dataTypes = await simplifier.getDataTypes(trackingKey);
 
         // Function to extract minimal fields and add detailUri
         const toMinimal = <T extends { name: string; id: string; category: string }>(dt: T) => ({
@@ -243,10 +253,13 @@ Each datatype includes only: **name**, **id**, **category**, and **detailUri**.
     }
   );
 
+
+
   // Resource for root namespace WITH details (includes detailUri field)
+  const resourceNameDatatypesRootNamespaceWithdetails = "datatypes-root-namespace-withdetails"
   const rootNamespaceWithDetailsTemplate = new ResourceTemplate("simplifier://datatypes/namespace/withDetails", noListCallback);
 
-  server.resource("datatypes-root-namespace-withdetails", rootNamespaceWithDetailsTemplate, {
+  server.resource(resourceNameDatatypesRootNamespaceWithdetails, rootNamespaceWithDetailsTemplate, {
       title: "Root Namespace DataTypes (With Details)",
       mimeType: "application/json",
       description: `# Get DataTypes in Root Namespace with detailUri field
@@ -262,7 +275,8 @@ Each datatype includes a detailUri field: \`simplifier://datatype/{dataTypeName}
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
-        const dataTypes = await simplifier.getDataTypes();
+        const trackingKey = trackingResourcePrefix + resourceNameDatatypesRootNamespaceWithdetails;
+        const dataTypes = await simplifier.getDataTypes(trackingKey);
 
         // Check weight limit for withDetails variant
         const weight = calculateWeight('', dataTypes);
@@ -287,10 +301,13 @@ Each datatype includes a detailUri field: \`simplifier://datatype/{dataTypeName}
     }
   );
 
+
+
   // Resource for specific namespace with minimal details (only name, id, category, detailUri)
+  const resourceNameDatatypesByNamespaceNodetails = "datatypes-by-namespace-nodetails"
   const namespaceNoDetailsTemplate = new ResourceTemplate("simplifier://datatypes/namespace/noDetails/{+namespace}", noListCallback);
 
-  server.resource("datatypes-by-namespace-nodetails", namespaceNoDetailsTemplate, {
+  server.resource(resourceNameDatatypesByNamespaceNodetails, namespaceNoDetailsTemplate, {
       title: "DataTypes by Specific Namespace (Minimal Details)",
       mimeType: "application/json",
       description: `# Get DataTypes filtered by specific namespace with minimal fields
@@ -306,7 +323,8 @@ Each datatype includes only: **name**, **id**, **category**, and **detailUri**.
     },
     async (uri: URL, _variables) => {
       return wrapResourceResult(uri, async () => {
-        const dataTypes = await simplifier.getDataTypes();
+        const trackingKey = trackingResourcePrefix + resourceNameDatatypesByNamespaceNodetails;
+        const dataTypes = await simplifier.getDataTypes(trackingKey);
         // Extract namespace from URI path, handling forward slashes
         const pathParts = uri.pathname.split('/');
         const namespaceIndex = pathParts.findIndex(part => part === 'namespace');
@@ -338,9 +356,10 @@ Each datatype includes only: **name**, **id**, **category**, and **detailUri**.
   );
 
   // Resource for specific namespace WITH details (includes detailUri field)
+  const resourceNameDatatypesByNamespaceWithDetails = "datatypes-by-namespace-withdetails"
   const namespaceWithDetailsTemplate = new ResourceTemplate("simplifier://datatypes/namespace/withDetails/{+namespace}", noListCallback);
 
-  server.resource("datatypes-by-namespace-withdetails", namespaceWithDetailsTemplate, {
+  server.resource(resourceNameDatatypesByNamespaceWithDetails, namespaceWithDetailsTemplate, {
       title: "DataTypes by Specific Namespace (With Details)",
       mimeType: "application/json",
       description: `# Get DataTypes filtered by specific namespace with detailUri field
@@ -356,7 +375,8 @@ Each datatype includes a detailUri field: \`simplifier://datatype/{namespace}/{d
     },
     async (uri: URL, _variables) => {
       return wrapResourceResult(uri, async () => {
-        const dataTypes = await simplifier.getDataTypes();
+        const trackingKey = trackingResourcePrefix + resourceNameDatatypesByNamespaceWithDetails;
+        const dataTypes = await simplifier.getDataTypes(trackingKey);
         // Extract namespace from URI path, handling forward slashes
         const pathParts = uri.pathname.split('/');
         const namespaceIndex = pathParts.findIndex(part => part === 'namespace');
@@ -392,9 +412,10 @@ Each datatype includes a detailUri field: \`simplifier://datatype/{namespace}/{d
   );
 
   // Resource for getting a single datatype with namespace
+  const resourceNameDatatypeWithNamespace = "datatype-with-namespace"
   const singleDatatypeWithNamespaceTemplate = new ResourceTemplate("simplifier://datatype/{+namespace}/{dataTypeName}", noListCallback);
 
-  server.resource("datatype-with-namespace", singleDatatypeWithNamespaceTemplate, {
+  server.resource(resourceNameDatatypeWithNamespace, singleDatatypeWithNamespaceTemplate, {
       title: "Single DataType Details (with namespace)",
       mimeType: "application/json",
       description: `# Get detailed information about a specific datatype in a namespace
@@ -423,16 +444,18 @@ Returns complete datatype information including:
         const datatypeIndex = pathParts.findIndex(part => part === 'datatype');
         const fullyQualifiedDatatype = pathParts.slice(datatypeIndex + 1).join('/');
 
-        const datatype = await simplifier.getDataTypeById(fullyQualifiedDatatype);
+        const trackingKey = trackingResourcePrefix + resourceNameDatatypeWithNamespace
+        const datatype = await simplifier.getDataTypeById(fullyQualifiedDatatype, trackingKey);
         return datatype;
       });
     }
   );
 
   // Resource for getting a single datatype from root namespace
+  const resourceNameDatatypeRoot = "datatype-root"
   const singleDatatypeRootTemplate = new ResourceTemplate("simplifier://datatype/{dataTypeName}", noListCallback);
 
-  server.resource("datatype-root", singleDatatypeRootTemplate, {
+  server.resource(resourceNameDatatypeRoot, singleDatatypeRootTemplate, {
       title: "Single DataType Details (root namespace)",
       mimeType: "application/json",
       description: `# Get detailed information about a specific datatype in root namespace
@@ -453,7 +476,8 @@ Returns complete datatype information for datatypes without a namespace, includi
         const datatypeIndex = pathParts.findIndex(part => part === 'datatype');
         const datatypeName = pathParts.slice(datatypeIndex + 1).join('/');
 
-        const datatype = await simplifier.getDataTypeById(datatypeName);
+        const trackingKey = trackingResourcePrefix + resourceNameDatatypeRoot;
+        const datatype = await simplifier.getDataTypeById(datatypeName, trackingKey);
         return datatype;
       });
     }
