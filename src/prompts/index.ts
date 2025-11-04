@@ -2,6 +2,7 @@ import { Prompt } from '@modelcontextprotocol/sdk/types.js';
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SimplifierClient } from "../client/simplifier-client.js";
 import { registerOpenAPIConnectorPrompt } from "./openapi-connector-prompt.js";
+import { registerWSDLConnectorPrompt } from './wsdl-connector-prompt.js';
 
 /**
  * Prompts for Simplifier Low Code Platform integration
@@ -49,4 +50,5 @@ export function registerPrompts(server: McpServer, simplifier: SimplifierClient)
   // Register individual prompts
   // The MCP SDK handles prompts/list automatically
   registerOpenAPIConnectorPrompt(server, simplifier);
+  registerWSDLConnectorPrompt(server, simplifier);
 }
