@@ -947,8 +947,8 @@ describe('SimplifierClient', () => {
     });
   });
 
-  describe('getDataTypeById', () => {
-    it('should call getDataTypeById endpoint with fully qualified datatype id (namespace/name)', async () => {
+  describe('getDataTypeByName', () => {
+    it('should call getDataTypeByName endpoint with fully qualified datatype id (namespace/name)', async () => {
       const mockResponse = {
         id: "B5CEB602A6EEFBAFA6585B64E7D6AAAB03D0D5CD6701BCFE4F0F5EAA712CB884",
         name: "getUser_groups_Struct",
@@ -986,7 +986,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getDataTypeById('bo/SF_User/getUser_groups_Struct', "test");
+      const result = await client.getDataTypeByName('bo/SF_User/getUser_groups_Struct', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/datatypes/bo/SF_User/getUser_groups_Struct?woAutoGen=false&detailLevel=detailed',
@@ -1004,7 +1004,7 @@ describe('SimplifierClient', () => {
       expect(result.name).toBe('getUser_groups_Struct');
     });
 
-    it('should call getDataTypeById endpoint with root namespace datatype (no namespace)', async () => {
+    it('should call getDataTypeByName endpoint with root namespace datatype (no namespace)', async () => {
       const mockResponse = {
         id: "ABC123",
         name: "_ITIZ_B_BUS2038_DATA",
@@ -1026,7 +1026,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getDataTypeById('_ITIZ_B_BUS2038_DATA', "test");
+      const result = await client.getDataTypeByName('_ITIZ_B_BUS2038_DATA', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/datatypes/_ITIZ_B_BUS2038_DATA?woAutoGen=false&detailLevel=detailed',
@@ -1051,7 +1051,7 @@ describe('SimplifierClient', () => {
         text: async () => 'Datatype not found'
       } as Response);
 
-      await expect(client.getDataTypeById('nonexistent/datatype', "test"))
+      await expect(client.getDataTypeByName('nonexistent/datatype', "test"))
         .rejects
         .toThrow("Failed request GET http://some.test/UserInterface/api/datatypes/nonexistent/datatype?woAutoGen=false&detailLevel=detailed: HTTP 404: Not Found");
     });

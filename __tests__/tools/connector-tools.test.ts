@@ -1620,7 +1620,7 @@ describe('registerConnectorTools', () => {
         };
 
         mockSimplifierClient.getConnectorCall.mockResolvedValue(mockConnectorCall);
-        mockSimplifierClient.getDataTypeById = jest.fn()
+        mockSimplifierClient.getDataTypeByName = jest.fn()
           .mockResolvedValueOnce(mockStringType)
           .mockResolvedValueOnce(mockIntegerType)
           .mockResolvedValueOnce(mockBooleanType);
@@ -1720,7 +1720,7 @@ describe('registerConnectorTools', () => {
         };
 
         mockSimplifierClient.getConnectorCall.mockResolvedValue(mockConnectorCall);
-        mockSimplifierClient.getDataTypeById = jest.fn().mockResolvedValue(mockDataType);
+        mockSimplifierClient.getDataTypeByName = jest.fn().mockResolvedValue(mockDataType);
 
         const mockResponse: ConnectorTestResponse = {
           success: true,
@@ -1962,7 +1962,7 @@ describe('registerConnectorTools', () => {
         };
 
         mockSimplifierClient.getConnectorCall.mockResolvedValue(mockConnectorCall);
-        mockSimplifierClient.getDataTypeById = jest.fn().mockResolvedValue(mockDataType);
+        mockSimplifierClient.getDataTypeByName = jest.fn().mockResolvedValue(mockDataType);
 
         const mockResponse: ConnectorTestResponse = {
           success: true,

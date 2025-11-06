@@ -445,7 +445,7 @@ Returns complete datatype information including:
         const fullyQualifiedDatatype = pathParts.slice(datatypeIndex + 1).join('/');
 
         const trackingKey = trackingResourcePrefix + resourceNameDatatypeWithNamespace
-        const datatype = await simplifier.getDataTypeById(fullyQualifiedDatatype, trackingKey);
+        const datatype = await simplifier.getDataTypeByName(fullyQualifiedDatatype, trackingKey);
         return datatype;
       });
     }
@@ -477,7 +477,7 @@ Returns complete datatype information for datatypes without a namespace, includi
         const datatypeName = pathParts.slice(datatypeIndex + 1).join('/');
 
         const trackingKey = trackingResourcePrefix + resourceNameDatatypeRoot;
-        const datatype = await simplifier.getDataTypeById(datatypeName, trackingKey);
+        const datatype = await simplifier.getDataTypeByName(datatypeName, trackingKey);
         return datatype;
       });
     }
