@@ -244,7 +244,7 @@ export class SimplifierClient {
   }
 
   /**
-   * Get detailed information about a specific datatype by its full identifier.
+   * Get detailed information about a specific datatype by its full identifier (not the hash id).
    *
    * @param datatypeId - The fully qualified datatype identifier, which is namespace/datatypename.
    *                     For root namespace (no namespace), use just the datatype name without slash.
@@ -253,7 +253,7 @@ export class SimplifierClient {
    *                     - "_ITIZ_B_BUS2038_DATA" (datatype in root namespace)
    * @returns Detailed datatype information including fields, category, and metadata
    */
-  async getDataTypeById(datatypeId: string): Promise<SimplifierDataType> {
+  async getDataTypeByName(datatypeId: string): Promise<SimplifierDataType> {
     return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${datatypeId}?woAutoGen=false&detailLevel=detailed`, { method: "GET" });
   }
 

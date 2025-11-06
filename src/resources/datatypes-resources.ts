@@ -423,7 +423,7 @@ Returns complete datatype information including:
         const datatypeIndex = pathParts.findIndex(part => part === 'datatype');
         const fullyQualifiedDatatype = pathParts.slice(datatypeIndex + 1).join('/');
 
-        const datatype = await simplifier.getDataTypeById(fullyQualifiedDatatype);
+        const datatype = await simplifier.getDataTypeByName(fullyQualifiedDatatype);
         return datatype;
       });
     }
@@ -453,7 +453,7 @@ Returns complete datatype information for datatypes without a namespace, includi
         const datatypeIndex = pathParts.findIndex(part => part === 'datatype');
         const datatypeName = pathParts.slice(datatypeIndex + 1).join('/');
 
-        const datatype = await simplifier.getDataTypeById(datatypeName);
+        const datatype = await simplifier.getDataTypeByName(datatypeName);
         return datatype;
       });
     }

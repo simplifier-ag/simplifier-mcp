@@ -199,7 +199,7 @@ export interface BusinessObjectTestParameter {
   value: unknown;
   description?: string;
   dataTypeId: string;
-  dataType?: any;
+  dataType?: SimplifierDataType;
   optional: boolean;
   transfer: boolean;
 }

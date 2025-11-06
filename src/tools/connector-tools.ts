@@ -188,7 +188,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
         const connectorParameters = (await simplifier.getConnectorCall(connectorName, callName)).connectorCallParameters
 
         const testParameters: ConnectorTestParameter[]  = await Promise.all(connectorParameters.map(async cparam => {
-          const dataType = await simplifier.getDataTypeById(cparam.dataType.name)
+          const dataType = await simplifier.getDataTypeByName(cparam.dataType.name)
           return {
             name: cparam.name,
             constValue: cparam.constValue,
