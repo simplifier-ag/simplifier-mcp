@@ -85,7 +85,9 @@ method himself:
 "Give the API key for the Login Method"
 
 ### 3.5 Ask user about creating Login Method for SAP Logon Token
-In case the service requires login via SAP Login Token, no further information is required to create the login method. Notify the user, that SAP Logon with external identification is not yet supported and that the Simplifier user will have to be logged in with the correct SAP authentication method. Then create the login method.
+In case the service requires login via SAP Login Token, no further information is required to create the login method.
+Notify the user, that SAP Logon with external identification is not yet supported and that the Simplifier user will have
+to be logged in with the correct SAP authentication method. Then create the login method.
 
 ## Phase 4: Analyze and Present Bindings and Operations
 
