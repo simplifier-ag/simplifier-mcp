@@ -156,7 +156,7 @@ describe('Logging Tools', () => {
 
       const result = await loggingListHandler({ pageSize: 50, page: 0 });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, {});
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, "MCP Tool: logging-list", {});
       expect(mockClient.getLogPages).toHaveBeenCalledWith(50, {});
 
       const resultData = JSON.parse(result.content[0].text);
@@ -183,7 +183,7 @@ describe('Logging Tools', () => {
 
       const result = await loggingListHandler({ pageSize: 10, page: 0 });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 10, {});
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 10, "MCP Tool: logging-list", {});
       expect(mockClient.getLogPages).toHaveBeenCalledWith(10, {});
 
       const resultData = JSON.parse(result.content[0].text);
@@ -206,7 +206,7 @@ describe('Logging Tools', () => {
 
       const result = await loggingListHandler({ page: 2, pageSize: 50 });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(2, 50, {});
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(2, 50, "MCP Tool: logging-list", {});
 
       const resultData = JSON.parse(result.content[0].text);
       expect(resultData.page).toBe(2);
@@ -228,7 +228,7 @@ describe('Logging Tools', () => {
 
       const result = await loggingListHandler({ logLevel: 3, pageSize: 50, page: 0 });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, { logLevel: 3 });
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, "MCP Tool: logging-list", { logLevel: 3 });
       expect(mockClient.getLogPages).toHaveBeenCalledWith(50, { logLevel: 3 });
 
       const resultData = JSON.parse(result.content[0].text);
@@ -251,7 +251,7 @@ describe('Logging Tools', () => {
 
       const result = await loggingListHandler({ since: '2025-01-01T00:00:00Z', pageSize: 50, page: 0 });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, {
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, "MCP Tool: logging-list", {
         since: '2025-01-01T00:00:00Z'
       });
 
@@ -280,7 +280,7 @@ describe('Logging Tools', () => {
         page: 0
       });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, {
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, "MCP Tool: logging-list", {
         from: '2025-01-01T00:00:00Z',
         until: '2025-01-31T23:59:59Z'
       });
@@ -311,7 +311,7 @@ describe('Logging Tools', () => {
         since: '2025-01-01T00:00:00Z'
       });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(1, 25, {
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(1, 25, "MCP Tool: logging-list", {
         logLevel: 2,
         since: '2025-01-01T00:00:00Z'
       });
@@ -464,7 +464,7 @@ describe('Logging Tools', () => {
 
       await loggingListHandler({ from: '2025-01-01T00:00:00Z', pageSize: 50, page: 0 });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, {});
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, "MCP Tool: logging-list", {});
     });
 
     it('should not include from/until in options when only until is provided', async () => {
@@ -478,7 +478,7 @@ describe('Logging Tools', () => {
 
       await loggingListHandler({ until: '2025-01-31T23:59:59Z', pageSize: 50, page: 0 });
 
-      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, {});
+      expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, "MCP Tool: logging-list", {});
     });
   });
 });

@@ -72,7 +72,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
 
       await toolHandler(testParams);
 
-      expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith("NewBasicAuth");
+      expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith("NewBasicAuth", "MCP Tool: loginmethod-update");
       expect(mockClient.createLoginMethod).toHaveBeenCalledWith(expectedRequest);
       expect(mockClient.updateLoginMethod).not.toHaveBeenCalled();
       expect(mockWrapToolResult).toHaveBeenCalledWith(
@@ -191,7 +191,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
 
       await toolHandler(testParams);
 
-      expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith("ExistingAuth");
+      expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith("ExistingAuth", "MCP Tool: loginmethod-update");
       expect(mockClient.updateLoginMethod).toHaveBeenCalledWith("ExistingAuth", expectedRequest);
       expect(mockClient.createLoginMethod).not.toHaveBeenCalled();
       expect(mockWrapToolResult).toHaveBeenCalledWith(

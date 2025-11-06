@@ -3,6 +3,7 @@ import {SimplifierClient} from "../client/simplifier-client.js";
 import {SimplifierLogListOptions, SimplifierLogEntry} from "../client/types.js";
 import {wrapToolResult} from "./toolresult.js";
 import {z} from "zod";
+import {trackingToolPrefix} from "../client/matomo-tracking.js";
 
 function getLevelName(level: number): string {
   const levels = ['Debug', 'Info', 'Warning', 'Error', 'Critical'];
@@ -14,7 +15,8 @@ export function registerLoggingTools(server: McpServer, simplifier: SimplifierCl
   const DEFAULT_PAGE_SIZE = 50;
 
   /* Note: this could be turned into a resource, if https://github.com/modelcontextprotocol/typescript-sdk/issues/149 is fixed */
-  server.tool("logging-list",
+  const toolNameLoggingList = "logging-list"
+  server.tool(toolNameLoggingList,
     `# Get recent log entries from Simplifier
 
 This tool provides access to the Simplifier logging system. You can filter logs by level and time range.
@@ -64,6 +66,7 @@ server settings.
     },
     async ({ pageSize, page, logLevel, since, from, until }) => {
       return wrapToolResult('list log entries', async () => {
+        const trackingKey = trackingToolPrefix + toolNameLoggingList
         const options: SimplifierLogListOptions = {};
         if (logLevel !== undefined) options.logLevel = logLevel;
         if (since) options.since = since;
@@ -72,7 +75,7 @@ server settings.
           options.until = until;
         }
 
-        const response = await simplifier.listLogEntriesPaginated(page, pageSize, options);
+        const response = await simplifier.listLogEntriesPaginated(page, pageSize, trackingKey, options);
         const pageCount = await simplifier.getLogPages(pageSize, options);
 
         const logEntryResources = response.list.map((entry: SimplifierLogEntry) => ({

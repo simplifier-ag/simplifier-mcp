@@ -7,6 +7,8 @@ import { TargetAndSourceMapper } from "./loginmethod/TargetAndSourceMapper.js";
 import { UserCredentialsTargetAndSourceMapper } from "./loginmethod/UserCredentialsTargetAndSourceMapper.js";
 import { OAuthTargetAndSourceMapper } from "./loginmethod/OAuthTargetAndSourceMapper.js";
 import { TokenTargetAndSourceMapper } from "./loginmethod/TokenTargetAndSourceMapper.js";
+import { SAPSSOTargetAndSourceMapper } from "./loginmethod/SAPSSOMapper.js";
+import {trackingToolPrefix} from "../client/matomo-tracking.js";
 
 /**
  * Register LoginMethod tools for Simplifier Low Code Platform integration
@@ -26,7 +28,7 @@ async function checkOAuthClient(
   sourceType: string
 ): Promise<void> {
   // Fetch available OAuth2 clients
-  const oauth2Clients = await simplifier.listOAuth2Clients();
+  const oauth2Clients = await simplifier.listOAuth2Clients("oauthclients-list");
   const availableClientNames = oauth2Clients.authSettings.map(client => client.name);
 
   // Handle empty client list
@@ -52,18 +54,19 @@ async function checkOAuthClient(
 
 export function registerLoginMethodTools(server: McpServer, simplifier: SimplifierClient): void {
 
-  server.tool("loginmethod-update",
+  const toolNameLoginMethodUpdate = "loginmethod-update"
+  server.tool(toolNameLoginMethodUpdate,
     readFile("tools/docs/create-or-update-loginmethod.md"),
     {
-      loginMethodType: z.enum(["UserCredentials", "OAuth2", "Token"])
-        .describe(`Type of login method: UserCredentials for BasicAuth, OAuth2 for OAuth2-based auth, Token for token-based auth`),
+      loginMethodType: z.enum(["UserCredentials", "OAuth2", "Token", "SingleSignOn"])
+        .describe(`Type of login method: UserCredentials for BasicAuth, OAuth2 for OAuth2-based auth, Token for token-based auth, SingleSignOn for SAP-SSO Logon Ticket`),
       name: z.string().describe("Name of the login method"),
       description: z.string().describe("Description of the login method"),
 
       // Source type (applies to UserCredentials, OAuth2, and Token)
       sourceType: z.enum(["Default", "Provided", "Reference", "SystemReference", "ProfileReference", "UserAttributeReference"]).optional()
         .describe(`Source type: 
-          * Default (system default - credentials for UserCredentials, OAuth2 client for OAuth2, empty for Token)
+          * Default (system default - credentials for UserCredentials, OAuth2 client for OAuth2, empty for Token, user logon ticket for SAP-SSO)
           * SystemReference (Token - uses SimplifierToken)
           * Provided (UserCredentials - username/password, Token - token value)
           * Reference (OAuth2 - OAuth2 client reference)
@@ -83,6 +86,11 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
       token: z.string().optional().describe("[Token Provided] Token value for authentication"),
       changeToken: z.boolean().optional().default(false)
         .describe("[Token Provided] Set to true when updating to change the token"),
+
+      // Token Provided source fields
+      ticket: z.string().optional().describe("[SingleSignOn Provided] Ticket value for authentication"),
+      changeTicket: z.boolean().optional().default(false)
+        .describe("[SingleSignOn Provided] Set to true when updating to change the ticket"),
 
       // OAuth2 Default/Reference fields
       oauth2ClientName: z.string().optional()
@@ -112,7 +120,8 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
         // Check if login method exists
         let existing: any;
         try {
-          existing = await simplifier.getLoginMethodDetails(params.name);
+          const trackingKey = trackingToolPrefix + toolNameLoginMethodUpdate
+          existing = await simplifier.getLoginMethodDetails(params.name, trackingKey);
         } catch {
           // Login method doesn't exist, will create
         }
@@ -125,6 +134,8 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
           mapper = new OAuthTargetAndSourceMapper();
         } else if (params.loginMethodType === "Token") {
           mapper = new TokenTargetAndSourceMapper();
+        } else if (params.loginMethodType === "SingleSignOn") {
+          mapper = new SAPSSOTargetAndSourceMapper();
         } else {
           throw new Error(`Unsupported loginMethodType: ${params.loginMethodType}`);
         }

@@ -1,13 +1,15 @@
 import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
+import {trackingResourcePrefix} from "../client/matomo-tracking.js";
 
 export function registerConnectorResources(server: McpServer, simplifier: SimplifierClient): void {
 
   const noListCallback = { list: undefined }
 
   // Main discoverable connectors resource - shows up in resources/list
-  server.resource("connectors-list", "simplifier://connectors", {
+  const resourceNameConnectorsList = "connectors-list"
+  server.resource(resourceNameConnectorsList, "simplifier://connectors", {
       title: "List All Connectors",
       mimeType: "application/json",
       description: `# Get the list of all Connectors
@@ -17,7 +19,8 @@ Each connector can be accessed via simplifier://connector/{connectorName} for de
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
-        const response = await simplifier.listConnectors();
+        const trackingKey = trackingResourcePrefix + resourceNameConnectorsList
+        const response = await simplifier.listConnectors(trackingKey);
         const connectorResources = response.connectors.map(connector => ({
           uri: `simplifier://connector/${connector.name}`,
           name: connector.name,
@@ -41,10 +44,12 @@ Each connector can be accessed via simplifier://connector/{connectorName} for de
     }
   );
 
+
   // Resource template for specific connector details
+  const resourceNameConnectorDetails = "connector-details"
   const connectorDetailsTemplate = new ResourceTemplate("simplifier://connector/{connectorName}", noListCallback);
 
-  server.resource("connector-details", connectorDetailsTemplate, {
+  server.resource(resourceNameConnectorDetails, connectorDetailsTemplate, {
       title: "Connector Details",
       mimeType: "application/json",
       description: `# Get detailed information about a specific connector
@@ -61,7 +66,8 @@ Use simplifier://connector/{connectorName}/calls to see available calls for this
           throw new Error('Connector name is required');
         }
 
-        const connector = await simplifier.getConnector(connectorName, true);
+        const trackingKey = trackingResourcePrefix + resourceNameConnectorDetails
+        const connector = await simplifier.getConnector(connectorName, trackingKey, true);
 
         return {
           connector,
@@ -76,10 +82,12 @@ Use simplifier://connector/{connectorName}/calls to see available calls for this
     }
   );
 
+
   // Resource template for connector calls list
+  const resourceNameConnectorCallsList = "connector-calls-list"
   const connectorCallsListTemplate = new ResourceTemplate("simplifier://connector/{connectorName}/calls", noListCallback);
 
-  server.resource("connector-calls-list", connectorCallsListTemplate, {
+  server.resource(resourceNameConnectorCallsList, connectorCallsListTemplate, {
       title: "Connector Calls List",
       mimeType: "application/json",
       description: `# Get all calls available for a specific connector
@@ -96,7 +104,8 @@ Each call can be accessed via simplifier://connector/{connectorName}/call/{callN
           throw new Error('Connector name is required');
         }
 
-        const response = await simplifier.listConnectorCalls(connectorName);
+        const trackingKey = trackingResourcePrefix + resourceNameConnectorCallsList
+        const response = await simplifier.listConnectorCalls(connectorName, trackingKey);
         const callResources = response.connectorCalls.map(call => ({
           uri: `simplifier://connector/${connectorName}/call/${call.name}`,
           name: call.name,
@@ -115,10 +124,12 @@ Each call can be accessed via simplifier://connector/{connectorName}/call/{callN
     }
   );
 
+
   // Resource template for specific connector call details
+  const resourceNameConnectorCallDetails = "connector-call-details"
   const connectorCallDetailsTemplate = new ResourceTemplate("simplifier://connector/{connectorName}/call/{callName}", noListCallback);
 
-  server.resource("connector-call-details", connectorCallDetailsTemplate, {
+  server.resource(resourceNameConnectorCallDetails, connectorCallDetailsTemplate, {
       title: "Connector Call Details",
       mimeType: "application/json",
       description: `# Get detailed information about a specific connector call
@@ -139,7 +150,8 @@ Returns complete parameter information including:
           throw new Error('Connector name and call name are required');
         }
 
-        const callDetails = await simplifier.getConnectorCall(connectorName, callName);
+        const trackingKey = trackingResourcePrefix + resourceNameConnectorCallDetails
+        const callDetails = await simplifier.getConnectorCall(connectorName, callName, trackingKey);
 
         return {
           call: callDetails,

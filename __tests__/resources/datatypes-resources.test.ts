@@ -25,7 +25,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
     // Create mock client
     mockClient = {
       getDataTypes: jest.fn(),
-      getDataTypeById: jest.fn(),
+      getDataTypeByName: jest.fn(),
     } as any;
 
     // Get the mocked wrapResourceResult
@@ -480,7 +480,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
           assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
         };
 
-        mockClient.getDataTypeById.mockResolvedValue(mockDatatype);
+        mockClient.getDataTypeByName.mockResolvedValue(mockDatatype);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           const result = await fn();
@@ -495,7 +495,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
         const result = await singleDatatypeWithNamespaceHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('bo/SF_User/getUser_groups_Struct');
+        expect(mockClient.getDataTypeByName).toHaveBeenCalledWith('bo/SF_User/getUser_groups_Struct', 'MCP Resource: datatype-with-namespace');
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.name).toBe('getUser_groups_Struct');
         expect(resultData.nameSpace).toBe('bo/SF_User');
@@ -507,7 +507,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
         const testUri = new URL('simplifier://datatype/nonexistent/MyType');
         const testError = new Error('Datatype not found');
 
-        mockClient.getDataTypeById.mockRejectedValue(testError);
+        mockClient.getDataTypeByName.mockRejectedValue(testError);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           try {
@@ -532,7 +532,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
         const result = await singleDatatypeWithNamespaceHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('nonexistent/MyType');
+        expect(mockClient.getDataTypeByName).toHaveBeenCalledWith('nonexistent/MyType', 'MCP Resource: datatype-with-namespace');
         expect(result.contents[0].text).toContain('Could not get data!');
         expect(result.contents[0].text).toContain('Datatype not found');
       });
@@ -562,7 +562,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
           assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
         };
 
-        mockClient.getDataTypeById.mockResolvedValue(mockDatatype);
+        mockClient.getDataTypeByName.mockResolvedValue(mockDatatype);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           const result = await fn();
@@ -577,7 +577,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
         const result = await singleDatatypeRootHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('_ITIZ_B_BUS2038_DATA');
+        expect(mockClient.getDataTypeByName).toHaveBeenCalledWith('_ITIZ_B_BUS2038_DATA', 'MCP Resource: datatype-root');
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.name).toBe('_ITIZ_B_BUS2038_DATA');
         expect(resultData.nameSpace).toBeUndefined();
@@ -600,7 +600,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
           assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
         };
 
-        mockClient.getDataTypeById.mockResolvedValue(mockDatatype);
+        mockClient.getDataTypeByName.mockResolvedValue(mockDatatype);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           const result = await fn();
@@ -615,7 +615,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
         const result = await singleDatatypeRootHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('String');
+        expect(mockClient.getDataTypeByName).toHaveBeenCalledWith('String', 'MCP Resource: datatype-root');
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.name).toBe('String');
         expect(resultData.category).toBe('base');
@@ -625,7 +625,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
         const testUri = new URL('simplifier://datatype/nonexistent_datatype');
         const testError = new Error('Datatype not found');
 
-        mockClient.getDataTypeById.mockRejectedValue(testError);
+        mockClient.getDataTypeByName.mockRejectedValue(testError);
 
         mockWrapResourceResult.mockImplementation(async (uri: URL, fn: () => any) => {
           try {
@@ -650,7 +650,7 @@ describe('DataTypes Resources (Namespace-based)', () => {
 
         const result = await singleDatatypeRootHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getDataTypeById).toHaveBeenCalledWith('nonexistent_datatype');
+        expect(mockClient.getDataTypeByName).toHaveBeenCalledWith('nonexistent_datatype', 'MCP Resource: datatype-root');
         expect(result.contents[0].text).toContain('Could not get data!');
         expect(result.contents[0].text).toContain('Datatype not found');
       });

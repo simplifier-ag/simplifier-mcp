@@ -45,7 +45,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getServerBusinessObjects();
+      const result = await client.getServerBusinessObjects("test-tracking-key");
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://some.test/UserInterface/api/businessobjects/server",
@@ -90,7 +90,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getServerBusinessObjectDetails('TestObject');
+      const result = await client.getServerBusinessObjectDetails('TestObject', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://some.test/UserInterface/api/businessobjects/server/TestObject",
@@ -148,7 +148,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getServerBusinessObjectFunction('TestObject', 'testFunction');
+      const result = await client.getServerBusinessObjectFunction('TestObject', 'testFunction', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://some.test/UserInterface/api/businessobjects/server/TestObject/functions/testFunction?completions=false&dataTypes=true",
@@ -201,7 +201,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getServerBusinessObjectFunctions('TestObject');
+      const result = await client.getServerBusinessObjectFunctions('TestObject', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://some.test/UserInterface/api/businessobjects/server/TestObject/functions",
@@ -336,7 +336,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.testServerBusinessObjectFunction('TestObject', 'testFunction', testRequest);
+      const result = await client.testServerBusinessObjectFunction('TestObject', 'testFunction', testRequest, "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         "http://some.test/UserInterface/api/businessobjecttest/TestObject/methods/testFunction",
@@ -363,7 +363,7 @@ describe('SimplifierClient', () => {
         text: async () => JSON.stringify(testRequest)
       } as Response);
 
-      await expect(client.testServerBusinessObjectFunction('NonExistentBO', 'nonExistentFunction', testRequest))
+      await expect(client.testServerBusinessObjectFunction('NonExistentBO', 'nonExistentFunction', testRequest, "test"))
         .rejects
         .toThrow("Failed request POST http://some.test/UserInterface/api/businessobjecttest/NonExistentBO/methods/nonExistentFunction: HTTP 404: Not Found");
     });
@@ -378,7 +378,7 @@ describe('SimplifierClient', () => {
         text: async () => JSON.stringify(testRequest)
       } as Response);
 
-      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest))
+      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest, "test"))
         .rejects
         .toThrow("Failed request POST http://some.test/UserInterface/api/businessobjecttest/TestBO/methods/testFunction: HTTP 400: Bad Request");
     });
@@ -393,7 +393,7 @@ describe('SimplifierClient', () => {
         text: async () => JSON.stringify(testRequest)
       } as Response);
 
-      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest))
+      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest, "test"))
         .rejects
         .toThrow("Failed request POST http://some.test/UserInterface/api/businessobjecttest/TestBO/methods/testFunction: HTTP 500: Internal Server Error");
     });
@@ -411,7 +411,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest))
+      await expect(client.testServerBusinessObjectFunction('TestBO', 'testFunction', testRequest, "test"))
         .rejects
         .toThrow("Received error: Function execution failed: missing required parameter");
     });
@@ -448,7 +448,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.listConnectors();
+      const result = await client.listConnectors("test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/connectors',
@@ -501,7 +501,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getConnector('TestConnector');
+      const result = await client.getConnector('TestConnector', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/connectors/TestConnector',
@@ -543,7 +543,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getConnector('TestConnector', false);
+      const result = await client.getConnector('TestConnector', "test", false);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/connectors/TestConnector?withEndpointConfigurations=false',
@@ -594,7 +594,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.listConnectorCalls('TestConnector');
+      const result = await client.listConnectorCalls('TestConnector', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/connectors/TestConnector/calls',
@@ -656,7 +656,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getConnectorCall('TestConnector', 'getData');
+      const result = await client.getConnectorCall('TestConnector', 'getData', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/connectors/TestConnector/calls/getData',
@@ -778,7 +778,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.listLoginMethods();
+      const result = await client.listLoginMethods("test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/login-methods',
@@ -846,7 +846,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getLoginMethodDetails('TestUserCredentials');
+      const result = await client.getLoginMethodDetails('TestUserCredentials', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/login-methods/TestUserCredentials',
@@ -914,7 +914,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getLoginMethodDetails('oAuthSpotify');
+      const result = await client.getLoginMethodDetails('oAuthSpotify', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/login-methods/oAuthSpotify',
@@ -941,14 +941,14 @@ describe('SimplifierClient', () => {
         text: async () => 'Login method not found'
       } as Response);
 
-      await expect(client.getLoginMethodDetails('NonExistentMethod'))
+      await expect(client.getLoginMethodDetails('NonExistentMethod', "test"))
         .rejects
         .toThrow("Failed request GET http://some.test/UserInterface/api/login-methods/NonExistentMethod: HTTP 404: Not Found");
     });
   });
 
-  describe('getDataTypeById', () => {
-    it('should call getDataTypeById endpoint with fully qualified datatype id (namespace/name)', async () => {
+  describe('getDataTypeByName', () => {
+    it('should call getDataTypeByName endpoint with fully qualified datatype id (namespace/name)', async () => {
       const mockResponse = {
         id: "B5CEB602A6EEFBAFA6585B64E7D6AAAB03D0D5CD6701BCFE4F0F5EAA712CB884",
         name: "getUser_groups_Struct",
@@ -986,7 +986,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getDataTypeById('bo/SF_User/getUser_groups_Struct');
+      const result = await client.getDataTypeByName('bo/SF_User/getUser_groups_Struct', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/datatypes/bo/SF_User/getUser_groups_Struct?woAutoGen=false&detailLevel=detailed',
@@ -1004,7 +1004,7 @@ describe('SimplifierClient', () => {
       expect(result.name).toBe('getUser_groups_Struct');
     });
 
-    it('should call getDataTypeById endpoint with root namespace datatype (no namespace)', async () => {
+    it('should call getDataTypeByName endpoint with root namespace datatype (no namespace)', async () => {
       const mockResponse = {
         id: "ABC123",
         name: "_ITIZ_B_BUS2038_DATA",
@@ -1026,7 +1026,7 @@ describe('SimplifierClient', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await client.getDataTypeById('_ITIZ_B_BUS2038_DATA');
+      const result = await client.getDataTypeByName('_ITIZ_B_BUS2038_DATA', "test");
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://some.test/UserInterface/api/datatypes/_ITIZ_B_BUS2038_DATA?woAutoGen=false&detailLevel=detailed',
@@ -1051,7 +1051,7 @@ describe('SimplifierClient', () => {
         text: async () => 'Datatype not found'
       } as Response);
 
-      await expect(client.getDataTypeById('nonexistent/datatype'))
+      await expect(client.getDataTypeByName('nonexistent/datatype', "test"))
         .rejects
         .toThrow("Failed request GET http://some.test/UserInterface/api/datatypes/nonexistent/datatype?woAutoGen=false&detailLevel=detailed: HTTP 404: Not Found");
     });

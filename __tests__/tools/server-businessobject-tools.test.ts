@@ -30,7 +30,8 @@ describe('registerServerBusinessObjectResources', () => {
       updateServerBusinessObjectFunction: jest.fn(),
       testServerBusinessObjectFunction: jest.fn(),
       deleteServerBusinessObject: jest.fn(),
-      deleteServerBusinessObjectFunction: jest.fn()
+      deleteServerBusinessObjectFunction: jest.fn(),
+      getDataTypeByName: jest.fn()
     } as any;
 
     // Get the mocked wrapToolResult
@@ -263,7 +264,7 @@ describe('registerServerBusinessObjectResources', () => {
 
       await toolHandler(testParams);
 
-      expect(mockSimplifierClient.getServerBusinessObjectDetails).toHaveBeenCalledWith("NewBO");
+      expect(mockSimplifierClient.getServerBusinessObjectDetails).toHaveBeenCalledWith("NewBO", "MCP Tool: businessobject-update");
       expect(mockSimplifierClient.createServerBusinessObject).toHaveBeenCalledWith(expect.objectContaining(expectedData));
       expect(mockSimplifierClient.updateServerBusinessObject).not.toHaveBeenCalled();
       expect(mockWrapToolResult).toHaveBeenCalledWith(
@@ -322,7 +323,7 @@ describe('registerServerBusinessObjectResources', () => {
 
       await toolHandler(testParams);
 
-      expect(mockSimplifierClient.getServerBusinessObjectDetails).toHaveBeenCalledWith("ExistingBO");
+      expect(mockSimplifierClient.getServerBusinessObjectDetails).toHaveBeenCalledWith("ExistingBO", "MCP Tool: businessobject-update");
       expect(mockSimplifierClient.updateServerBusinessObject).toHaveBeenCalledWith(expect.objectContaining(expectedData));
       expect(mockSimplifierClient.createServerBusinessObject).not.toHaveBeenCalled();
       expect(mockWrapToolResult).toHaveBeenCalledWith(
@@ -380,7 +381,7 @@ describe('registerServerBusinessObjectResources', () => {
 
       await toolHandler(testParams);
 
-      expect(mockSimplifierClient.getServerBusinessObjectDetails).toHaveBeenCalledWith("ExistingBO");
+      expect(mockSimplifierClient.getServerBusinessObjectDetails).toHaveBeenCalledWith("ExistingBO", "MCP Tool: businessobject-update");
       expect(mockSimplifierClient.updateServerBusinessObject).toHaveBeenCalledWith(expect.objectContaining(expectedData));
       expect(mockSimplifierClient.createServerBusinessObject).not.toHaveBeenCalled();
     });
@@ -645,7 +646,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await functionToolHandler(testParams);
 
-        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "newFunction");
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "newFunction", "MCP Tool: businessobject-function-update");
         expect(mockSimplifierClient.createServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", expectedFunctionData);
         expect(mockSimplifierClient.updateServerBusinessObjectFunction).not.toHaveBeenCalled();
         expect(mockWrapToolResult).toHaveBeenCalledWith(
@@ -725,7 +726,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await functionToolHandler(testParams);
 
-        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "existingFunction");
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "existingFunction", "MCP Tool: businessobject-function-update");
         expect(mockSimplifierClient.updateServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "existingFunction", expectedFunctionData);
         expect(mockSimplifierClient.createServerBusinessObjectFunction).not.toHaveBeenCalled();
       });
@@ -918,6 +919,13 @@ describe('registerServerBusinessObjectResources', () => {
           result: { message: "Hello World" }
         };
 
+        // Mock the function details with no input parameters
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue({
+          name: "simpleFunction",
+          inputParameters: [],
+          outputParameters: []
+        } as any);
+
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -929,10 +937,12 @@ describe('registerServerBusinessObjectResources', () => {
 
         await testToolHandler(testParams);
 
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "simpleFunction");
         expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
           "TestBO",
           "simpleFunction",
-          expectedTestRequest
+          expectedTestRequest,
+          "MCP Tool: businessobject-function-test"
         );
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "test Business Object function TestBO.simpleFunction",
@@ -964,6 +974,10 @@ describe('registerServerBusinessObjectResources', () => {
             {
               name: "inputText",
               value: "Hello World",
+              dataType: {
+                id: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+                name: "String"
+              } as any,
               dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
               optional: false,
               transfer: true
@@ -971,6 +985,10 @@ describe('registerServerBusinessObjectResources', () => {
             {
               name: "count",
               value: 5,
+              dataType: {
+                id: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+                name: "Integer"
+              } as any,
               dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
               optional: false,
               transfer: true
@@ -982,6 +1000,35 @@ describe('registerServerBusinessObjectResources', () => {
           success: true,
           result: { processedText: "HELLO WORLD", repeatCount: 5 }
         };
+
+        // Mock the function details with input parameters
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue({
+          name: "processData",
+          inputParameters: [
+            {
+              name: "inputText",
+              dataType: { name: "String" },
+              isOptional: false
+            },
+            {
+              name: "count",
+              dataType: { name: "Integer" },
+              isOptional: false
+            }
+          ],
+          outputParameters: []
+        } as any);
+
+        // Mock getDataTypeByName for both parameters
+        mockSimplifierClient.getDataTypeByName
+          .mockResolvedValueOnce({
+            id: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+            name: "String"
+          } as any)
+          .mockResolvedValueOnce({
+            id: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+            name: "Integer"
+          } as any);
 
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
@@ -996,10 +1043,14 @@ describe('registerServerBusinessObjectResources', () => {
 
         await testToolHandler(testParams);
 
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "processData");
+        expect(mockSimplifierClient.getDataTypeByName).toHaveBeenCalledWith("String");
+        expect(mockSimplifierClient.getDataTypeByName).toHaveBeenCalledWith("Integer");
         expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
           "TestBO",
           "processData",
-          expectedTestRequest
+          expectedTestRequest,
+          "MCP Tool: businessobject-function-test"
         );
       });
 
@@ -1015,6 +1066,13 @@ describe('registerServerBusinessObjectResources', () => {
           error: "Function execution failed: missing required parameter 'input'"
         };
 
+        // Mock the function details with no input parameters
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue({
+          name: "failingFunction",
+          inputParameters: [],
+          outputParameters: []
+        } as any);
+
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -1028,10 +1086,12 @@ describe('registerServerBusinessObjectResources', () => {
 
         await testToolHandler(testParams);
 
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "failingFunction");
         expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
           "TestBO",
           "failingFunction",
-          { parameters: [] }
+          { parameters: [] },
+          "MCP Tool: businessobject-function-test"
         );
       });
 
@@ -1088,6 +1148,25 @@ describe('registerServerBusinessObjectResources', () => {
           result: { output: "test processed" }
         };
 
+        // Mock the function details with one input parameter
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue({
+          name: "testFunction",
+          inputParameters: [
+            {
+              name: "param1",
+              dataType: { name: "Any" },
+              isOptional: false
+            }
+          ],
+          outputParameters: []
+        } as any);
+
+        // Mock getDataTypeByName for the parameter
+        mockSimplifierClient.getDataTypeByName.mockResolvedValue({
+          id: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
+          name: "Any"
+        } as any);
+
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -1097,12 +1176,19 @@ describe('registerServerBusinessObjectResources', () => {
 
         await testToolHandler(testParams);
 
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "testFunction");
+        expect(mockSimplifierClient.getDataTypeByName).toHaveBeenCalledWith("Any");
+
         const callArgs = mockSimplifierClient.testServerBusinessObjectFunction.mock.calls[0];
         const testRequest = callArgs[2] as BusinessObjectTestRequest;
 
         expect(testRequest.parameters[0]).toEqual({
           name: "param1",
           value: "test",
+          dataType: {
+            id: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
+            name: "Any"
+          } as any,
           dataTypeId: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB", // Any type default
           optional: false,
           transfer: true
@@ -1209,7 +1295,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("TestBO");
+        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("TestBO", "MCP Tool: businessobject-delete");
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "Delete Business Object TestBO",
           expect.any(Function)
@@ -1234,7 +1320,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("Test_BO-v2.0");
+        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("Test_BO-v2.0", "MCP Tool: businessobject-delete");
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "Delete Business Object Test_BO-v2.0",
           expect.any(Function)
@@ -1266,7 +1352,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("NonExistentBO");
+        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("NonExistentBO", "MCP Tool: businessobject-delete");
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "Delete Business Object NonExistentBO",
           expect.any(Function)
@@ -1298,7 +1384,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("ProtectedBO");
+        expect(mockSimplifierClient.deleteServerBusinessObject).toHaveBeenCalledWith("ProtectedBO", "MCP Tool: businessobject-delete");
       });
 
       it('should return the string response from API on successful deletion', async () => {
@@ -1377,7 +1463,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteFunctionToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "testFunction");
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "testFunction", "MCP Tool: businessobject-function-delete");
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "Delete Business Object Function TestBO.testFunction",
           expect.any(Function)
@@ -1403,7 +1489,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteFunctionToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("Test_BO-v2", "get_user_data");
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("Test_BO-v2", "get_user_data", "MCP Tool: businessobject-function-delete");
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "Delete Business Object Function Test_BO-v2.get_user_data",
           expect.any(Function)
@@ -1436,7 +1522,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteFunctionToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("NonExistentBO", "testFunction");
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("NonExistentBO", "testFunction", "MCP Tool: businessobject-function-delete");
         expect(mockWrapToolResult).toHaveBeenCalledWith(
           "Delete Business Object Function NonExistentBO.testFunction",
           expect.any(Function)
@@ -1469,7 +1555,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteFunctionToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "nonExistentFunction");
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "nonExistentFunction", "MCP Tool: businessobject-function-delete");
       });
 
       it('should handle errors when function is not deletable', async () => {
@@ -1498,7 +1584,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await deleteFunctionToolHandler(testParams);
 
-        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "protectedFunction");
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "protectedFunction", "MCP Tool: businessobject-function-delete");
       });
 
       it('should return the string response from API on successful deletion', async () => {
@@ -1550,8 +1636,8 @@ describe('registerServerBusinessObjectResources', () => {
         await deleteFunctionToolHandler(testParams2);
 
         expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenCalledTimes(2);
-        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenNthCalledWith(1, "TestBO", "function1");
-        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenNthCalledWith(2, "TestBO", "function2");
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenNthCalledWith(1, "TestBO", "function1", "MCP Tool: businessobject-function-delete");
+        expect(mockSimplifierClient.deleteServerBusinessObjectFunction).toHaveBeenNthCalledWith(2, "TestBO", "function2", "MCP Tool: businessobject-function-delete");
       });
     });
   });

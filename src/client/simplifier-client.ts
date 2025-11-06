@@ -1,5 +1,6 @@
 import {config} from '../config.js';
 import {login} from "./basicauth.js";
+import {trackingHeader} from "./matomo-tracking.js";
 import {
   BusinessObjectTestRequest,
   BusinessObjectTestResponse,
@@ -151,27 +152,38 @@ export class SimplifierClient {
     return this.makeUnwrappedRequest<{msg: string}>(`/client/2.0/ping`).then(response => response.msg === "pong");
   }
 
-  async getServerBusinessObjects(): Promise<SimplifierBusinessObjectDetails[]> {
-    return this.makeRequest("/UserInterface/api/businessobjects/server", { method: "GET" })
+  async getServerBusinessObjects(trackingKey: string): Promise<SimplifierBusinessObjectDetails[]> {
+    return this.makeRequest("/UserInterface/api/businessobjects/server", { method: "GET",
+      headers: trackingHeader(trackingKey) });
   }
 
-  async getServerBusinessObjectDetails(objectName: string): Promise<SimplifierBusinessObjectDetails> {
-    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}`, { method: "GET" })
+  async getServerBusinessObjectDetails(objectName: string, trackingKey: string): Promise<SimplifierBusinessObjectDetails> {
+    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    })
   }
 
-  async deleteServerBusinessObject(objectName: string): Promise<string> {
+  async deleteServerBusinessObject(objectName: string, trackingKey: string): Promise<string> {
     const oResult = await  this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/businessobjects/server/${objectName}`, {
       method: "DELETE",
+      headers: trackingHeader(trackingKey)
     })
     return oResult.message;
   }
 
-  async getServerBusinessObjectFunction(objectName: string, functionName: string): Promise<SimplifierBusinessObjectFunction> {
-    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, { method: "GET" })
+  async getServerBusinessObjectFunction(objectName: string, functionName: string, trackingKey?: string): Promise<SimplifierBusinessObjectFunction> {
+    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    })
   }
 
-  async getServerBusinessObjectFunctions(objectName: string): Promise<SimplifierBusinessObjectFunction[]> {
-    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions`, { method: "GET" })
+  async getServerBusinessObjectFunctions(objectName: string, trackingKey: string): Promise<SimplifierBusinessObjectFunction[]> {
+    return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    })
   }
 
   async createServerBusinessObjectFunction(objectName: string, functionData: SimplifierBusinessObjectFunction): Promise<string> {
@@ -190,16 +202,18 @@ export class SimplifierClient {
     return `Successfully updated function '${functionName}' in Business Object '${objectName}'`;
   }
 
-  async testServerBusinessObjectFunction(objectName: string, functionName: string, testRequest: BusinessObjectTestRequest): Promise<BusinessObjectTestResponse> {
+  async testServerBusinessObjectFunction(objectName: string, functionName: string, testRequest: BusinessObjectTestRequest, trackingKey: string): Promise<BusinessObjectTestResponse> {
       return await this.makeUnwrappedRequest(`/UserInterface/api/businessobjecttest/${objectName}/methods/${functionName}`, {
         method: "POST",
-        body: JSON.stringify(testRequest)
+        body: JSON.stringify(testRequest),
+        headers: trackingHeader(trackingKey)
       });
   }
 
-  async deleteServerBusinessObjectFunction(objectName: string, functionName: string): Promise<string> {
+  async deleteServerBusinessObjectFunction(objectName: string, functionName: string, trackingKey: string): Promise<string> {
     const oResult = await this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}`, {
       method: "DELETE",
+      headers: trackingHeader(trackingKey)
     })
     return oResult.message;
   }
@@ -234,27 +248,37 @@ export class SimplifierClient {
     return `Successfully updated Connector call '${connectorName}.${oData.name}'`;
   }
 
-  async getDataTypes(): Promise<SimplifierDataTypesResponse> {
-    return this.makeUnwrappedRequest("/UserInterface/api/datatypes?cacheIndex=true", { method: "GET" });
+  async getDataTypes(trackingKey: string): Promise<SimplifierDataTypesResponse> {
+    return this.makeUnwrappedRequest("/UserInterface/api/datatypes?cacheIndex=true", {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
-  async getSingleDataType(name: string, nameSpace?: string): Promise<SimplifierDataType> {
+  async getSingleDataType(name: string, nameSpace: string | undefined, trackingKey: string): Promise<SimplifierDataType> {
     const fullDataType = `${nameSpace ? nameSpace + '/' : ''}${name}`
-    return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${fullDataType}`, { method: "GET" });
+    return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${fullDataType}`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
   /**
-   * Get detailed information about a specific datatype by its full identifier.
+   * Get detailed information about a specific datatype by its full identifier (not the hash id).
    *
    * @param datatypeId - The fully qualified datatype identifier, which is namespace/datatypename.
    *                     For root namespace (no namespace), use just the datatype name without slash.
    *                     Examples:
    *                     - "bo/SF_User/getUser_groups_Struct" (business object datatype with namespace)
    *                     - "_ITIZ_B_BUS2038_DATA" (datatype in root namespace)
+   * @param trackingKey - The MCP tool or resource name for tracking purposes
    * @returns Detailed datatype information including fields, category, and metadata
    */
-  async getDataTypeById(datatypeId: string): Promise<SimplifierDataType> {
-    return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${datatypeId}?woAutoGen=false&detailLevel=detailed`, { method: "GET" });
+  async getDataTypeByName(datatypeId: string, trackingKey?: string): Promise<SimplifierDataType> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${datatypeId}?woAutoGen=false&detailLevel=detailed`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
   async createDataType(datatypeDesc: SimplifierDataTypeUpdate): Promise<string> {
@@ -269,50 +293,68 @@ export class SimplifierClient {
       .then((id) => `Successfully updated data type ${fullDataType} with id ${id}`)
   }
 
-  async deleteDataType(name: string, nameSpace: string | undefined): Promise<string> {
+  async deleteDataType(name: string, nameSpace: string | undefined, trackingKey: string): Promise<string> {
     const fullDataType = `${nameSpace ? nameSpace + '/' : ''}${name}`
-    return this.makePlaintextRequest(`/UserInterface/api/datatypes/${fullDataType}`, { method: "DELETE" });
+    return this.makePlaintextRequest(`/UserInterface/api/datatypes/${fullDataType}`, {
+      method: "DELETE",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
   // ========================================
   // Connector API Methods
   // ========================================
 
-  async listConnectors(): Promise<SimplifierConnectorListResponse> {
-    return this.makeUnwrappedRequest(`/UserInterface/api/connectors`);
-  }
-
-  async getConnector(name: string, withEndpointConfigurations: boolean = true): Promise<SimplifierConnectorDetails> {
-    const params = withEndpointConfigurations ? '' : '?withEndpointConfigurations=false';
-    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${name}${params}`);
-  }
-
-  async listConnectorCalls(connectorName: string): Promise<SimplifierConnectorCallsResponse> {
-    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls`);
-  }
-
-  async getConnectorCall(connectorName: string, callName: string): Promise<SimplifierConnectorCallDetails> {
-    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`);
-  }
-
-
-  async testConnectorCall(connectorName: string, callName: string, testRequest: ConnectorTestRequest): Promise<ConnectorTestResponse> {
-    return await this.makeUnwrappedRequest(`/UserInterface/api/connectortest/${connectorName}/calls/${callName}`, {
-      method: "POST",
-      body: JSON.stringify(testRequest)
+  async listConnectors(trackingKey: string): Promise<SimplifierConnectorListResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/connectors`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
     });
   }
 
-  async deleteConnector(connectorName: string): Promise<string> {
+  async getConnector(name: string, trackingKey: string, withEndpointConfigurations: boolean = true): Promise<SimplifierConnectorDetails> {
+    const params = withEndpointConfigurations ? '' : '?withEndpointConfigurations=false';
+    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${name}${params}`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
+  }
+
+  async listConnectorCalls(connectorName: string, trackingKey: string): Promise<SimplifierConnectorCallsResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
+  }
+
+  async getConnectorCall(connectorName: string, callName: string, trackingKey?: string): Promise<SimplifierConnectorCallDetails> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
+  }
+
+
+  async testConnectorCall(connectorName: string, callName: string, testRequest: ConnectorTestRequest, trackingKey: string): Promise<ConnectorTestResponse> {
+    return await this.makeUnwrappedRequest(`/UserInterface/api/connectortest/${connectorName}/calls/${callName}`, {
+      method: "POST",
+      body: JSON.stringify(testRequest),
+      headers: trackingHeader(trackingKey)
+    });
+  }
+
+  async deleteConnector(connectorName: string, trackingKey: string): Promise<string> {
     const oResult = await this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/connectors/${connectorName}`, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: trackingHeader(trackingKey)
     })
     return oResult.message;
   }
 
-  async deleteConnectorCall(connectorName: string, callName: string): Promise<string> {
+  async deleteConnectorCall(connectorName: string, callName: string, trackingKey: string): Promise<string> {
     const oResult = await this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: trackingHeader(trackingKey)
     })
     return oResult.message;
   }
@@ -321,17 +363,26 @@ export class SimplifierClient {
   // LoginMethod API Methods
   // ========================================
 
-  async listLoginMethods(): Promise<SimplifierLoginMethodsResponse> {
-    return this.makeUnwrappedRequest(`/UserInterface/api/login-methods`);
+  async listLoginMethods(trackingKey: string): Promise<SimplifierLoginMethodsResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/login-methods`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
 
-  async listOAuth2Clients(): Promise<SimplifierOAuth2ClientsResponse> {
-    return this.makeUnwrappedRequest(`/UserInterface/api/AuthSettings?mechanism=OAuth2`);
+  async listOAuth2Clients(trackingKey: string): Promise<SimplifierOAuth2ClientsResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/AuthSettings?mechanism=OAuth2`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
-  async getLoginMethodDetails(name: string): Promise<SimplifierLoginMethodDetailsRaw> {
-    return this.makeUnwrappedRequest(`/UserInterface/api/login-methods/${name}`);
+  async getLoginMethodDetails(name: string, trackingKey: string): Promise<SimplifierLoginMethodDetailsRaw> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/login-methods/${name}`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
 
@@ -352,7 +403,7 @@ export class SimplifierClient {
   }
 
   // Logging API methods
-  async listLogEntriesPaginated(pageNo: number, pageSize: number, options?: SimplifierLogListOptions): Promise<SimplifierLogListResponse> {
+  async listLogEntriesPaginated(pageNo: number, pageSize: number, trackingKey: string, options?: SimplifierLogListOptions): Promise<SimplifierLogListResponse> {
     const params = this.optionsToQueryParams(options)
 
     const queryString = params.toString();
@@ -360,7 +411,10 @@ export class SimplifierClient {
       ? `/UserInterface/api/logging/list/page/${pageNo}/pagesize/${pageSize}?${queryString}`
       : `/UserInterface/api/logging/list/page/${pageNo}/pagesize/${pageSize}`;
 
-    return await this.makeUnwrappedRequest(url);
+    return await this.makeUnwrappedRequest(url, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
   async getLogPages(pageSize: number = 50, options?: SimplifierLogListOptions): Promise<SimplifierLogPagesResponse> {
@@ -370,8 +424,11 @@ export class SimplifierClient {
     return await this.makeUnwrappedRequest(`/UserInterface/api/logging/pages?${params}`);
   }
 
-  async getLogEntry(id: string): Promise<SimplifierLogEntryDetails> {
-    return await this.makeUnwrappedRequest(`/UserInterface/api/logging/entry/${id}`);
+  async getLogEntry(id: string, trackingKey: string): Promise<SimplifierLogEntryDetails> {
+    return await this.makeUnwrappedRequest(`/UserInterface/api/logging/entry/${id}`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
   }
 
   optionsToQueryParams(options?: SimplifierLogListOptions): URLSearchParams {
@@ -386,8 +443,11 @@ export class SimplifierClient {
 
   // Instance settings
 
-  async getInstanceSettings(): Promise<SimplifierInstance[]> {
-    const oInstanceSettings: SimplifierInstanceSettings = await this.makeUnwrappedRequest(`/UserInterface/api/InstanceSettings`);
+  async getInstanceSettings(trackingKey: string): Promise<SimplifierInstance[]> {
+    const oInstanceSettings: SimplifierInstanceSettings = await this.makeUnwrappedRequest(`/UserInterface/api/InstanceSettings`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    });
     return oInstanceSettings.instanceSettings;
   }
 
