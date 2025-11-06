@@ -45,7 +45,7 @@ export function createMockSimplifierClient(overrides?: Partial<SimplifierClient>
  * Creates a mock existing login method for testing updates
  */
 export function createExistingLoginMethod(
-  loginMethodType: "UserCredentials" | "OAuth2" | "Token",
+  loginMethodType: "UserCredentials" | "OAuth2" | "Token" | "SingleSignOn",
   overrides?: Partial<SimplifierLoginMethodDetailsRaw>
 ): SimplifierLoginMethodDetailsRaw {
   const typeConfig = {
@@ -63,6 +63,11 @@ export function createExistingLoginMethod(
       technicalName: "Token",
       i18n: "Token",
       descriptionI18n: "Token-based authentication"
+    },
+    SingleSignOn: {
+      technicalName: "SingleSignOn",
+      i18n: "SAP SSO",
+      descriptionI18n: "SAP Single Sign-On"
     }
   };
 
