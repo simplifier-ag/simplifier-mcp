@@ -4,15 +4,15 @@ import { GetPromptResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 
 /**
- * Generates the prompt content for creating a connector from an OpenAPI specification.
+ * Generates the prompt content for creating a connector from an API specification or description.
  *
  * This function creates a comprehensive, multi-phase prompt that guides the LLM through:
- * 1. Fetching and parsing the OpenAPI specification
+ * 1. Fetching and analyzing the API specification (OpenAPI/Swagger) or informal description
  * 2. Analyzing available endpoints
  * 3. Presenting endpoints for user selection
  * 4. Creating the connector, connector calls, and datatypes
  *
- * @param openapiInput - The OpenAPI spec URL or content
+ * @param openapiInput - The API specification URL, OpenAPI/Swagger spec content (YAML/JSON), or informal REST API description
  * @param connectorName - Optional custom connector name
  * @returns The prompt text
  */
@@ -20,24 +20,26 @@ export function generateOpenAPIConnectorPromptText(
   openapiInput: string,
   connectorName?: string
 ): string {
-  const finalConnectorName = connectorName || '<will be derived from OpenAPI spec>';
+  const finalConnectorName = connectorName || '<will be derived from API specification>';
 
   const isUrl = openapiInput.startsWith('http://') || openapiInput.startsWith('https://');
 
-  return `# Create Simplifier Connector from OpenAPI Specification
+  return `# Create Simplifier Connector from API Specification or Description
 
 ## Objective
-Create a complete Simplifier connector with connector calls and datatypes based on an OpenAPI specification.
+Create a complete Simplifier connector with connector calls and datatypes based on an API specification (OpenAPI/Swagger YAML/JSON) or an informal REST API description.
 
-## Phase 1: Fetch and Parse OpenAPI Specification
+## Phase 1: Fetch and Analyze the API Specification or Description
 
 ${isUrl
-    ? `1. Fetch the OpenAPI specification from: ${openapiInput}
-   - Use appropriate tools (curl, wget, or web fetch) to download the spec
-   - Parse the YAML/JSON content`
-    : `1. Parse the provided OpenAPI specification:
-   - The specification content has been provided directly
-   - Parse the YAML/JSON structure`
+    ? `1. Fetch the API specification or description from: ${openapiInput}
+   - Use appropriate tools (curl, wget, or web fetch) to download the content
+   - If it's a structured format (YAML/JSON), parse it accordingly
+   - If it's an informal description, read and analyze the text`
+    : `1. Analyze the provided API specification or description:
+   - If structured format (OpenAPI/Swagger): Parse the YAML/JSON structure
+   - If informal description: Read and extract the REST API information
+   - Identify the format and proceed accordingly`
 }
 
 2. Extract key information:
@@ -46,9 +48,9 @@ ${isUrl
    - Authentication requirements (API keys, OAuth, etc.)
    - Version information
    
-## Phase 2: Authentication 
+## Phase 2: Authentication
 Fetch the existing Login Methods with simplifier://loginmethods. Match the Login Methods by type with the authentication
-requirements of the API described in the OpenAPI Specification.
+requirements described in the API specification or description.
 
 In case the API requires an OAuth Token, then fetch the OAuth Clients from simplifier://oauthclients. In case the user
 does not select an existing Login Method in Phase 3.1, we will present the OAuth Clients to the user.
@@ -94,7 +96,7 @@ method himself:
 
 ## Phase 4: Analyze and Present Endpoints
 
-Analyze all available endpoints in the specification and present them to the user in this format:
+Analyze all available endpoints from the API specification or description and present them to the user in this format:
 
 \`\`\`
 Available Endpoints:
@@ -135,8 +137,8 @@ Once the user has selected endpoints, create:
 ### 6.1 Connector Configuration
 - **Name**: ${finalConnectorName}
 - **Namespace**: con/${finalConnectorName}
-- **Base URL**: From OpenAPI spec
-- **Authentication**: Configure based on OpenAPI security schemes
+- **Base URL**: From API specification or description
+- **Authentication**: Configure based on authentication requirements
 - **Headers**: Any required default headers
 
 ### 6.2 For Each Selected Endpoint:
@@ -151,12 +153,12 @@ Once the user has selected endpoints, create:
 
 #### Create Connector Call:
 - **Name**: Descriptive name (e.g., "getUserById", "createUser")
-- **HTTP Method**: From OpenAPI spec
-- **Path**: From OpenAPI spec (with path parameters)
-- **Parameters**: Query, path, header parameters from OpenAPI
+- **HTTP Method**: From API specification or description
+- **Path**: From API specification or description (with path parameters)
+- **Parameters**: Query, path, header parameters from the specification or description
 - **Request Body**: Link to request datatype
 - **Response**: Link to response datatype
-- **Documentation**: From OpenAPI description
+- **Documentation**: From API specification or description
 
 ### 6.3 Create All Components:
 Use the Simplifier MCP tools to create:
@@ -185,7 +187,7 @@ Next Steps:
 3. **Error Handling**: Note which endpoints may need special error handling
 4. **Authentication**: Clearly document authentication requirements
 5. **Validation**: Ensure all required fields are marked as required in datatypes
-6. **Documentation**: Include OpenAPI descriptions in all components
+6. **Documentation**: Include API descriptions in all components
 
 ## Available Tools:
 
@@ -198,11 +200,12 @@ Use the resources to check existing connectors and datatypes in the namespace.
 
 ---
 
-**Start with Phase 1**: ${isUrl ? 'Fetch' : 'Parse'} the OpenAPI specification and extract key information.`;
+**Start with Phase 1**: ${isUrl ? 'Fetch' : 'Analyze'} the API specification or description and extract key information.`;
 }
 
 /**
  * The prompt callback for the MCP server.
+ * Handles requests to create a Simplifier connector from an API specification or description.
  */
 export function openAPIConnectorPromptCallback(args: {
   openapi_url_or_spec: string;
@@ -214,7 +217,7 @@ export function openAPIConnectorPromptCallback(args: {
   );
 
   return {
-    description: 'Multi-phase workflow for creating a Simplifier connector from OpenAPI specification',
+    description: 'Multi-phase workflow for creating a Simplifier connector from an API specification (OpenAPI/Swagger) or informal REST API description',
     messages: [
       {
         role: 'user' as const,
@@ -228,7 +231,8 @@ export function openAPIConnectorPromptCallback(args: {
 }
 
 /**
- * Registers the OpenAPI connector creation prompt with the MCP server.
+ * Registers the API connector creation prompt with the MCP server.
+ * This prompt supports both structured API specifications (OpenAPI/Swagger) and informal REST API descriptions.
  *
  * @param server - The MCP server instance
  * @param _simplifier - The Simplifier API client (unused for now, kept for consistency)
@@ -239,13 +243,13 @@ export function registerOpenAPIConnectorPrompt(
 ): void {
   server.prompt(
     'create-connector-from-openapi',
-    'Guided workflow to create a Simplifier connector from an OpenAPI specification. Analyzes endpoints, lets you select which to implement, and creates the connector with calls and datatypes.',
+    'Guided workflow to create a Simplifier connector from an API specification (OpenAPI/Swagger) or informal REST API description. Analyzes endpoints, lets you select which to implement, and creates the connector with calls and datatypes.',
     {
       openapi_url_or_spec: z.string().describe(
-        'The OpenAPI specification URL (e.g., https://api.example.com/openapi.yaml) or the full YAML/JSON content of the OpenAPI spec'
+        'API specification URL, OpenAPI/Swagger spec content (YAML/JSON), or an informal textual description of a REST API'
       ),
       connector_name: z.string().optional().describe(
-        'Custom name for the connector (optional, defaults to the API title from the OpenAPI spec)'
+        'Custom name for the connector (optional, defaults to the API title from the specification or a suitable name from the description)'
       )
     },
     openAPIConnectorPromptCallback
