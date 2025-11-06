@@ -85,6 +85,11 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
       changeToken: z.boolean().optional().default(false)
         .describe("[Token Provided] Set to true when updating to change the token"),
 
+      // Token Provided source fields
+      ticket: z.string().optional().describe("[SingleSignOn Provided] Ticket value for authentication"),
+      changeTicket: z.boolean().optional().default(false)
+        .describe("[SingleSignOn Provided] Set to true when updating to change the ticket"),
+
       // OAuth2 Default/Reference fields
       oauth2ClientName: z.string().optional()
         .describe("[OAuth2 Default/Reference] Name of the OAuth2 client (discover via simplifier://oauthclients). **Important**: The `oauth2ClientName` **MUST** match one of the existing OAuth2 clients configured in Simplifier. You should discover available clients using the `simplifier://oauthclients` resource before creating the login method."),
