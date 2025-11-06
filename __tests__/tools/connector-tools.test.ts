@@ -1529,7 +1529,7 @@ describe('registerConnectorTools', () => {
         expect(mockSimplifierClient.testConnectorCall).toHaveBeenCalledWith(
           "TestConnector",
           "simpleCall",
-          expectedTestRequest,
+          { parameters: [] },
           "MCP Tool: connector-call-test"
         );
         expect(mockWrapToolResult).toHaveBeenCalledWith(

@@ -274,7 +274,7 @@ export class SimplifierClient {
    * @param trackingKey - The MCP tool or resource name for tracking purposes
    * @returns Detailed datatype information including fields, category, and metadata
    */
-  async getDataTypeById(datatypeId: string, trackingKey: string): Promise<SimplifierDataType> {
+  async getDataTypeById(datatypeId: string, trackingKey?: string): Promise<SimplifierDataType> {
     return this.makeUnwrappedRequest(`/UserInterface/api/datatypes/${datatypeId}?woAutoGen=false&detailLevel=detailed`, {
       method: "GET",
       headers: trackingHeader(trackingKey)
@@ -327,7 +327,7 @@ export class SimplifierClient {
     });
   }
 
-  async getConnectorCall(connectorName: string, callName: string, trackingKey: string): Promise<SimplifierConnectorCallDetails> {
+  async getConnectorCall(connectorName: string, callName: string, trackingKey?: string): Promise<SimplifierConnectorCallDetails> {
     return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`, {
       method: "GET",
       headers: trackingHeader(trackingKey)
