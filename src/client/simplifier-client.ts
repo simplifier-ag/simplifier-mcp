@@ -172,7 +172,7 @@ export class SimplifierClient {
     return oResult.message;
   }
 
-  async getServerBusinessObjectFunction(objectName: string, functionName: string, trackingKey: string): Promise<SimplifierBusinessObjectFunction> {
+  async getServerBusinessObjectFunction(objectName: string, functionName: string, trackingKey?: string): Promise<SimplifierBusinessObjectFunction> {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, {
       method: "GET",
       headers: trackingHeader(trackingKey)

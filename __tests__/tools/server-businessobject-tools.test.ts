@@ -30,7 +30,8 @@ describe('registerServerBusinessObjectResources', () => {
       updateServerBusinessObjectFunction: jest.fn(),
       testServerBusinessObjectFunction: jest.fn(),
       deleteServerBusinessObject: jest.fn(),
-      deleteServerBusinessObjectFunction: jest.fn()
+      deleteServerBusinessObjectFunction: jest.fn(),
+      getDataTypeByName: jest.fn()
     } as any;
 
     // Get the mocked wrapToolResult
@@ -909,6 +910,18 @@ describe('registerServerBusinessObjectResources', () => {
           inputParameters: []
         };
 
+        const mockFunction: SimplifierBusinessObjectFunction = {
+          businessObjectName: "TestBO",
+          name: "simpleFunction",
+          description: "A simple function",
+          validateIn: false,
+          validateOut: false,
+          inputParameters: [],
+          outputParameters: [],
+          functionType: "JavaScript",
+          code: 'return { message: "Hello World" };'
+        };
+
         const expectedTestRequest: BusinessObjectTestRequest = {
           parameters: []
         };
@@ -918,6 +931,7 @@ describe('registerServerBusinessObjectResources', () => {
           result: { message: "Hello World" }
         };
 
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue(mockFunction);
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -929,6 +943,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await testToolHandler(testParams);
 
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "simpleFunction");
         expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
           "TestBO",
           "simpleFunction",
@@ -960,11 +975,69 @@ describe('registerServerBusinessObjectResources', () => {
           ]
         };
 
+        const mockFunction: SimplifierBusinessObjectFunction = {
+          businessObjectName: "TestBO",
+          name: "processData",
+          description: "Process data function",
+          validateIn: true,
+          validateOut: false,
+          inputParameters: [
+            {
+              name: "inputText",
+              description: "Input text",
+              alias: "inputText",
+              dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+              dataType: { name: "String" },
+              isOptional: false
+            },
+            {
+              name: "count",
+              description: "Count",
+              alias: "count",
+              dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+              dataType: { name: "Integer" },
+              isOptional: false
+            }
+          ],
+          outputParameters: [],
+          functionType: "JavaScript",
+          code: 'return { processedText: input.inputText.toUpperCase(), repeatCount: input.count };'
+        };
+
+        const mockStringDataType: any = {
+          id: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+          name: "String",
+          category: "base",
+          description: "String type",
+          baseType: "String",
+          isStruct: false,
+          fields: [],
+          properties: [],
+          editable: false,
+          tags: [],
+          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+        };
+
+        const mockIntegerDataType: any = {
+          id: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+          name: "Integer",
+          category: "base",
+          description: "Integer type",
+          baseType: "Integer",
+          isStruct: false,
+          fields: [],
+          properties: [],
+          editable: false,
+          tags: [],
+          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+        };
+
         const expectedTestRequest: BusinessObjectTestRequest = {
           parameters: [
             {
               name: "inputText",
               value: "Hello World",
+              dataType: mockStringDataType,
               dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
               optional: false,
               transfer: true
@@ -972,6 +1045,7 @@ describe('registerServerBusinessObjectResources', () => {
             {
               name: "count",
               value: 5,
+              dataType: mockIntegerDataType,
               dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
               optional: false,
               transfer: true
@@ -984,6 +1058,12 @@ describe('registerServerBusinessObjectResources', () => {
           result: { processedText: "HELLO WORLD", repeatCount: 5 }
         };
 
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue(mockFunction);
+        mockSimplifierClient.getDataTypeByName.mockImplementation(async (name: string) => {
+          if (name === "String") return mockStringDataType;
+          if (name === "Integer") return mockIntegerDataType;
+          throw new Error(`Unknown data type: ${name}`);
+        });
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -997,6 +1077,9 @@ describe('registerServerBusinessObjectResources', () => {
 
         await testToolHandler(testParams);
 
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "processData");
+        expect(mockSimplifierClient.getDataTypeByName).toHaveBeenCalledWith("String");
+        expect(mockSimplifierClient.getDataTypeByName).toHaveBeenCalledWith("Integer");
         expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
           "TestBO",
           "processData",
@@ -1012,11 +1095,24 @@ describe('registerServerBusinessObjectResources', () => {
           inputParameters: []
         };
 
+        const mockFunction: SimplifierBusinessObjectFunction = {
+          businessObjectName: "TestBO",
+          name: "failingFunction",
+          description: "A function that will fail",
+          validateIn: false,
+          validateOut: false,
+          inputParameters: [],
+          outputParameters: [],
+          functionType: "JavaScript",
+          code: 'throw new Error("missing required parameter");'
+        };
+
         const mockResponse: BusinessObjectTestResponse = {
           success: false,
           error: "Function execution failed: missing required parameter 'input'"
         };
 
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue(mockFunction);
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -1030,6 +1126,7 @@ describe('registerServerBusinessObjectResources', () => {
 
         await testToolHandler(testParams);
 
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "failingFunction");
         expect(mockSimplifierClient.testServerBusinessObjectFunction).toHaveBeenCalledWith(
           "TestBO",
           "failingFunction",
@@ -1086,11 +1183,48 @@ describe('registerServerBusinessObjectResources', () => {
           ]
         };
 
+        const mockFunction: SimplifierBusinessObjectFunction = {
+          businessObjectName: "TestBO",
+          name: "testFunction",
+          description: "Test function",
+          validateIn: false,
+          validateOut: false,
+          inputParameters: [
+            {
+              name: "param1",
+              description: "Test param",
+              alias: "param1",
+              dataTypeId: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
+              dataType: { name: "Any" },
+              isOptional: false
+            }
+          ],
+          outputParameters: [],
+          functionType: "JavaScript",
+          code: 'return { output: input.param1 + " processed" };'
+        };
+
+        const mockAnyDataType: any = {
+          id: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
+          name: "Any",
+          category: "base",
+          description: "Any type",
+          baseType: "Any",
+          isStruct: false,
+          fields: [],
+          properties: [],
+          editable: false,
+          tags: [],
+          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
+        };
+
         const mockResponse: BusinessObjectTestResponse = {
           success: true,
           result: { output: "test processed" }
         };
 
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue(mockFunction);
+        mockSimplifierClient.getDataTypeByName.mockResolvedValue(mockAnyDataType);
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -1100,12 +1234,16 @@ describe('registerServerBusinessObjectResources', () => {
 
         await testToolHandler(testParams);
 
+        expect(mockSimplifierClient.getServerBusinessObjectFunction).toHaveBeenCalledWith("TestBO", "testFunction");
+        expect(mockSimplifierClient.getDataTypeByName).toHaveBeenCalledWith("Any");
+
         const callArgs = mockSimplifierClient.testServerBusinessObjectFunction.mock.calls[0];
         const testRequest = callArgs[2] as BusinessObjectTestRequest;
 
         expect(testRequest.parameters[0]).toEqual({
           name: "param1",
           value: "test",
+          dataType: mockAnyDataType,
           dataTypeId: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB", // Any type default
           optional: false,
           transfer: true
