@@ -10,9 +10,9 @@ describe('OpenAPI Connector Prompt', () => {
         'ExampleAPI'
       );
 
-      expect(result).toContain('Create Simplifier Connector from OpenAPI Specification');
+      expect(result).toContain('Create Simplifier Connector from API Specification or Description');
       expect(result).toContain('https://api.example.com/openapi.yaml');
-      expect(result).toContain('Fetch the OpenAPI specification from:');
+      expect(result).toContain('Fetch the API specification or description from:');
       expect(result).toContain('**Name**: ExampleAPI');
       expect(result).toContain('**Namespace**: con/ExampleAPI');
     });
@@ -22,8 +22,8 @@ describe('OpenAPI Connector Prompt', () => {
         'openapi: 3.0.0\ninfo:\n  title: Test API'
       );
 
-      expect(result).toContain('Parse the provided OpenAPI specification');
-      expect(result).not.toContain('Fetch the OpenAPI specification from:');
+      expect(result).toContain('Analyze the provided API specification or description:');
+      expect(result).not.toContain('Fetch the API specification or description from:');
     });
 
     it('should use default values for optional parameters', () => {
@@ -31,8 +31,8 @@ describe('OpenAPI Connector Prompt', () => {
         'https://api.example.com/openapi.yaml'
       );
 
-      expect(result).toContain('**Name**: <will be derived from OpenAPI spec>');
-      expect(result).toContain('**Namespace**: con/<will be derived from OpenAPI spec>');
+      expect(result).toContain('**Name**: <will be derived from API specification>');
+      expect(result).toContain('**Namespace**: con/<will be derived from API specification>');
     });
 
     it('should include all phases in the prompt', () => {
@@ -40,7 +40,7 @@ describe('OpenAPI Connector Prompt', () => {
         'https://api.example.com/openapi.yaml'
       );
 
-      expect(result).toContain('## Phase 1: Fetch and Parse OpenAPI Specification');
+      expect(result).toContain('## Phase 1: Fetch and Analyze the API Specification or Description');
       expect(result).toContain('## Phase 2: Authentication');
       expect(result).toContain('## Phase 3: User Selections for Authentication');
       expect(result).toContain('## Phase 4: Analyze and Present Endpoints');
@@ -70,7 +70,7 @@ describe('OpenAPI Connector Prompt', () => {
 
       const result = openAPIConnectorPromptCallback(args);
 
-      expect(result.description).toBe('Multi-phase workflow for creating a Simplifier connector from OpenAPI specification');
+      expect(result.description).toBe('Multi-phase workflow for creating a Simplifier connector from an API specification (OpenAPI/Swagger) or informal REST API description');
       expect(result.messages).toHaveLength(1);
       expect(result.messages[0].role).toBe('user');
       expect(result.messages[0].content.type).toBe('text');
@@ -84,8 +84,8 @@ describe('OpenAPI Connector Prompt', () => {
 
       const result = openAPIConnectorPromptCallback(args);
 
-      expect(result.messages[0].content.text).toContain('<will be derived from OpenAPI spec>');
-      expect(result.messages[0].content.text).toContain('**Namespace**: con/<will be derived from OpenAPI spec>');
+      expect(result.messages[0].content.text).toContain('<will be derived from API specification>');
+      expect(result.messages[0].content.text).toContain('**Namespace**: con/<will be derived from API specification>');
     });
   });
 
@@ -119,7 +119,7 @@ describe('OpenAPI Connector Prompt', () => {
 
       const description = mockPrompt.mock.calls[0][1];
       expect(description).toContain('Guided workflow');
-      expect(description).toContain('OpenAPI specification');
+      expect(description).toContain('API specification');
     });
 
     it('should register prompt with correct argument schema', () => {
