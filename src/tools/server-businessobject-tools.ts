@@ -58,10 +58,10 @@ Business Objects must be assigned to projects using the project assignment param
       destructiveHint: false,
       idempotentHint: false,
       openWorldHint: true
-    }, async ( {name, description, dependencies, tags, projectsBefore, projectsAfterChange}) => {
-      return wrapToolResult( `create or update Business Object ${name}`, async () => {
+    }, async ({ name, description, dependencies, tags, projectsBefore, projectsAfterChange }) => {
+      return wrapToolResult(`create or update Business Object ${name}`, async () => {
         let oExisting: any;
-        try { oExisting = await simplifier.getServerBusinessObjectDetails(name) } catch {}
+        try { oExisting = await simplifier.getServerBusinessObjectDetails(name) } catch { }
         const data: SimplifierBusinessObjectDetails = {
           name: name,
           description: description,
@@ -240,7 +240,7 @@ yourself do not need to be added, but you can access own functions like Simplifi
         description: z.string().optional().default(""),
         alias: z.string().optional().default(""),
         dataTypeId: z.string().default("D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB")
-            .describe("Initially it could make sense, to give the Any type as output data type, and only later create a fitting datatype, when the output schema is fix."),
+          .describe("Initially it could make sense, to give the Any type as output data type, and only later create a fitting datatype, when the output schema is fix."),
         isOptional: z.boolean().optional().default(false)
       })).optional().default([])
     },
@@ -255,7 +255,7 @@ yourself do not need to be added, but you can access own functions like Simplifi
         let oExisting: any;
         try {
           oExisting = await simplifier.getServerBusinessObjectFunction(businessObjectName, functionName);
-        } catch {}
+        } catch { }
 
         const functionData: SimplifierBusinessObjectFunction = {
           businessObjectName,
@@ -337,7 +337,7 @@ This allows you to test your functions with real data and see the results.
         const boParameters = (await simplifier.getServerBusinessObjectFunction(businessObjectName, functionName)).inputParameters
 
         const testParameters: BusinessObjectTestParameter[]  = await Promise.all(boParameters.map(async cparam => {
-          const dataType = await simplifier.getDataTypeById(cparam.dataType.name)
+          const dataType = await simplifier.getDataTypeByName(cparam.dataType.name)
           return {
             name: cparam.name,
             value: inputParameters.find(p => p.name === cparam.name)?.value,
@@ -394,7 +394,7 @@ This allows you to test your functions with real data and see the results.
       idempotentHint: true,
       openWorldHint: false
     },
-    async ({name}) => {
+    async ({ name }) => {
       return wrapToolResult(`Delete Business Object ${name}`, async () => {
         return await simplifier.deleteServerBusinessObject(name);
       })
@@ -413,7 +413,7 @@ This allows you to test your functions with real data and see the results.
       idempotentHint: true,
       openWorldHint: false
     },
-    async ({businessObjectName, functionName}) => {
+    async ({ businessObjectName, functionName }) => {
       return wrapToolResult(`Delete Business Object Function ${businessObjectName}.${functionName}`, async () => {
         return await simplifier.deleteServerBusinessObjectFunction(businessObjectName, functionName);
       })
