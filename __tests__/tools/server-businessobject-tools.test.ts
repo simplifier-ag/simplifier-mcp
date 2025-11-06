@@ -910,18 +910,6 @@ describe('registerServerBusinessObjectResources', () => {
           inputParameters: []
         };
 
-        const mockFunction: SimplifierBusinessObjectFunction = {
-          businessObjectName: "TestBO",
-          name: "simpleFunction",
-          description: "A simple function",
-          validateIn: false,
-          validateOut: false,
-          inputParameters: [],
-          outputParameters: [],
-          functionType: "JavaScript",
-          code: 'return { message: "Hello World" };'
-        };
-
         const expectedTestRequest: BusinessObjectTestRequest = {
           parameters: []
         };
@@ -981,63 +969,6 @@ describe('registerServerBusinessObjectResources', () => {
           ]
         };
 
-        const mockFunction: SimplifierBusinessObjectFunction = {
-          businessObjectName: "TestBO",
-          name: "processData",
-          description: "Process data function",
-          validateIn: true,
-          validateOut: false,
-          inputParameters: [
-            {
-              name: "inputText",
-              description: "Input text",
-              alias: "inputText",
-              dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
-              dataType: { name: "String" },
-              isOptional: false
-            },
-            {
-              name: "count",
-              description: "Count",
-              alias: "count",
-              dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
-              dataType: { name: "Integer" },
-              isOptional: false
-            }
-          ],
-          outputParameters: [],
-          functionType: "JavaScript",
-          code: 'return { processedText: input.inputText.toUpperCase(), repeatCount: input.count };'
-        };
-
-        const mockStringDataType: any = {
-          id: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
-          name: "String",
-          category: "base",
-          description: "String type",
-          baseType: "String",
-          isStruct: false,
-          fields: [],
-          properties: [],
-          editable: false,
-          tags: [],
-          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
-        };
-
-        const mockIntegerDataType: any = {
-          id: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
-          name: "Integer",
-          category: "base",
-          description: "Integer type",
-          baseType: "Integer",
-          isStruct: false,
-          fields: [],
-          properties: [],
-          editable: false,
-          tags: [],
-          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
-        };
-
         const expectedTestRequest: BusinessObjectTestRequest = {
           parameters: [
             {
@@ -1054,6 +985,10 @@ describe('registerServerBusinessObjectResources', () => {
             {
               name: "count",
               value: 5,
+              dataType: {
+                id: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+                name: "Integer"
+              } as any,
               dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
               optional: false,
               transfer: true
@@ -1124,18 +1059,6 @@ describe('registerServerBusinessObjectResources', () => {
           businessObjectName: "TestBO",
           functionName: "failingFunction",
           inputParameters: []
-        };
-
-        const mockFunction: SimplifierBusinessObjectFunction = {
-          businessObjectName: "TestBO",
-          name: "failingFunction",
-          description: "A function that will fail",
-          validateIn: false,
-          validateOut: false,
-          inputParameters: [],
-          outputParameters: [],
-          functionType: "JavaScript",
-          code: 'throw new Error("missing required parameter");'
         };
 
         const mockResponse: BusinessObjectTestResponse = {
@@ -1218,41 +1141,6 @@ describe('registerServerBusinessObjectResources', () => {
               optional: false
             }
           ]
-        };
-
-        const mockFunction: SimplifierBusinessObjectFunction = {
-          businessObjectName: "TestBO",
-          name: "testFunction",
-          description: "Test function",
-          validateIn: false,
-          validateOut: false,
-          inputParameters: [
-            {
-              name: "param1",
-              description: "Test param",
-              alias: "param1",
-              dataTypeId: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
-              dataType: { name: "Any" },
-              isOptional: false
-            }
-          ],
-          outputParameters: [],
-          functionType: "JavaScript",
-          code: 'return { output: input.param1 + " processed" };'
-        };
-
-        const mockAnyDataType: any = {
-          id: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
-          name: "Any",
-          category: "base",
-          description: "Any type",
-          baseType: "Any",
-          isStruct: false,
-          fields: [],
-          properties: [],
-          editable: false,
-          tags: [],
-          assignedProjects: { projectsBefore: [], projectsAfterChange: [] }
         };
 
         const mockResponse: BusinessObjectTestResponse = {
