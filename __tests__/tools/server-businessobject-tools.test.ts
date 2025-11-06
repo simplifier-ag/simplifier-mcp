@@ -30,7 +30,8 @@ describe('registerServerBusinessObjectResources', () => {
       updateServerBusinessObjectFunction: jest.fn(),
       testServerBusinessObjectFunction: jest.fn(),
       deleteServerBusinessObject: jest.fn(),
-      deleteServerBusinessObjectFunction: jest.fn()
+      deleteServerBusinessObjectFunction: jest.fn(),
+      getDataTypeByName: jest.fn()
     } as any;
 
     // Get the mocked wrapToolResult
@@ -918,6 +919,13 @@ describe('registerServerBusinessObjectResources', () => {
           result: { message: "Hello World" }
         };
 
+        // Mock the function details with no input parameters
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue({
+          name: "simpleFunction",
+          inputParameters: [],
+          outputParameters: []
+        } as any);
+
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -964,6 +972,10 @@ describe('registerServerBusinessObjectResources', () => {
             {
               name: "inputText",
               value: "Hello World",
+              dataType: {
+                id: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+                name: "String"
+              } as any,
               dataTypeId: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
               optional: false,
               transfer: true
@@ -971,6 +983,10 @@ describe('registerServerBusinessObjectResources', () => {
             {
               name: "count",
               value: 5,
+              dataType: {
+                id: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+                name: "Integer"
+              } as any,
               dataTypeId: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
               optional: false,
               transfer: true
@@ -982,6 +998,35 @@ describe('registerServerBusinessObjectResources', () => {
           success: true,
           result: { processedText: "HELLO WORLD", repeatCount: 5 }
         };
+
+        // Mock the function details with input parameters
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue({
+          name: "processData",
+          inputParameters: [
+            {
+              name: "inputText",
+              dataType: { name: "String" },
+              isOptional: false
+            },
+            {
+              name: "count",
+              dataType: { name: "Integer" },
+              isOptional: false
+            }
+          ],
+          outputParameters: []
+        } as any);
+
+        // Mock getDataTypeByName for both parameters
+        mockSimplifierClient.getDataTypeByName
+          .mockResolvedValueOnce({
+            id: "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+            name: "String"
+          } as any)
+          .mockResolvedValueOnce({
+            id: "B9B1191E0B70BA0845CF4F6A4F4C017594F8BA84FD2F1849966081D53A8C836D",
+            name: "Integer"
+          } as any);
 
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
@@ -1014,6 +1059,13 @@ describe('registerServerBusinessObjectResources', () => {
           success: false,
           error: "Function execution failed: missing required parameter 'input'"
         };
+
+        // Mock the function details with no input parameters
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue({
+          name: "failingFunction",
+          inputParameters: [],
+          outputParameters: []
+        } as any);
 
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
@@ -1088,6 +1140,25 @@ describe('registerServerBusinessObjectResources', () => {
           result: { output: "test processed" }
         };
 
+        // Mock the function details with one input parameter
+        mockSimplifierClient.getServerBusinessObjectFunction.mockResolvedValue({
+          name: "testFunction",
+          inputParameters: [
+            {
+              name: "param1",
+              dataType: { name: "Any" },
+              isOptional: false
+            }
+          ],
+          outputParameters: []
+        } as any);
+
+        // Mock getDataTypeByName for the parameter
+        mockSimplifierClient.getDataTypeByName.mockResolvedValue({
+          id: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
+          name: "Any"
+        } as any);
+
         mockSimplifierClient.testServerBusinessObjectFunction.mockResolvedValue(mockResponse);
 
         mockWrapToolResult.mockImplementation(async (_caption, fn) => {
@@ -1103,6 +1174,10 @@ describe('registerServerBusinessObjectResources', () => {
         expect(testRequest.parameters[0]).toEqual({
           name: "param1",
           value: "test",
+          dataType: {
+            id: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB",
+            name: "Any"
+          } as any,
           dataTypeId: "D31053204B4A612390A2D6ECDF623E979C14ADC070A7CB9B08B2099C3011BCAB", // Any type default
           optional: false,
           transfer: true
