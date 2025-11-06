@@ -1,6 +1,7 @@
 import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
+import {trackingResourcePrefix} from "../client/matomo-tracking";
 
 export function registerLoggingResources(server: McpServer, simplifier: SimplifierClient): void {
 
@@ -8,9 +9,11 @@ export function registerLoggingResources(server: McpServer, simplifier: Simplifi
 
   const DEFAULT_PAGE_SIZE = 50
 
+
   // Main discoverable logging resource - shows up in resources/list
   // Returns recent log entries without filtering
-  server.resource("logging-list", "simplifier://logging", {
+  const resourceNameLoggingList = "logging-list"
+  server.resource(resourceNameLoggingList, "simplifier://logging", {
       title: "Simplifier Log Entries",
       mimeType: "application/json",
       description: `# Get recent log entries from Simplifier
@@ -33,7 +36,8 @@ This resource provides access to the ${DEFAULT_PAGE_SIZE} most recent log entrie
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
-        const response = await simplifier.listLogEntriesPaginated(0, DEFAULT_PAGE_SIZE, {});
+        const trackingKey = trackingResourcePrefix + resourceNameLoggingList;
+        const response = await simplifier.listLogEntriesPaginated(0, DEFAULT_PAGE_SIZE, trackingKey, {});
         const pageCount = await simplifier.getLogPages(DEFAULT_PAGE_SIZE, {})
 
         const logEntryResources = response.list.map(entry => ({
@@ -59,7 +63,9 @@ This resource provides access to the ${DEFAULT_PAGE_SIZE} most recent log entrie
     }
   );
 
+
   // Resource template for specific log entry details
+  const resourceNameLogEntryDetails = "log-entry-details"
   const logEntryDetailsTemplate = new ResourceTemplate("simplifier://logging/entry/{id}", noListCallback);
 
   server.resource("log-entry-details", logEntryDetailsTemplate, {
@@ -82,7 +88,8 @@ Returns complete log entry information including:
           throw new Error('Log entry ID is required');
         }
 
-        const logEntry = await simplifier.getLogEntry(entryId);
+        const trackingKey = trackingResourcePrefix + resourceNameLogEntryDetails;
+        const logEntry = await simplifier.getLogEntry(entryId, trackingKey);
 
         return {
           id: logEntry.id,

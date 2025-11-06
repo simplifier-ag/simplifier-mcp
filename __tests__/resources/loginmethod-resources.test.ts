@@ -451,7 +451,7 @@ describe('LoginMethod Resources', () => {
 
         const result = await loginMethodDetailsHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('TestUserCredentials');
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('TestUserCredentials', 'MCP Resource: loginmethod-details');
         const resultData = JSON.parse(result.contents[0].text as string);
 
         expect(resultData.name).toBe('TestUserCredentials');
@@ -528,7 +528,7 @@ describe('LoginMethod Resources', () => {
 
         const result = await loginMethodDetailsHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('oAuthSpotify');
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('oAuthSpotify', 'MCP Resource: loginmethod-details');
         const resultData = JSON.parse(result.contents[0].text as string);
 
         expect(resultData.name).toBe('oAuthSpotify');
@@ -596,7 +596,7 @@ describe('LoginMethod Resources', () => {
 
         const result = await loginMethodDetailsHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('TokenMethod');
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('TokenMethod', 'MCP Resource: loginmethod-details');
         const resultData = JSON.parse(result.contents[0].text as string);
 
         expect(resultData.name).toBe('TokenMethod');
@@ -633,7 +633,7 @@ describe('LoginMethod Resources', () => {
 
         await loginMethodDetailsHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('MyCustomMethod');
+        expect(mockClient.getLoginMethodDetails).toHaveBeenCalledWith('MyCustomMethod', 'MCP Resource: loginmethod-details');
       });
 
       it('should handle API errors through wrapper', async () => {

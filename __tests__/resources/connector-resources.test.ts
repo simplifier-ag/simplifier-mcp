@@ -310,7 +310,7 @@ describe('Connector Resources', () => {
 
         const result = await connectorDetailsHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getConnector).toHaveBeenCalledWith('TestConnector', true);
+        expect(mockClient.getConnector).toHaveBeenCalledWith('TestConnector', 'MCP Resource: connector-details', true);
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.connector.name).toBe('TestConnector');
         expect(resultData.connector.active).toBe(true);
@@ -369,7 +369,7 @@ describe('Connector Resources', () => {
 
         const result = await connectorCallsListHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.listConnectorCalls).toHaveBeenCalledWith('TestConnector');
+        expect(mockClient.listConnectorCalls).toHaveBeenCalledWith('TestConnector', 'MCP Resource: connector-calls-list');
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.connectorName).toBe('TestConnector');
         expect(resultData.calls).toHaveLength(2);
@@ -404,7 +404,7 @@ describe('Connector Resources', () => {
 
         const result = await connectorCallDetailsHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getConnectorCall).toHaveBeenCalledWith('TestConnector', 'getData');
+        expect(mockClient.getConnectorCall).toHaveBeenCalledWith('TestConnector', 'getData', 'MCP Resource: connector-call-details');
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.call.name).toBe('getData');
         expect(resultData.call.connectorCallParameters).toHaveLength(3);

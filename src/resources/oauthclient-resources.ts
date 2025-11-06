@@ -1,11 +1,13 @@
 import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
+import {trackingResourcePrefix} from "../client/matomo-tracking.js";
 
 export function registerOAuth2ClientResources(server: McpServer, simplifier: SimplifierClient): void {
 
   // OAuth2 clients list resource
-  server.resource("oauthclients-list", "simplifier://oauthclients", {
+  const resourceNameOAuthClientsList = "oauthclients-list"
+  server.resource(resourceNameOAuthClientsList, "simplifier://oauthclients", {
       title: "List All OAuth2 Clients",
       mimeType: "application/json",
       description: `# Get the list of all OAuth2 Clients
@@ -33,7 +35,8 @@ when creating OAuth2 login methods via the \`loginmethod-update\` tool.`
     },
     async (uri: URL) => {
       return wrapResourceResult(uri, async () => {
-        const response = await simplifier.listOAuth2Clients();
+        const trackingKey = trackingResourcePrefix + resourceNameOAuthClientsList
+        const response = await simplifier.listOAuth2Clients(trackingKey);
 
         const clientResources = response.authSettings.map(client => ({
           name: client.name,

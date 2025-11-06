@@ -135,7 +135,7 @@ describe('Logging Resources', () => {
 
         const result = await loggingListHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, {});
+        expect(mockClient.listLogEntriesPaginated).toHaveBeenCalledWith(0, 50, "MCP Resource: logging-list", {});
         expect(mockClient.getLogPages).toHaveBeenCalledWith(50, {});
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.logs).toHaveLength(2);
@@ -220,7 +220,7 @@ describe('Logging Resources', () => {
 
         const result = await logEntryDetailsHandler(testUri, {}, createMockExtra());
 
-        expect(mockClient.getLogEntry).toHaveBeenCalledWith('LOG001');
+        expect(mockClient.getLogEntry).toHaveBeenCalledWith('LOG001', 'MCP Resource: log-entry-details');
         const resultData = JSON.parse(result.contents[0].text as string);
         expect(resultData.id).toBe('LOG001');
         expect(resultData.level).toBe(3);
