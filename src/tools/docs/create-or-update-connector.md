@@ -95,3 +95,83 @@ The object under **endpointConfiguration / configuration** defines properties, s
 }
 ```
 
+### Connector type 'SQL'
+
+The object under **endpointConfiguration / configuration** defines properties, specific to SQL Connector:
+* **dataSource** - the database type (e.g., "oracle", "mysql", "postgresql", "mssql", "db2")
+* **host** - the hostname or IP address of the database server
+* **port** - the port number the database server is listening on (as string)
+* **database** - the database name to connect to
+* **connectionString** - the JDBC connection string (constructed from host, port, database, and specific to the database type)
+* **resultType** - the format for query results, typically "resultSet"
+
+**Important Notes:**
+* For **Oracle** databases, the database schema name is defined by the username specified in the login method (not in the connector configuration itself)
+* The **loginMethodName** field in the endpointConfiguration should reference an existing login method that provides the database credentials
+* Connection strings are database-specific. Examples:
+  * Oracle: `jdbc:oracle:thin:@//[host]:[port]/[database]` typical port: 1521
+  * MySQL: `jdbc:mysql://[host]:[port]/[database]` typical port: 3306
+  * Sybase: `jdbc:sybase:Tds://[host]:[port]/[database]` typical port: 5000
+  * PostgreSQL: `jdbc:postgresql://[host]:[port]/[database]` typical port: 5432
+  * SQLite: `jdbc:sqlite:[connector-name]` (TODO can have a file)
+  * HANA: `jdbc:sap://[host]:[port]/[database]` typical port: 30015
+  * MS SQL: `jdbc:sqlserver://[host]:[port];databaseName=[database]` typical port: 1433
+  * DB2: `jdbc:db2://[host]:[port]/[database]:currentSchema=[schema];` typical port: 50000 (TODO has a schema)
+  * DB2AS400: `jdbc:as400://[host]:[port]/[database]` typical port: 446
+
+**Complete Example (Oracle):**
+```json
+{
+  "name": "OraExample",
+  "description": "connector to oracle database",
+  "connectorType": "SQL",
+  "active": true,
+  "timeoutTime": 60,
+  "endpointConfiguration": {
+    "endpoint": "Default",
+    "loginMethodName": "OracleDBCredentials",
+    "certificates": [],
+    "configuration": {
+      "dataSource": "oracle",
+      "host": "172.17.0.3",
+      "port": "1521",
+      "database": "ORCLCDB",
+      "connectionString": "jdbc:oracle:thin:@//172.17.0.3:1521/ORCLCDB",
+      "resultType": "resultSet"
+    }
+  },
+  "tags": [],
+  "assignedProjects": {
+    "projectsAfterChange": []
+  }
+}
+```
+
+**Complete Example (MySQL):**
+```json
+{
+  "name": "MySQLExample",
+  "description": "connector to mysql database",
+  "connectorType": "SQL",
+  "active": true,
+  "timeoutTime": 60,
+  "endpointConfiguration": {
+    "endpoint": "Default",
+    "loginMethodName": "MySQLCredentials",
+    "certificates": [],
+    "configuration": {
+      "dataSource": "mysql",
+      "host": "localhost",
+      "port": "3306",
+      "database": "mydb",
+      "connectionString": "jdbc:mysql://localhost:3306/mydb",
+      "resultType": "resultSet"
+    }
+  },
+  "tags": [],
+  "assignedProjects": {
+    "projectsAfterChange": []
+  }
+}
+```
+

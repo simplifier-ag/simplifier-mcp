@@ -543,6 +543,270 @@ describe('registerConnectorTools', () => {
           })
         );
       });
+
+      it('should create an Oracle SQL connector', async () => {
+        const testParams = {
+          name: "OraExample",
+          description: "connector to oracle database",
+          connectorType: "SQL",
+          active: true,
+          timeoutTime: 60,
+          endpointConfiguration: {
+            endpoint: "Default",
+            loginMethodName: "OracleDBCredentials",
+            certificates: [],
+            configuration: {
+              dataSource: "oracle",
+              host: "172.17.0.3",
+              port: "1521",
+              database: "ORCLCDB",
+              connectionString: "jdbc:oracle:thin:@//172.17.0.3:1521/ORCLCDB",
+              resultType: "resultSet"
+            }
+          },
+          tags: [],
+          projectsBefore: [],
+          projectsAfterChange: []
+        };
+
+        // Mock that connector doesn't exist
+        mockSimplifierClient.getConnector.mockRejectedValue(new Error("Not found"));
+
+        // Mock successful creation
+        mockSimplifierClient.createConnector.mockResolvedValue("Oracle SQL connector created");
+
+        // Mock wrapToolResult
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await toolHandler(testParams);
+
+        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("OraExample", "MCP Tool: connector-update");
+        expect(mockSimplifierClient.createConnector).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: "OraExample",
+            connectorType: "SQL",
+            endpointConfiguration: expect.objectContaining({
+              endpoint: "Default",
+              loginMethodName: "OracleDBCredentials",
+              configuration: expect.objectContaining({
+                dataSource: "oracle",
+                host: "172.17.0.3",
+                port: "1521",
+                database: "ORCLCDB",
+                connectionString: "jdbc:oracle:thin:@//172.17.0.3:1521/ORCLCDB",
+                resultType: "resultSet"
+              })
+            })
+          })
+        );
+        expect(mockSimplifierClient.updateConnector).not.toHaveBeenCalled();
+      });
+
+      it('should create a MySQL SQL connector', async () => {
+        const testParams = {
+          name: "MySQLExample",
+          description: "connector to mysql database",
+          connectorType: "SQL",
+          active: true,
+          timeoutTime: 60,
+          endpointConfiguration: {
+            endpoint: "Default",
+            loginMethodName: "MySQLCredentials",
+            certificates: [],
+            configuration: {
+              dataSource: "mysql",
+              host: "localhost",
+              port: "3306",
+              database: "mydb",
+              connectionString: "jdbc:mysql://localhost:3306/mydb",
+              resultType: "resultSet"
+            }
+          },
+          tags: ["mysql", "database"],
+          projectsBefore: [],
+          projectsAfterChange: ["DatabaseProject"]
+        };
+
+        // Mock that connector doesn't exist
+        mockSimplifierClient.getConnector.mockRejectedValue(new Error("Not found"));
+
+        // Mock successful creation
+        mockSimplifierClient.createConnector.mockResolvedValue("MySQL SQL connector created");
+
+        // Mock wrapToolResult
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await toolHandler(testParams);
+
+        expect(mockSimplifierClient.createConnector).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: "MySQLExample",
+            connectorType: "SQL",
+            endpointConfiguration: expect.objectContaining({
+              configuration: expect.objectContaining({
+                dataSource: "mysql",
+                connectionString: "jdbc:mysql://localhost:3306/mydb"
+              })
+            })
+          })
+        );
+      });
+
+      it('should create a PostgreSQL SQL connector', async () => {
+        const testParams = {
+          name: "PostgreSQLExample",
+          description: "connector to postgresql database",
+          connectorType: "SQL",
+          active: true,
+          timeoutTime: 60,
+          endpointConfiguration: {
+            endpoint: "Default",
+            loginMethodName: "PostgresCredentials",
+            certificates: [],
+            configuration: {
+              dataSource: "postgresql",
+              host: "db.example.com",
+              port: "5432",
+              database: "proddb",
+              connectionString: "jdbc:postgresql://db.example.com:5432/proddb",
+              resultType: "resultSet"
+            }
+          },
+          tags: ["postgresql", "database"],
+          projectsBefore: [],
+          projectsAfterChange: []
+        };
+
+        // Mock that connector doesn't exist
+        mockSimplifierClient.getConnector.mockRejectedValue(new Error("Not found"));
+
+        // Mock successful creation
+        mockSimplifierClient.createConnector.mockResolvedValue("PostgreSQL connector created");
+
+        // Mock wrapToolResult
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await toolHandler(testParams);
+
+        expect(mockSimplifierClient.createConnector).toHaveBeenCalledWith(
+          expect.objectContaining({
+            connectorType: "SQL",
+            endpointConfiguration: expect.objectContaining({
+              configuration: expect.objectContaining({
+                dataSource: "postgresql",
+                port: "5432"
+              })
+            })
+          })
+        );
+      });
+
+      it('should update an existing SQL connector', async () => {
+        const testParams = {
+          name: "ExistingSQLConnector",
+          description: "Updated SQL connector description",
+          connectorType: "SQL",
+          active: true,
+          timeoutTime: 120,
+          endpointConfiguration: {
+            endpoint: "Default",
+            loginMethodName: "UpdatedCredentials",
+            certificates: [],
+            configuration: {
+              dataSource: "oracle",
+              host: "new-host.example.com",
+              port: "1521",
+              database: "NEWDB",
+              connectionString: "jdbc:oracle:thin:@//new-host.example.com:1521/NEWDB",
+              resultType: "resultSet"
+            }
+          },
+          tags: ["sql", "updated"],
+          projectsBefore: ["Project1"],
+          projectsAfterChange: ["Project1", "Project2"]
+        };
+
+        const existingConnector: SimplifierConnectorDetails = {
+          name: "ExistingSQLConnector",
+          description: "Old SQL connector",
+          connectorType: {
+            technicalName: "SQL",
+            i18n: "SQL Connector",
+            descriptionI18n: "SQL Database Connector"
+          },
+          active: true,
+          timeoutTime: 60,
+          amountOfCalls: 5,
+          editable: true,
+          deletable: true,
+          tags: ["sql"],
+          assignedProjects: {
+            projectsBefore: ["Project1"],
+            projectsAfterChange: ["Project1"]
+          },
+          configuration: {
+            endpoints: [{
+              endpoint: "Default",
+              certificates: [],
+              configuration: {
+                dataSource: "oracle",
+                host: "old-host.example.com",
+                port: "1521",
+                database: "OLDDB",
+                connectionString: "jdbc:oracle:thin:@//old-host.example.com:1521/OLDDB",
+                resultType: "resultSet"
+              }
+            }]
+          }
+        };
+
+        // Mock that connector exists
+        mockSimplifierClient.getConnector.mockResolvedValue(existingConnector);
+
+        // Mock successful update
+        mockSimplifierClient.updateConnector.mockResolvedValue("SQL connector updated");
+
+        // Mock wrapToolResult
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await toolHandler(testParams);
+
+        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("ExistingSQLConnector", "MCP Tool: connector-update");
+        expect(mockSimplifierClient.updateConnector).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: "ExistingSQLConnector",
+            connectorType: "SQL",
+            timeoutTime: 120,
+            endpointConfiguration: expect.objectContaining({
+              configuration: expect.objectContaining({
+                host: "new-host.example.com",
+                database: "NEWDB"
+              })
+            })
+          })
+        );
+        expect(mockSimplifierClient.createConnector).not.toHaveBeenCalled();
+      });
     });
 
     describe('tool handler - correct create/update logic', () => {
