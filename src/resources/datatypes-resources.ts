@@ -2,7 +2,7 @@ import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
 import {SimplifierDataType, SimplifierDataTypesResponse} from "../client/types.js";
-import {trackingResourcePrefix} from "../client/matomo-tracking";
+import {trackingResourcePrefix} from "../client/matomo-tracking.js";
 
 // Base types that never change - hardcoded for performance
 const BASE_TYPES: SimplifierDataType[] = [

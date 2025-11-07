@@ -1,7 +1,7 @@
 import {SimplifierClient} from "../client/simplifier-client.js";
 import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
-import {trackingResourcePrefix} from "../client/matomo-tracking";
+import {trackingResourcePrefix} from "../client/matomo-tracking.js";
 
 export function registerLoggingResources(server: McpServer, simplifier: SimplifierClient): void {
 
