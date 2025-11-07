@@ -889,3 +889,66 @@ export interface SimplifierInstanceSettings {
   instanceSettings: SimplifierInstance[]
 }
 
+export type SAPSystemBase = {
+  name: string;
+  description: string;
+  active: boolean;
+  instanceRestrictions: string[];
+  systemType: string;
+  tags: string[];
+  assignedProjects: {
+    projectsBefore: string[];
+    projectsAfterChange: string[];
+  };
+  permission: {
+    deletable: true;
+    editable: true;
+  }
+}
+
+/** A detail view of a SAP system */
+export type SAPSystem = SAPSystemBase & { configuration: SAPSystemConfiguration }
+
+/** Entry for a SAP system in the list of all SAP systems */
+export type SAPSystemOverviewItem = SAPSystemBase & {
+  updateInfo: {
+    created: string;
+    creator: {
+      loginName: string;
+      firstName: string;
+      lastName: string;
+      platformDomain: string;
+      differentPlatformDomain: boolean;
+    }
+  };
+  referencedBy: {
+    loginMethods: string[];
+    connectors: string[]
+  };
+}
+
+type SAPSystemConfiguration = SAPCustomApplicationServer | SAPGroupServer;
+
+/** configuration options common to both types of server */
+type SAPSystemConfigurationCommon = {
+  systemId: string;
+  systemNumber: string;
+  clientNumber: string;
+  language: string;
+  sapRouterString: string;
+  sncActive: boolean;
+  sncPartner: string;
+  sncSsoMode: boolean;
+  sncQualityOfProtection: number;
+}
+type SAPCustomApplicationServer = SAPSystemConfigurationCommon & { applicationServerHostname: string }
+type SAPGroupServer = SAPSystemConfigurationCommon & {
+  messageServerHostname: string;
+  messageServerServiceName: string;
+  messageServerR3Name: string;
+  messageServerGroupName: string;
+}
+
+export interface SAPSystemListResponse {
+  sapSystems: SAPSystemOverviewItem[];
+}

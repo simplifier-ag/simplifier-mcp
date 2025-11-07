@@ -8,6 +8,8 @@ import {
   ConnectorTestResponse,
   CreateLoginMethodRequest,
   GenericApiResponse,
+  SAPSystem,
+  SAPSystemListResponse,
   SimplifierApiResponse,
   SimplifierBusinessObjectDetails,
   SimplifierBusinessObjectFunction,
@@ -400,6 +402,46 @@ export class SimplifierClient {
       body: JSON.stringify(request)
     });
     return `Successfully updated Login Method '${name}'`;
+  }
+
+  // SAP system API methods
+
+  async getSapSystem(systemName: string, trackingKey: string): Promise<SAPSystem> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/sapSystem/${systemName}`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey),
+    })
+  }
+
+  async listSapSystems(trackingKey: string): Promise<SAPSystemListResponse> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/sapSystem`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey),
+    })
+  }
+
+  async createSapSystem(sapSystemRequest: SAPSystem): Promise<string> {
+    await this.makeUnwrappedRequest(`/UserInterface/api/sapSystem`, {
+      method: "POST",
+      body: JSON.stringify(sapSystemRequest),
+    })
+    return `Successfully created SAP system '${sapSystemRequest.name}'`;
+  }
+
+  async updateSapSystem(sapSystemRequest: SAPSystem): Promise<string> {
+    await this.makeUnwrappedRequest(`/UserInterface/api/sapSystem/${sapSystemRequest.name}`, {
+      method: "PUT",
+      body: JSON.stringify(sapSystemRequest),
+    })
+    return `Successfully updated SAP system '${sapSystemRequest.name}'`;
+  }
+
+  async deleteSapSystem(systemName: string, trackingKey: string): Promise<string> {
+    const oResult = await this.makeUnwrappedRequest<GenericApiResponse>(`/UserInterface/api/sapSystem/${systemName}`, {
+      method: "DELETE",
+      headers: trackingHeader(trackingKey),
+    })
+    return oResult.message;
   }
 
   // Logging API methods

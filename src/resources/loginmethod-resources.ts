@@ -14,7 +14,7 @@ export function registerLoginMethodResources(server: McpServer, simplifier: Simp
       description: `# Get the list of all Login Methods
 
 This resource provides the entry point for discovering all available login methods in the Simplifier instance.
-Each login method can be accessed via simplifier://loginmethod/{loginMethodName} for detailed information (future feature).
+Each login method can be accessed via simplifier://loginmethod/{loginMethodName} for detailed information.
 
 **What are Login Methods?**
 Login methods handle authentication for connectors, supporting various authentication types:
