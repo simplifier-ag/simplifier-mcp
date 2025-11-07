@@ -5,6 +5,7 @@ import {registerServerDatatypeTools} from "./server-datatype-tools.js";
 import {registerConnectorTools} from "./connector-tools.js";
 import {registerLoginMethodTools} from "./loginmethod-tools.js";
 import {registerLoggingTools} from "./logging-tools.js";
+import { registerSapSystemTools } from "./sap-system-tools.js";
 
 /**
  * Register Tools for Simplifier Low Code Platform integration
@@ -15,6 +16,7 @@ export function registerTools(server: McpServer, simplifier: SimplifierClient) {
   registerConnectorTools(server, simplifier)
   registerLoginMethodTools(server, simplifier)
   registerLoggingTools(server, simplifier)
+  registerSapSystemTools(server, simplifier)
 }
 
 
