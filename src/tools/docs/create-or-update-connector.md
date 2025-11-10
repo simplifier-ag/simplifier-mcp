@@ -109,15 +109,15 @@ The object under **endpointConfiguration / configuration** defines properties, s
 * For **Oracle** databases, the database schema name is defined by the username specified in the login method (not in the connector configuration itself)
 * The **loginMethodName** field in the endpointConfiguration should reference an existing login method that provides the database credentials
 * Connection strings are database-specific. Examples:
-  * Oracle: `jdbc:oracle:thin:@//[host]:[port]/[database]` typical port: 1521
-  * MySQL: `jdbc:mysql://[host]:[port]/[database]` typical port: 3306
-  * Sybase: `jdbc:sybase:Tds://[host]:[port]/[database]` typical port: 5000
-  * PostgreSQL: `jdbc:postgresql://[host]:[port]/[database]` typical port: 5432
-  * SQLite: `jdbc:sqlite:[connector-name]` (TODO can have a file)
-  * HANA: `jdbc:sap://[host]:[port]/[database]` typical port: 30015
-  * MS SQL: `jdbc:sqlserver://[host]:[port];databaseName=[database]` typical port: 1433
-  * DB2: `jdbc:db2://[host]:[port]/[database]:currentSchema=[schema];` typical port: 50000 (TODO has a schema)
-  * DB2AS400: `jdbc:as400://[host]:[port]/[database]` typical port: 446
+  * Oracle: `jdbc:oracle:thin:@//[host]:[port]/[database]` typical port: 1521, dataSource: oracle
+  * MySQL: `jdbc:mysql://[host]:[port]/[database]` typical port: 3306, dataSource: mysql
+  * Sybase: `jdbc:sybase:Tds://[host]:[port]/[database]` typical port: 5000, dataSource: sybase
+  * PostgreSQL: `jdbc:postgresql://[host]:[port]/[database]` typical port: 5432, dataSource: postgresql
+  * SQLite: `jdbc:sqlite:[connector-name]` (TODO can have a file), dataSource: sqlite
+  * HANA: `jdbc:sap://[host]:[port]/[database]` typical port: 30015, dataSource: hana
+  * MS SQL: `jdbc:sqlserver://[host]:[port];databaseName=[database]` typical port: 1433, dataSource: mssql
+  * DB2: `jdbc:db2://[host]:[port]/[database]:currentSchema=[schema];` typical port: 50000 (TODO has a schema), dataSource: db2
+  * DB2AS400: `jdbc:as400://[host]:[port]/[database]` typical port: 446, dataSource: db2_as400
 
 **Complete Example (Oracle):**
 ```json
