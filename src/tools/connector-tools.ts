@@ -188,7 +188,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: true,
-      openWorldHint: false
+      openWorldHint: true,
     }, async ({ connectorName, callName, parameters }) => {
       return wrapToolResult(`test connector call ${connectorName}.${callName}`, async () => {
         const connectorParameters = (await simplifier.getConnectorCall(connectorName, callName)).connectorCallParameters
@@ -243,7 +243,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: true,
-      openWorldHint: false
+      openWorldHint: true,
     },
     ({ connectorName, callName }) => {
       return wrapToolResult(`delete connector call ${connectorName}.${callName}`, async () => {
@@ -263,7 +263,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: true,
-      openWorldHint: false
+      openWorldHint: true,
     },
     ({ connectorName }) => {
       return wrapToolResult(`delete connector ${connectorName}`, async () => {
@@ -271,6 +271,5 @@ whether validateOut is set to true - in this case values will be filtered to fit
         return await simplifier.deleteConnector(connectorName, trackingKey);
       });
     });
-
 
 }

@@ -8,6 +8,7 @@ import {
   ConnectorTestResponse,
   CreateLoginMethodRequest,
   GenericApiResponse,
+  RFCWizardSearchOptions,
   SAPSystem,
   SAPSystemListResponse,
   SimplifierApiResponse,
@@ -248,6 +249,15 @@ export class SimplifierClient {
   async updateConnectorCall(connectorName: string, oData: SimplifierConnectorCallUpdate): Promise<string> {
     await this.makeRequest(`/UserInterface/api/connectors/${connectorName}/calls/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) });
     return `Successfully updated Connector call '${connectorName}.${oData.name}'`;
+  }
+
+  async searchPossibleRFCConnectorCalls(connectorName: string, filter: RFCWizardSearchOptions, trackingKey: string): Promise<string[]> {
+    const result = await this.makeUnwrappedRequest<{names: string[]}>(`/UserInterface/api/connectorCallWizard/${connectorName}/operations/search`, {
+      method: "POST",
+      body: JSON.stringify(filter),
+      headers: trackingHeader(trackingKey),
+    });
+    return result.names;
   }
 
   async getDataTypes(trackingKey: string): Promise<SimplifierDataTypesResponse> {

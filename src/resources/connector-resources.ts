@@ -1,7 +1,7 @@
-import {SimplifierClient} from "../client/simplifier-client.js";
-import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
+import {SimplifierClient} from "../client/simplifier-client.js"; import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
 import {trackingResourcePrefix} from "../client/matomo-tracking.js";
+import { RFCWizardSearchOptions } from "../client/types.js";
 
 export function registerConnectorResources(server: McpServer, simplifier: SimplifierClient): void {
 
@@ -163,4 +163,44 @@ Returns complete parameter information including:
       });
     }
   );
+
+  const resourceNameRFCConnectorWizardSearch = "connector-wizard-search-functions"
+  const connectorRFCConnectorWizardSearch = new ResourceTemplate("simplifier://connector-wizard/{connectorName}/search/{term}/{page}", noListCallback);
+  const connectorWizardSearchPageSize = 50;
+  server.resource(resourceNameRFCConnectorWizardSearch, connectorRFCConnectorWizardSearch, {
+      title: "Search available function calls (for RFC connectors)",
+      mimeType: "application/json",
+      description: `# Searches for function calls available to a connector
+
+Currently, this is only supported for RFC connectors.
+Returns a list of functions avaliable to the connector {connectorName}, that contain the given {term}.
+At most ${connectorWizardSearchPageSize} items are returned at once, the third variable in the URI specifies the {page},
+starting at 0.`
+    },
+    async (uri: URL, { connectorName, term, page }) => {
+      return wrapResourceResult(uri, async () => {
+        if(typeof connectorName !== 'string' || typeof term !== 'string' || typeof page !== 'string') {
+          throw new Error('URL variables may not be lists');
+        }
+        const pageNo = parseInt(page)
+        const trackingKey = trackingResourcePrefix + resourceNameRFCConnectorWizardSearch;
+        const filter: RFCWizardSearchOptions = {
+          searchOptions: {
+              searchValue: term,
+          },
+          retrievalOptions: {
+              filter: `%${term}%`,
+              filterMode: "Simple",
+          },
+        }
+        const matches = await simplifier.searchPossibleRFCConnectorCalls(connectorName, filter, trackingKey);
+        return {
+          matches: matches.slice(pageNo * connectorWizardSearchPageSize, (pageNo + 1) * connectorWizardSearchPageSize),
+          searchTerm: term,
+          page: pageNo,
+          totalPages: Math.ceil(matches.length / connectorWizardSearchPageSize),
+        };
+      });
+    });
+
 }

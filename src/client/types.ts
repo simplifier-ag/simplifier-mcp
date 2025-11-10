@@ -952,3 +952,11 @@ type SAPGroupServer = SAPSystemConfigurationCommon & {
 export interface SAPSystemListResponse {
   sapSystems: SAPSystemOverviewItem[];
 }
+
+export type RFCWizardSearchOptions = {
+  searchOptions: { searchValue: string; };
+  retrievalOptions: {
+    filter: string;
+    filterMode: string;
+  }
+}

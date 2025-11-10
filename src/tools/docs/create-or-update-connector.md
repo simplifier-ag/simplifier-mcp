@@ -95,3 +95,46 @@ The object under **endpointConfiguration / configuration** defines properties, s
 }
 ```
 
+### Connector type 'SAP RFC'
+
+The object under **endpointConfiguration / configuration** defines the following
+properties specific to SAP RFC connectors, all of them are mandatory:
+
+* **sapSystem** - ID of the target SAP system as a string.
+* **parallelExecutions** - Boolean. If true, batch calls (i.e. multiple function modules are executed in one call) are executed in parallel.
+* **connectionPool** - object with settings related to connection pooling:
+  * **peakLimit** - number, maximum number of active connections at a time.
+  * **poolCapacity** - number of pooled connections.
+  * **expirationTime** - time in milliseconds for which connections are kept in the pool before being closed.
+  * **expirationCheckPeriod** - time in milliseconds between checks for expired pooled connections.
+  * **maxGetClientTime** - maximum time in milliseconds to wait for getting a connection (i.e. connection timeout).
+
+Complete example:
+```json
+{
+  "name": "MyRfc",
+  "description": "",
+  "connectorType": "SAPRFC",
+  "active": true,
+  "timeoutTime": 60,
+  "endpointConfiguration": {
+    "endpoint": "Default",
+    "certificates": [],
+    "configuration": {
+      "sapSystem": "ID4_0_800",
+      "parallelExecutions": false,
+      "connectionPool": {
+        "peakLimit": 0,
+        "poolCapacity": 1,
+        "expirationTime": 60000,
+        "expirationCheckPeriod": 60000,
+        "maxGetClientTime": 30000
+      }
+    }
+  },
+  "tags": [],
+  "assignedProjects": {
+    "projectsAfterChange": []
+  }
+}
+```
