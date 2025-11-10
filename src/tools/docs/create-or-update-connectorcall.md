@@ -199,6 +199,28 @@ Here are hints how to create the temporary calls:
 
 Delete the temporarily created connector calls after supporting the user.
 
+#### Notes for different databases
+##### MySQL
+Supports returning a field called 'generatedKeys'. E.g. when creating a call with mode 'transaction' and 
+this insert statement: "INSERT INTO GEOCODE_SEARCHES (SEARCH_QUERY) VALUES (:query:)", then this values 
+could be returned:
+
+```json
+{
+  "result": {
+    "results": [
+      {
+        "affectedRows": 1,
+        "generatedKeys": [
+          11
+        ]
+      }
+    ]
+  }
+}
+```
+and the returned generatedKeys of 11 is the value of the primary key column SEARCH_ID, which has the extra AUTO_INCREMENT.
+
 #### SQL Connector Call Modes
 
 SQL Connector calls support the following execution modes, specified via the **`mode`** parameter:
