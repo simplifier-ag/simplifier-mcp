@@ -196,10 +196,10 @@ describe('Connector Resources', () => {
   };
 
   describe('registerConnectorResources', () => {
-    it('should register four connector resources', () => {
+    it('should register five connector resources', () => {
       registerConnectorResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(4);
+      expect(mockServer.resource).toHaveBeenCalledTimes(5);
 
       // Check that specific resources are registered
       const calls = mockServer.resource.mock.calls;
@@ -209,6 +209,7 @@ describe('Connector Resources', () => {
       expect(resourceNames).toContain('connector-details');
       expect(resourceNames).toContain('connector-calls-list');
       expect(resourceNames).toContain('connector-call-details');
+      expect(resourceNames).toContain('connector-wsdl');
     });
 
     describe('connectors list handler', () => {
