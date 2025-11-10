@@ -250,6 +250,14 @@ export class SimplifierClient {
     return `Successfully updated Connector call '${connectorName}.${oData.name}'`;
   }
 
+  async getSoapConnectorWSDL(connectorName: string, endpoint: string): Promise<string> {
+    const response = await this.executeRequest(`/UserInterface/api/connectors/${connectorName}/state/${endpoint}`, {
+      method: "POST",
+      body: '{"action": "download"}',
+    });
+    return response.json();
+  }
+
   async getDataTypes(trackingKey: string): Promise<SimplifierDataTypesResponse> {
     return this.makeUnwrappedRequest("/UserInterface/api/datatypes?cacheIndex=true", {
       method: "GET",

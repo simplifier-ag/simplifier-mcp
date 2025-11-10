@@ -163,4 +163,32 @@ Returns complete parameter information including:
       });
     }
   );
+
+  // Resource template for specific connector call details
+  const resourceNameConnectorWSDL = "connector-wsdl"
+  const connectorWSDLTemplate = new ResourceTemplate("simplifier://connector/{connectorName}/wsdl", noListCallback);
+
+  server.resource(resourceNameConnectorWSDL, connectorWSDLTemplate, {
+      title: "SOAP Connector WSDL",
+      mimeType: "application/xml",
+      description: `# Get the currently used WSDL for a SOAP connector
+
+Returns the full XML source of the WSDL. Will fail on non-SOAP connectors`
+    },
+    async (uri: URL, { connectorName }) => {
+      return wrapResourceResult(uri, async () => {
+        if (typeof connectorName === 'object') {
+          throw new Error("only one connector name allowed")
+        }
+
+        const trackingKey = trackingResourcePrefix + resourceNameConnectorWSDL
+        const instances = await simplifier.getInstanceSettings(trackingKey);
+        const activeInstance = instances.find(inst => inst.active);
+        if (!activeInstance) {
+          throw new Error("The server currently does not define an active instance");
+        }
+        return simplifier.getSoapConnectorWSDL(connectorName, activeInstance.name)
+      }, "application/xml");
+    },
+  );
 }

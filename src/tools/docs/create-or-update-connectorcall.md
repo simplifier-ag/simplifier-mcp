@@ -82,6 +82,7 @@ Use alias "data" for the whole output object.
 ### Connector type 'SOAP'
 
 A SOAP Connector call defines a SOAP operation to be invoked on the configured WSDL service endpoint of the Connector.
+You can retrieve the configured WSDL for a connector using the resource simplifier://connector/{connectorName}/wsdl
 
 Call parameters may define the following:
 
