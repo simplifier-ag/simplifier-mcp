@@ -199,7 +199,7 @@ describe('Connector Resources', () => {
     it('should register four connector resources', () => {
       registerConnectorResources(mockServer, mockClient);
 
-      expect(mockServer.resource).toHaveBeenCalledTimes(4);
+      expect(mockServer.resource).toHaveBeenCalledTimes(5);
 
       // Check that specific resources are registered
       const calls = mockServer.resource.mock.calls;
@@ -209,6 +209,7 @@ describe('Connector Resources', () => {
       expect(resourceNames).toContain('connector-details');
       expect(resourceNames).toContain('connector-calls-list');
       expect(resourceNames).toContain('connector-call-details');
+      expect(resourceNames).toContain('connector-wizard-search-functions');
     });
 
     describe('connectors list handler', () => {
@@ -254,7 +255,7 @@ describe('Connector Resources', () => {
         expect(resultData.totalCount).toBe(2);
         expect(resultData.connectors[0].uri).toBe('simplifier://connector/TestConnector');
         expect(resultData.connectors[0].name).toBe('TestConnector');
-        expect(resultData.resourcePatterns).toHaveLength(4);
+        expect(resultData.resourcePatterns).toHaveLength(5);
       });
 
       it('should handle API errors through wrapper', async () => {

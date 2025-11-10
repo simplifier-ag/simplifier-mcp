@@ -177,3 +177,55 @@ the resulting object for the `/` output parameter would look like this:
 }
 ```
 To get the relevant field only, the output parameter name would be `/soap/InputOutputResponse/InputOutput`
+
+### Connector type 'SAPRFC'
+
+An SAP RFC connector call executes a function on the SAP system defined in the
+endpoint.
+
+As RFC calls only work with existing functions in the SAP system, use the
+connector wizard to create them by first searching for available calls using the
+resource `simplifier://connector-wizard/{connectorName}/search/{term}/{page}`.
+After selecting the appropriate calls, use the tool `connector-wizard-rfc-create`
+to generate the calls.
+
+RFC connector calls should define the following parameters with constant values:
+
+#### SOAP compatibility mode
+Parameter name: **`configuration/output/soapCompatibility`**
+
+Type: Boolean
+
+This parameter should be set to false, unless the user specified otherwise.
+
+#### Use default values in output
+Parameter name: **`configuration/output/useDefaultValues`**
+
+Type: boolean
+
+This parameter should be set to true, unless the user specified otherwise.
+
+
+#### Autocommit
+Parameter name: **`configuration/autocommit`**
+
+This parameter should be set to true, unless the user specified otherwise.
+
+
+#### Additional return information
+Parameter name: **`configuration/operation/additionalReturnInformation`**
+
+Type: Array of strings
+
+Possible values: IMPORT, CHANGING, TABLE,  EXPORT, EXCEPTION
+
+Unless specified otherwise by the user, this should be set to `["IMPORT", "EXPORT", "CHANGING", "TABLE", "EXCEPTION"]`.
+
+
+#### Output parameters
+
+A REST Connector must have at least one output parameter
+
+An empty parameter name, or "/" refers to the whole output object.
+
+Use alias "data" for the whole output object.

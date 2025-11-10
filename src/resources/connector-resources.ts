@@ -37,7 +37,8 @@ Each connector can be accessed via simplifier://connector/{connectorName} for de
             "simplifier://connectors - List all connectors",
             "simplifier://connector/{connectorName} - Specific connector details",
             "simplifier://connector/{connectorName}/calls - List connector calls",
-            "simplifier://connector/{connectorName}/call/{callName} - Specific call details"
+            "simplifier://connector/{connectorName}/call/{callName} - Specific call details",
+            "simplifier://connector-wizard/{connectorName}/search/{term}/{page} - Search for available SAP RFC function calls",
           ]
         };
       });
