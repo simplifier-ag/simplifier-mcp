@@ -716,6 +716,71 @@ describe('registerConnectorTools', () => {
         );
       });
 
+      it('should create a DB2 SQL connector with schema field', async () => {
+        const testParams = {
+          name: "McpDb2Test",
+          description: "DB2 connector for testdb database",
+          connectorType: "SQL",
+          active: true,
+          timeoutTime: 60,
+          endpointConfiguration: {
+            endpoint: "Default",
+            loginMethodName: "DB2Credentials",
+            certificates: [],
+            configuration: {
+              dataSource: "db2",
+              host: "localhost",
+              port: "50000",
+              database: "testdb",
+              schema: "MYSCHEMA",
+              connectionString: "jdbc:db2://localhost:50000/testdb:currentSchema=MYSCHEMA;",
+              resultType: "resultSet"
+            }
+          },
+          tags: [],
+          projectsBefore: [],
+          projectsAfterChange: []
+        };
+
+        // Mock that connector doesn't exist
+        mockSimplifierClient.getConnector.mockRejectedValue(new Error("Not found"));
+
+        // Mock successful creation
+        mockSimplifierClient.createConnector.mockResolvedValue("DB2 SQL connector created");
+
+        // Mock wrapToolResult
+        mockWrapToolResult.mockImplementation(async (_caption, fn) => {
+          const result = await fn();
+          return {
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }]
+          };
+        });
+
+        await toolHandler(testParams);
+
+        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("McpDb2Test", "MCP Tool: connector-update");
+        expect(mockSimplifierClient.createConnector).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: "McpDb2Test",
+            connectorType: "SQL",
+            endpointConfiguration: expect.objectContaining({
+              endpoint: "Default",
+              loginMethodName: "DB2Credentials",
+              configuration: expect.objectContaining({
+                dataSource: "db2",
+                host: "localhost",
+                port: "50000",
+                database: "testdb",
+                schema: "MYSCHEMA",
+                connectionString: "jdbc:db2://localhost:50000/testdb:currentSchema=MYSCHEMA;",
+                resultType: "resultSet"
+              })
+            })
+          })
+        );
+        expect(mockSimplifierClient.updateConnector).not.toHaveBeenCalled();
+      });
+
       it('should update an existing SQL connector', async () => {
         const testParams = {
           name: "ExistingSQLConnector",

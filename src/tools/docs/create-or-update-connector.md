@@ -104,9 +104,11 @@ The object under **endpointConfiguration / configuration** defines properties, s
 * **database** - the database name to connect to
 * **connectionString** - the JDBC connection string (constructed from host, port, database, and specific to the database type)
 * **resultType** - the format for query results, typically "resultSet"
+* **schema** - the database schema name (required for DB2, optional for other databases)
 
 **Important Notes:**
 * For **Oracle** databases, the database schema name is defined by the username specified in the login method (not in the connector configuration itself)
+* For **DB2** databases, the **schema** field is required and must be included in the configuration. The schema is also included in the connectionString as `currentSchema=[schema]`; all other types don't accept the schema
 * The **loginMethodName** field in the endpointConfiguration should reference an existing login method that provides the database credentials
 * Connection strings are database-specific. Examples:
   * Oracle: `jdbc:oracle:thin:@//[host]:[port]/[database]` typical port: 1521, dataSource: oracle
@@ -116,7 +118,7 @@ The object under **endpointConfiguration / configuration** defines properties, s
   * SQLite: `jdbc:sqlite:[connector-name]` (TODO can have a file), dataSource: sqlite
   * HANA: `jdbc:sap://[host]:[port]/[database]` typical port: 30015, dataSource: hana
   * MS SQL: `jdbc:sqlserver://[host]:[port];databaseName=[database]` typical port: 1433, dataSource: mssql
-  * DB2: `jdbc:db2://[host]:[port]/[database]:currentSchema=[schema];` typical port: 50000 (TODO has a schema), dataSource: db2
+  * DB2: `jdbc:db2://[host]:[port]/[database]:currentSchema=[schema];` typical port: 50000, dataSource: db2
   * DB2AS400: `jdbc:as400://[host]:[port]/[database]` typical port: 446, dataSource: db2_as400
 
 **Complete Example (Oracle):**
@@ -165,6 +167,35 @@ The object under **endpointConfiguration / configuration** defines properties, s
       "port": "3306",
       "database": "mydb",
       "connectionString": "jdbc:mysql://localhost:3306/mydb",
+      "resultType": "resultSet"
+    }
+  },
+  "tags": [],
+  "assignedProjects": {
+    "projectsAfterChange": []
+  }
+}
+```
+
+**Complete Example (DB2):**
+```json
+{
+  "name": "McpDb2Test",
+  "description": "DB2 connector for testdb database",
+  "connectorType": "SQL",
+  "active": true,
+  "timeoutTime": 60,
+  "endpointConfiguration": {
+    "endpoint": "Default",
+    "loginMethodName": "DB2Credentials",
+    "certificates": [],
+    "configuration": {
+      "dataSource": "db2",
+      "host": "localhost",
+      "port": "50000",
+      "database": "testdb",
+      "schema": "MYSCHEMA",
+      "connectionString": "jdbc:db2://localhost:50000/testdb:currentSchema=MYSCHEMA;",
       "resultType": "resultSet"
     }
   },
