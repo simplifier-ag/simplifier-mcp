@@ -224,8 +224,6 @@ Unless specified otherwise by the user, this should be set to `["IMPORT", "EXPOR
 
 #### Output parameters
 
-A REST Connector must have at least one output parameter
-
-An empty parameter name, or "/" refers to the whole output object.
-
-Use alias "data" for the whole output object.
+An RFC connector's output parameters depend on the called SAP system function.
+You should usually let the wizard create them, as it has all the metadata
+available.

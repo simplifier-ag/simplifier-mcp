@@ -59,6 +59,7 @@ used to find available functions on the SAP system. ${functionNameFilter
 ? `Use the search term ${functionNameFilter}, which was provided by the user.`
 : 'Ask the user for a search term to filter the available functions by name.'
 }
+Remember to uri-escape any slashes in the search term.
 If there are too many entries, consider asking the user for a more specific term.
 
 Present the functions to the user and ask for a selection:

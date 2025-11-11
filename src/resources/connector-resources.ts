@@ -175,6 +175,7 @@ Returns complete parameter information including:
 
 Currently, this is only supported for RFC connectors.
 Returns a list of functions avaliable to the connector {connectorName}, that contain the given {term}.
+Any non-alphanumeric characters in the search term should be uri-encoded, e.g. %2F for /, %20 for space.
 At most ${connectorWizardSearchPageSize} items are returned at once, the third variable in the URI specifies the {page},
 starting at 0.`
     },
@@ -183,14 +184,15 @@ starting at 0.`
         if(typeof connectorName !== 'string' || typeof term !== 'string' || typeof page !== 'string') {
           throw new Error('URL variables may not be lists');
         }
+        const termDecoded = decodeURIComponent(term)
         const pageNo = parseInt(page)
         const trackingKey = trackingResourcePrefix + resourceNameRFCConnectorWizardSearch;
         const filter: RFCWizardSearchOptions = {
           searchOptions: {
-              searchValue: term,
+              searchValue: termDecoded,
           },
           retrievalOptions: {
-              filter: `%${term}%`,
+              filter: `%${termDecoded}%`,
               filterMode: "Simple",
           },
         }
