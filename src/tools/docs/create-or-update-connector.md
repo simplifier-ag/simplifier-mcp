@@ -148,7 +148,7 @@ The object under **endpointConfiguration / configuration** defines properties, s
 * **database** - the database name to connect to
 * **connectionString** - the JDBC connection string (constructed from host, port, database, and specific to the database type)
 * **resultType** - the format for query results, typically "resultSet"
-* **schema** - the database schema name (required for DB2, optional for other databases)
+* **schema** - the database schema name (required for DB2, not accepted for other databases)
 
 **Important Notes:**
 * For **Oracle** databases, the database schema name is defined by the username specified in the login method (not in the connector configuration itself)
