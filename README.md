@@ -8,6 +8,10 @@ easily using standardised connectors.
 Find more information in our [community](https://community.simplifier.io) or try
 Simplifier [for free](https://community.simplifier.io/start-for-free).
 
+<a href="https://glama.ai/mcp/servers/@SimplifierIO/simplifier-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@SimplifierIO/simplifier-mcp/badge" alt="simplifier-mcp MCP server" />
+</a>
+
 ---
 
 This repository contains an MCP server (Model Context Protocol) that enables
