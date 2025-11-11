@@ -228,7 +228,8 @@ SQL Connector calls support the following execution modes, specified via the **`
 ##### 1. Simple Mode
 **Parameter name:** `mode` with value `"simple"`
 
-Supports a dynamic where clause (if the statement not yet has an appended where clause) TODO see later example
+Supports a dynamic where clause (if the statement not yet has an appended where clause). See later example
+how to configure this parameter at the end of this document.
 
 **Use Cases**:
 - DDL statements (CREATE, ALTER, DROP)
@@ -298,8 +299,11 @@ Query mode allows execution of arbitrary SELECT statements with parameter bindin
 **Attention:** in the SQL statement the parameters are prefixed and postfixed with a colon. The
 names of the input parameters (e.g. "params/min") must match the name of the parameters in the
 SQL statement e.g. ":min:". See example. The :variable: syntax in Simplifier is only for INPUT parameters, not OUTPUT parameters.
+For all the parameters given like "params/<myParamName>" you also need to have a placeholder like :<myParamName>: in
+the SQL statement of the call - otherwise you should remove this connectorCallParameter completely.
 
-Supports a dynamic where clause (if the statement not yet has an appended where clause) TODO see later example
+Supports a dynamic where clause (if the statement not yet has an appended where clause). See later example
+how to configure this parameter at the end of this document.
 
 **Use Cases**:
 - Data retrieval operations
@@ -370,7 +374,8 @@ Execute mode is used for data modification statements (INSERT, UPDATE, DELETE) a
 **Attention:** in the SQL statement the parameters are prefixed and postfixed with a colon. See example.
 The :variable: syntax in Simplifier is only for INPUT parameters, not OUTPUT parameters.
 
-Supports a dynamic where clause (if the statement not yet has an appended where clause) TODO see later example
+Supports a dynamic where clause (if the statement not yet has an appended where clause). See later example
+how to configure this parameter at the end of this document.
 
 **Use Cases**:
 - INSERT operations
@@ -675,5 +680,43 @@ a value, which is an array like this: [ { "myint": value1, "mystring": "mystring
       "transfer": true
     }
   ]
+}
+```
+
+#### dynamic where clause
+For modes, that support a dynamic where clause, one can add this additional parameter. It will only
+work, if the statement of the connector call does not yet have a where clause itself.
+
+##### Configuration example 
+The index of position has to be adapted.
+```json
+{
+  "name": "where",
+  "alias": "WHERE",
+  "description": "",
+  "isInput": true,
+  "dataType": {
+    "id": "22ED1F787B6B0926AB0577860AF7543705341C053EB1B4A74E7CC199A0645E52",
+    "name": "String",
+    "category": "base",
+    "description": "BaseType for string literals",
+    "baseType": "String",
+    "isStruct": false,
+    "fields": [],
+    "properties": [
+      {
+        "name": "Operators",
+        "value": "==, !="
+      }
+    ],
+    "editable": true,
+    "tags": [],
+    "assignedProjects": {
+      "projectsBefore": [],
+      "projectsAfterChange": []
+    }
+  },
+  "optional": true,
+  "position": 3
 }
 ```
