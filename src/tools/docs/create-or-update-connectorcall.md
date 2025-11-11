@@ -231,7 +231,21 @@ Oracle DB does not directly support returning generated keys out of the box. Her
 INSERT INTO GEOCODE_RESULTS (SEARCH_ID, ADDRESS_ID, ...) VALUES (:search_id:, :address_id:, ...);
 SELECT <some_sequence>.CURRVAL AS RESULT_ID FROM DUAL
 ```
-
+##### PostgreSQL
+For postgres this pattern is working even for connector calls of mode query:
+```sql
+INSERT INTO sometable (col1, col2) VALUES (:col1:, :col2:) RETURNING someid
+```
+will return (given, that sometable has a column 'someid' with a default like: nextval('some_id_seq'::regclass))
+```json
+{
+  "result": [
+    {
+      "someid": 12
+    }
+  ]
+}
+```
 #### SQL Connector Call Modes
 
 SQL Connector calls support the following execution modes, specified via the **`mode`** parameter:
