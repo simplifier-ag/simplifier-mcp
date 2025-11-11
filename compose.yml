@@ -1,0 +1,12 @@
+services:
+  simplifier-mcp:
+    image: simplifier-mcp:latest
+    environment:
+      - SIMPLIFIER_BASE_URL=${SIMPLIFIER_BASE_URL}
+      - SIMPLIFIER_TOKEN=${SIMPLIFIER_TOKEN}
+      # optional: use credentials file instead of token:
+      # - SIMPLIFIER_CREDENTIALS_FILE=/app/credentials.json
+    # uncomment if using credentials file: 
+    #volumes:
+    #  - /path/to/credentials.json:/app/credentials.json
+    stdin_open: true 

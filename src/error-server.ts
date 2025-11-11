@@ -14,9 +14,13 @@ interface ErrorDetails {
  * Creates and starts a temporary HTTP server to display error information
  * Opens a browser window with the error page
  * @param error Error details to display
- * @returns Promise that resolves with the server instance and port
+ * @returns Promise that resolves with the server instance and port, undefined if running in docker
  */
-export async function startErrorServer(error: ErrorDetails): Promise<{ server: http.Server; port: number }> {
+export async function startErrorServer(error: ErrorDetails): Promise<{ server: http.Server; port: number } | undefined> {
+  if(process.env.RUNNING_IN_DOCKER) {
+    console.error(error)
+    return;
+  }
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => {
       if (req.url === '/') {
