@@ -1,6 +1,6 @@
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {z} from "zod";
-import type { ConnectorTestParameter, ConnectorTestRequest } from "../client/types.js";
+import type { ConnectorTestParameter, ConnectorTestRequest, RFCWizardCreateCallsPayload } from "../client/types.js";
 import {SimplifierClient} from "../client/simplifier-client.js";
 import {SimplifierConnectorCallUpdate, SimplifierConnectorUpdate} from "../client/types.js";
 import {readFile} from "../resourceprovider.js";
@@ -156,7 +156,55 @@ export function registerConnectorTools(server: McpServer, simplifier: Simplifier
       });
     }
   );
+  const toolNameConnectorWizardRfcCreate = "connector-wizard-rfc-create"
+  server.tool(toolNameConnectorWizardRfcCreate,
+    `# Create one or more calls for an RFC connector using the wizard
 
+The RFC connector requires calls to refer to existing functions on the remote SAP system. To find available functions,
+use the resource template \`simplifier://connector-wizard/{connectorName}/search/{term}/{page}\`. Select the desired
+function names and pass them to this tool.
+    `,
+    {
+      connectorName: z.string().describe(`Name of the RFC Connector to add calls to`),
+      rfcFunctionNames: z.array(z.string()).describe(`Names of the SAP system's functions for which to create connector calls`),
+    },
+    {
+      title: "Create RFC connector calls using the call wizard",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true
+    },
+    async ({connectorName, rfcFunctionNames}) => {
+      return wrapToolResult(`create ${rfcFunctionNames.length} connector calls using the RFC connector wizard`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameConnectorWizardRfcCreate;
+
+        // required, so that the functions are "persisted" in Simplifier
+        await simplifier.viewRFCFunctions(connectorName, rfcFunctionNames, trackingKey);
+
+        const details = await simplifier.rfcWizardGetCallDetails(connectorName, rfcFunctionNames)
+        const descriptions: {[k: string]: string} = {}
+        const newNames: {[k: string]: string} = {}
+        for(const func of rfcFunctionNames) {
+          const match = details.calls.find(callDetails => callDetails.call.nameNonTechnicalized === func);
+          if(!match) {
+            throw new Error(`Details for function ${func} could not be retrieved`);
+          }
+          descriptions[func] = match.call.description;
+          newNames[func] = match.call.name;
+
+        }
+        const payload: RFCWizardCreateCallsPayload = {
+          callsRfc: rfcFunctionNames,
+          descriptions: descriptions,
+          newNames: newNames,
+        }
+
+        await simplifier.rfcWizardCreateCalls(connectorName, payload);
+        return payload;
+      });
+    }
+  );
 
 
   const connectorTestDescription = `#Test a Connector Call
@@ -188,7 +236,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: true,
-      openWorldHint: false
+      openWorldHint: true,
     }, async ({ connectorName, callName, parameters }) => {
       return wrapToolResult(`test connector call ${connectorName}.${callName}`, async () => {
         const connectorParameters = (await simplifier.getConnectorCall(connectorName, callName)).connectorCallParameters
@@ -243,7 +291,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: true,
-      openWorldHint: false
+      openWorldHint: true,
     },
     ({ connectorName, callName }) => {
       return wrapToolResult(`delete connector call ${connectorName}.${callName}`, async () => {
@@ -263,7 +311,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: true,
-      openWorldHint: false
+      openWorldHint: true,
     },
     ({ connectorName }) => {
       return wrapToolResult(`delete connector ${connectorName}`, async () => {
@@ -271,6 +319,5 @@ whether validateOut is set to true - in this case values will be filtered to fit
         return await simplifier.deleteConnector(connectorName, trackingKey);
       });
     });
-
 
 }

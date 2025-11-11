@@ -23,7 +23,7 @@ export interface SimplifierBusinessObjectDependencyRef {
 }
 
 // todo consider enum
-export type SimplifierBusinessObjectRefType = 'connector'|'serverbusinessobject'|'plugin';
+export type SimplifierBusinessObjectRefType = 'connector' | 'serverbusinessobject' | 'plugin';
 
 
 export interface SimplifierBusinessObjectFunction {
@@ -48,14 +48,14 @@ export interface SimplifierCallableParameter {
 }
 
 export type SimplifierApiResponse<T = unknown> =
-{
-  success: true;
-  result: T;
-} | {
-  success: false;
-  error?: string;
-  message?: string;
-}
+  {
+    success: true;
+    result: T;
+  } | {
+    success: false;
+    error?: string;
+    message?: string;
+  }
 
 /**
  * API response where only errors use the unified format but successful responses do not wrap the result type.
@@ -80,7 +80,7 @@ export interface SimplifierDataTypesResponse {
 /**
  * Mutually exclusive categories of data types in simplifier.
  */
-export type SimplifierDataTypeCategory = 'base'|'domain'|'struct'|'collection';
+export type SimplifierDataTypeCategory = 'base' | 'domain' | 'struct' | 'collection';
 
 /**
  * Base or Domain DataType in Simplifier
@@ -221,7 +221,7 @@ export interface BusinessObjectTestResponse {
 export interface ConnectorTestParameter {
   name: string;
   value: unknown;
-  alias?: string|undefined;
+  alias?: string | undefined;
   constValue?: unknown | undefined;
   dataType: SimplifierDataType;
   transfer: boolean;
@@ -287,20 +287,20 @@ export interface SimplifierConnectorUpdate {
 }
 
 interface SimpleEndpoint {
-    endpointName: string;
-    endpointType: string;
+  endpointName: string;
+  endpointType: string;
 }
 
 interface DetailedEndpoint {
-    endpoint: string;
-    loginMethodName?: string;
-    certificates: string[];
-    /* contents of configuration differ based on connector type */
-    configuration?: any;
+  endpoint: string;
+  loginMethodName?: string;
+  certificates: string[];
+  /* contents of configuration differ based on connector type */
+  configuration?: any;
 }
 
 export interface SimplifierConnectorDetails extends SimplifierConnector {
-  configuration?: {endpoints: SimpleEndpoint[] | DetailedEndpoint[]};
+  configuration?: { endpoints: SimpleEndpoint[] | DetailedEndpoint[] };
 }
 
 export interface SimplifierUser {
@@ -547,12 +547,12 @@ export interface CreateLoginMethodRequest {
   source: 0 | 1 | 2 | 3 | 4 | 5;
   target: 0 | 1 | 2;
   sourceConfiguration:
-    | UserCredentialsProvidedSourceConfig
-    | TokenProvidedSourceConfig
-    | OAuth2ClientNameSourceConfig
-    | ProfileReferenceSourceConfig
-    | UserAttributeReferenceSourceConfig
-    | EmptySourceConfig;  // Empty configuration for DEFAULT/SYSTEM_REFERENCE sources
+  | UserCredentialsProvidedSourceConfig
+  | TokenProvidedSourceConfig
+  | OAuth2ClientNameSourceConfig
+  | ProfileReferenceSourceConfig
+  | UserAttributeReferenceSourceConfig
+  | EmptySourceConfig;  // Empty configuration for DEFAULT/SYSTEM_REFERENCE sources
   targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
 }
 
@@ -567,12 +567,12 @@ export interface UpdateLoginMethodRequest {
   source: 0 | 1 | 2 | 3 | 4 | 5;
   target: 0 | 1 | 2;
   sourceConfiguration:
-    | UserCredentialsProvidedSourceConfig
-    | TokenProvidedSourceConfig
-    | OAuth2ClientNameSourceConfig
-    | ProfileReferenceSourceConfig
-    | UserAttributeReferenceSourceConfig
-    | EmptySourceConfig;  // Empty configuration for DEFAULT/SYSTEM_REFERENCE sources
+  | UserCredentialsProvidedSourceConfig
+  | TokenProvidedSourceConfig
+  | OAuth2ClientNameSourceConfig
+  | ProfileReferenceSourceConfig
+  | UserAttributeReferenceSourceConfig
+  | EmptySourceConfig;  // Empty configuration for DEFAULT/SYSTEM_REFERENCE sources
   targetConfiguration?: HeaderTargetConfig | QueryTargetConfig;
 }
 
@@ -951,4 +951,37 @@ type SAPGroupServer = SAPSystemConfigurationCommon & {
 
 export interface SAPSystemListResponse {
   sapSystems: SAPSystemOverviewItem[];
+}
+
+export type RFCWizardSearchOptions = {
+  searchOptions: { searchValue: string; };
+  retrievalOptions: {
+    filter: string;
+    filterMode: string;
+  }
+}
+
+export type RFCWizardDetailsResponse = {
+  calls: RFCWizardCallDetails[];
+  dataTypes: object; //details not used
+}
+export type RFCWizardCallDetails = {
+  callId: string;
+  call: {
+    name: string;
+    nameNonTechnicalized: string;
+    description: string;
+    // unused fields ommited
+  }
+  meta: object; //details not used
+}
+
+/** Payload for creating calls using the RFC Wizard.
+ * callsRfc should contain the function names, while description and newNames should have them as keys with the
+ * description or connector call name as value.
+ */
+export type RFCWizardCreateCallsPayload = {
+  callsRfc: string[];
+  descriptions: { [key: string]: string }
+  newNames: { [key: string]: string }
 }
