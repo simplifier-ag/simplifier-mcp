@@ -1,8 +1,18 @@
 # Simplifier MCP Server
 
-An MCP server (Model Context Protocol) that enables integration of AI assistants with the **[Simplifier Low Code Platform](https://simplifier.io/platform/)**.
-It provides tools and resources for creating and managing Simplifier Connectors and BusinessObjects.
+Simplifier is the leading low-code platform in the SAP ecosystem. Build custom
+apps in a full-stack low-code cloud development environment, reducing your
+dependency on full-scale coding. Integrate with ERP, CRM and other systems
+easily using standardised connectors.
 
+Find more information in our [community](https://community.simplifier.io) or try
+Simplifier [for free](https://community.simplifier.io/start-for-free).
+
+---
+
+This repository contains an MCP server (Model Context Protocol) that enables
+integration of AI assistants with the **[Simplifier Low Code Platform](https://simplifier.io/platform/)**.
+It provides tools and resources for creating and managing Simplifier Connectors and BusinessObjects.
 
 ## Overview
 
