@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.simplifier-ag/simplifier-mcp",
+  "version": "0.9.49",
+  "description": "MCP server for Simplifier Low Code Platform - manage Connectors, BusinessObjects, and data types",
+  "homepage": "https://github.com/simplifier-ag/simplifier-mcp",
+  "license": "UNLICENSED",
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": true
+  },
+  "installation": {
+    "npm": {
+      "package": "@simplifierag/simplifier-mcp"
+    }
+  },
+  "config": {
+    "required": [
+      {
+        "key": "SIMPLIFIER_TOKEN",
+        "description": "Your current Simplifier authentication token. Obtain it from your Simplifier instance after logging in. The token needs to be refreshed daily.",
+        "type": "string"
+      },
+      {
+        "key": "SIMPLIFIER_BASE_URL",
+        "description": "The base URL of your Simplifier instance (e.g., https://yourinstance-dev.simplifier.cloud or http://localhost:8080 for local development)",
+        "type": "string"
+      }
+    ]
+  }
+}
