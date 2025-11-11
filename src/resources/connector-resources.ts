@@ -1,7 +1,7 @@
-import {SimplifierClient} from "../client/simplifier-client.js";
-import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
+import {SimplifierClient} from "../client/simplifier-client.js"; import {McpServer, ResourceTemplate} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {wrapResourceResult} from "./resourcesresult.js";
 import {trackingResourcePrefix} from "../client/matomo-tracking.js";
+import { RFCWizardSearchOptions } from "../client/types.js";
 
 export function registerConnectorResources(server: McpServer, simplifier: SimplifierClient): void {
 
@@ -37,7 +37,8 @@ Each connector can be accessed via simplifier://connector/{connectorName} for de
             "simplifier://connectors - List all connectors",
             "simplifier://connector/{connectorName} - Specific connector details",
             "simplifier://connector/{connectorName}/calls - List connector calls",
-            "simplifier://connector/{connectorName}/call/{callName} - Specific call details"
+            "simplifier://connector/{connectorName}/call/{callName} - Specific call details",
+            "simplifier://connector-wizard/{connectorName}/search/{term}/{page} - Search for available SAP RFC function calls",
           ]
         };
       });
@@ -163,4 +164,74 @@ Returns complete parameter information including:
       });
     }
   );
+
+  // Resource template for specific connector call details
+  const resourceNameConnectorWSDL = "connector-wsdl"
+  const connectorWSDLTemplate = new ResourceTemplate("simplifier://connector/{connectorName}/wsdl", noListCallback);
+
+  server.resource(resourceNameConnectorWSDL, connectorWSDLTemplate, {
+      title: "SOAP Connector WSDL",
+      mimeType: "application/xml",
+      description: `# Get the currently used WSDL for a SOAP connector
+
+Returns the full XML source of the WSDL. Will fail on non-SOAP connectors`
+    },
+    async (uri: URL, { connectorName }) => {
+      return wrapResourceResult(uri, async () => {
+        if (typeof connectorName === 'object') {
+          throw new Error("only one connector name allowed")
+        }
+
+        const trackingKey = trackingResourcePrefix + resourceNameConnectorWSDL
+        const instances = await simplifier.getInstanceSettings(trackingKey);
+        const activeInstance = instances.find(inst => inst.active);
+        if (!activeInstance) {
+          throw new Error("The server currently does not define an active instance");
+        }
+        return simplifier.getSoapConnectorWSDL(connectorName, activeInstance.name)
+      }, "application/xml");
+    },
+  );
+
+  const resourceNameRFCConnectorWizardSearch = "connector-wizard-search-functions"
+  const connectorRFCConnectorWizardSearch = new ResourceTemplate("simplifier://connector-wizard/{connectorName}/search/{term}/{page}", noListCallback);
+  const connectorWizardSearchPageSize = 50;
+  server.resource(resourceNameRFCConnectorWizardSearch, connectorRFCConnectorWizardSearch, {
+      title: "Search available function calls (for RFC connectors)",
+      mimeType: "application/json",
+      description: `# Searches for function calls available to a connector
+
+Currently, this is only supported for RFC connectors.
+Returns a list of functions avaliable to the connector {connectorName}, that contain the given {term}.
+Any non-alphanumeric characters in the search term should be uri-encoded, e.g. %2F for /, %20 for space.
+At most ${connectorWizardSearchPageSize} items are returned at once, the third variable in the URI specifies the {page},
+starting at 0.`
+    },
+    async (uri: URL, { connectorName, term, page }) => {
+      return wrapResourceResult(uri, async () => {
+        if(typeof connectorName !== 'string' || typeof term !== 'string' || typeof page !== 'string') {
+          throw new Error('URL variables may not be lists');
+        }
+        const termDecoded = decodeURIComponent(term)
+        const pageNo = parseInt(page)
+        const trackingKey = trackingResourcePrefix + resourceNameRFCConnectorWizardSearch;
+        const filter: RFCWizardSearchOptions = {
+          searchOptions: {
+              searchValue: termDecoded,
+          },
+          retrievalOptions: {
+              filter: `%${termDecoded}%`,
+              filterMode: "Simple",
+          },
+        }
+        const matches = await simplifier.searchPossibleRFCConnectorCalls(connectorName, filter, trackingKey);
+        return {
+          matches: matches.slice(pageNo * connectorWizardSearchPageSize, (pageNo + 1) * connectorWizardSearchPageSize),
+          searchTerm: term,
+          page: pageNo,
+          totalPages: Math.ceil(matches.length / connectorWizardSearchPageSize),
+        };
+      });
+    });
+
 }

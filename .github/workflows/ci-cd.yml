@@ -156,3 +156,4 @@ jobs:
           - **Registry**: [npm](https://www.npmjs.com/package/@simplifierag/simplifier-mcp)
           - **Install**: \`npm install @simplifierag/simplifier-mcp\`
           EOF
+

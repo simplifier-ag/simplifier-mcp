@@ -8,6 +8,9 @@ import {
   ConnectorTestResponse,
   CreateLoginMethodRequest,
   GenericApiResponse,
+  RFCWizardCreateCallsPayload,
+  RFCWizardDetailsResponse,
+  RFCWizardSearchOptions,
   SAPSystem,
   SAPSystemListResponse,
   SimplifierApiResponse,
@@ -248,6 +251,46 @@ export class SimplifierClient {
   async updateConnectorCall(connectorName: string, oData: SimplifierConnectorCallUpdate): Promise<string> {
     await this.makeRequest(`/UserInterface/api/connectors/${connectorName}/calls/${oData.name}`, { method: "PUT", body: JSON.stringify(oData) });
     return `Successfully updated Connector call '${connectorName}.${oData.name}'`;
+  }
+
+  async getSoapConnectorWSDL(connectorName: string, endpoint: string): Promise<string> {
+    const response = await this.executeRequest(`/UserInterface/api/connectors/${connectorName}/state/${endpoint}`, {
+      method: "POST",
+      body: '{"action": "download"}',
+    });
+    return response.json();
+  }
+
+  async searchPossibleRFCConnectorCalls(connectorName: string, filter: RFCWizardSearchOptions, trackingKey: string): Promise<string[]> {
+    const result = await this.makeUnwrappedRequest<{names: string[]}>(`/UserInterface/api/connectorCallWizard/${connectorName}/operations/search`, {
+      method: "POST",
+      body: JSON.stringify(filter),
+      headers: trackingHeader(trackingKey),
+    });
+    return result.names;
+  }
+
+  async viewRFCFunctions(connectorName: string, functionNames: string[], trackingKey: string): Promise<void> {
+    await this.makeUnwrappedRequest(`/UserInterface/api/connectorCallWizard/${connectorName}/operations/view`, {
+      method: "POST",
+      body: JSON.stringify({filter: functionNames.join(", ")}),
+      headers: trackingHeader(trackingKey),
+    });
+  }
+
+  async rfcWizardGetCallDetails(connectorName: string, functionNames: string[]): Promise<RFCWizardDetailsResponse> {
+    return this.makeUnwrappedRequest<RFCWizardDetailsResponse>(`/UserInterface/api/connectorCallWizard/${connectorName}/suggestions/detailed`, {
+      method: "POST",
+      body: JSON.stringify({callsRfc: functionNames}),
+    });
+  }
+
+  async rfcWizardCreateCalls(connectorName: string, calls: RFCWizardCreateCallsPayload): Promise<string> {
+    await this.makePlaintextRequest(`/UserInterface/api/connectorCallWizard/${connectorName}`, {
+      method: "POST",
+      body: JSON.stringify(calls),
+    });
+    return `Successfully created ${calls.callsRfc.length} calls: ${calls.callsRfc}.`;
   }
 
   async getDataTypes(trackingKey: string): Promise<SimplifierDataTypesResponse> {

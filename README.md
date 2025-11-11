@@ -1,8 +1,18 @@
 # Simplifier MCP Server
 
-An MCP server (Model Context Protocol) that enables integration of AI assistants with the **[Simplifier Low Code Platform](https://simplifier.io/platform/)**.
-It provides tools and resources for creating and managing Simplifier Connectors and BusinessObjects.
+Simplifier is the leading low-code platform in the SAP ecosystem. Build custom
+apps in a full-stack low-code cloud development environment, reducing your
+dependency on full-scale coding. Integrate with ERP, CRM and other systems
+easily using standardised connectors.
 
+Find more information in our [community](https://community.simplifier.io) or try
+Simplifier [for free](https://community.simplifier.io/start-for-free).
+
+---
+
+This repository contains an MCP server (Model Context Protocol) that enables
+integration of AI assistants with the **[Simplifier Low Code Platform](https://simplifier.io/platform/)**.
+It provides tools and resources for creating and managing Simplifier Connectors and BusinessObjects.
 
 ## Overview
 
@@ -23,9 +33,17 @@ Check out [Simplifier Community Docs](https://community.simplifier.io/doc/curren
 on how to use and set up the MCP server best.
 
 ### Add the MCP to claude code ...
+
+**Using node / npx:**
 ```
 claude mcp add simplifier npx @simplifierag/simplifier-mcp@latest --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud
 ```
+
+**Using Docker:**
+```
+claude mcp add simplifier-docker docker -- run --rm -i --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud simplifier-mcp:latest
+```
+
 If your Simplifier is hosted on premise, then the `SIMPLIFIER_BASE_URL` of your DEV instance will be different from the mentioned schema.
 #### After a new login to Simplifier
 With every login to Simplifier your SimplifierToken will change. So you will have to:
@@ -38,7 +56,9 @@ claude mcp remove simplifier
 
 ### ...or use this example configuration for claude code to use the MCP
 e.g. in a file named .mcp.json placed in the directory, where claude is started.
-```
+
+**Using node / npx:**
+```json
 {
   "mcpServers":  {
     "simplifier-mcp": {
@@ -46,6 +66,32 @@ e.g. in a file named .mcp.json placed in the directory, where claude is started.
       "command": "npx",
       "args": [ 
         "@simplifierag/simplifier-mcp@latest"
+      ],
+      "env": {
+        "SIMPLIFIER_BASE_URL": "https://<yourinstance>-dev.simplifier.cloud",
+        "SIMPLIFIER_TOKEN": "<your current simplifier token>"
+      }
+    }
+  }
+}
+```
+
+**Using Docker:**
+```json
+{
+  "mcpServers": {
+    "simplifier-docker": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--env",
+        "SIMPLIFIER_TOKEN",
+        "--env",
+        "SIMPLIFIER_BASE_URL",
+        "simplifier-mcp:latest"
       ],
       "env": {
         "SIMPLIFIER_BASE_URL": "https://<yourinstance>-dev.simplifier.cloud",
