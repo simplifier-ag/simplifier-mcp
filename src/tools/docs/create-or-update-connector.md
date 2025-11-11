@@ -115,7 +115,7 @@ The object under **endpointConfiguration / configuration** defines properties, s
   * MySQL: `jdbc:mysql://[host]:[port]/[database]` typical port: 3306, dataSource: mysql
   * Sybase: `jdbc:sybase:Tds://[host]:[port]/[database]` typical port: 5000, dataSource: sybase
   * PostgreSQL: `jdbc:postgresql://[host]:[port]/[database]` typical port: 5432, dataSource: postgresql
-  * SQLite: `jdbc:sqlite:[connector-name]` (TODO can have a file), dataSource: sqlite
+  * SQLite: `jdbc:sqlite:[connector-name]`, dataSource: sqlite
   * HANA: `jdbc:sap://[host]:[port]/[database]` typical port: 30015, dataSource: hana
   * MS SQL: `jdbc:sqlserver://[host]:[port];databaseName=[database]` typical port: 1433, dataSource: mssql
   * DB2: `jdbc:db2://[host]:[port]/[database]:currentSchema=[schema];` typical port: 50000, dataSource: db2

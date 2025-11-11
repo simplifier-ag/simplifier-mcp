@@ -220,6 +220,17 @@ could be returned:
 }
 ```
 and the returned generatedKeys of 11 is the value of the primary key column SEARCH_ID, which has the extra AUTO_INCREMENT.
+##### SQLite
+Natively supports returning 'generatedKeys'. For an example see the MySQL section directly above.
+##### Oracle 
+Oracle DB does not directly support returning generated keys out of the box. Here you can apply this pattern:
+- Do e.g. the INSERT in a call with the mode 'transaction'
+- as a second statement (separeted by ;) add a select to get the current value of a sequence
+**Example statements (statements are shortened)**
+```sql
+INSERT INTO GEOCODE_RESULTS (SEARCH_ID, ADDRESS_ID, ...) VALUES (:search_id:, :address_id:, ...);
+SELECT <some_sequence>.CURRVAL AS RESULT_ID FROM DUAL
+```
 
 #### SQL Connector Call Modes
 
