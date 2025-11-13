@@ -1,32 +1,59 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.simplifier-ag/simplifier-mcp",
-  "version": "0.9.49",
-  "description": "MCP server for Simplifier Low Code Platform - manage Connectors, BusinessObjects, and data types",
-  "homepage": "https://github.com/simplifier-ag/simplifier-mcp",
-  "license": "UNLICENSED",
-  "capabilities": {
-    "tools": true,
-    "resources": true,
-    "prompts": true
+  "description": "MCP Server for Simplifier - manage Connectors, BusinessObjects, Datatypes and logins",
+  "repository": {
+    "url": "https://github.com/simplifier-ag/simplifier-mcp",
+    "source": "github"
   },
-  "installation": {
-    "npm": {
-      "package": "@simplifierag/simplifier-mcp"
-    }
-  },
-  "config": {
-    "required": [
-      {
-        "key": "SIMPLIFIER_TOKEN",
-        "description": "Your current Simplifier authentication token. Obtain it from your Simplifier instance after logging in. The token needs to be refreshed daily.",
-        "type": "string"
+  "version": "{{VERSION}}",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@simplifierag/simplifier-mcp",
+      "version": "{{VERSION}}",
+      "transport": {
+        "type": "stdio"
       },
-      {
-        "key": "SIMPLIFIER_BASE_URL",
-        "description": "The base URL of your Simplifier instance (e.g., https://yourinstance-dev.simplifier.cloud or http://localhost:8080 for local development)",
-        "type": "string"
-      }
-    ]
-  }
+      "environmentVariables": [
+        {
+          "description": "Your current Simplifier token",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true,
+          "name": "SIMPLIFIER_TOKEN"
+        },
+        {
+          "description": "The base URL of your Simplifier instance",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": false,
+          "name": "SIMPLIFIER_BASE_URL"
+        }
+      ]
+    },
+    {
+      "registryType": "oci",
+      "identifier": "docker.io/simplifierag/simplifier-mcp:{{VERSION}}",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "description": "Your current Simplifier token",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true,
+          "name": "SIMPLIFIER_TOKEN"
+        },
+        {
+          "description": "The base URL of your Simplifier instance",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": false,
+          "name": "SIMPLIFIER_BASE_URL"
+        }
+      ]
+    }
+  ]
 }
