@@ -1,4 +1,4 @@
-name: Publish Docker Image
+name: Publish
 on:
   workflow_run:
     workflows: ["CI/CD"]
@@ -69,4 +69,46 @@ jobs:
           - **Version**: ${{ steps.package-version.outputs.VERSION }}
           - **Tags**: latest, ${{ steps.package-version.outputs.VERSION }}
           - **Pull**: \`docker pull ${{ secrets.DOCKER_HUB_USER }}/simplifier-mcp:latest\`
+          EOF
+
+  publish-to-mcp-registry:
+    name: Publish to MCP Registry
+    runs-on: ubuntu-latest
+    needs: build-and-push-docker
+    permissions:
+      id-token: write  # Required for GitHub OIDC authentication
+      contents: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install MCP Publisher
+        run: |
+          curl -L https://github.com/modelcontextprotocol/mcp-publisher/releases/download/v1.0.0/mcp-publisher-linux-amd64 -o mcp-publisher
+          chmod +x mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/
+
+      - name: Update server.json version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          sed "s/{{VERSION}}/$VERSION/g" server.json > server.json.tmp
+          mv server.json.tmp server.json
+
+      - name: Authenticate with MCP Registry (GitHub OIDC)
+        run: mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: mcp-publisher publish
+
+      - name: Update workflow summary
+        if: success()
+        run: |
+          echo "::notice::Successfully published to MCP Registry: io.github.simplifier-ag/simplifier-mcp@${GITHUB_REF_NAME#v}"
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          ## 🎉 MCP Registry Publication Successful
+
+          - **Server**: io.github.simplifier-ag/simplifier-mcp
+          - **Version**: ${GITHUB_REF_NAME#v}
+          - **Registry**: [MCP Registry](https://registry.modelcontextprotocol.io/)
           EOF

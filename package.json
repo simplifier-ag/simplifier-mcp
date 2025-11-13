@@ -30,6 +30,7 @@
     "low-code",
     "model-context-protocol"
   ],
+  "mcpName": "io.github.simplifier-ag/simplifier-mcp",
   "author": "",
   "license": "-",
   "dependencies": {
