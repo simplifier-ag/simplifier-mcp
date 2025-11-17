@@ -58,6 +58,9 @@ in the form of
 
 **Note**: Either *SIMPLIFIER_TOKEN* or *SIMPLIFIER_CREDENTIALS_FILE* must be set. But not both at once.
 
+**HTTP_REQUEST_LOG_FILE** -
+
+If set to a file path, HTTP requests sent from the MCP are logged there for debugging.
 
 ## Project Structure
 
