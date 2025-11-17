@@ -239,7 +239,10 @@ whether validateOut is set to true - in this case values will be filtered to fit
       openWorldHint: true,
     }, async ({ connectorName, callName, parameters }) => {
       return wrapToolResult(`test connector call ${connectorName}.${callName}`, async () => {
-        const connectorParameters = (await simplifier.getConnectorCall(connectorName, callName)).connectorCallParameters
+        const connectorParameters =
+          (await simplifier.getConnectorCall(connectorName, callName))
+            .connectorCallParameters
+            .filter(cparam => cparam.isInput)
         const testParameters: ConnectorTestParameter[]  = await Promise.all(connectorParameters.map(async cparam => {
           const dataType = await simplifier.getDataTypeByName(cparam.dataType.name)
           const value = parameters.find(p => p.name === cparam.name)?.value || parameters.find(p => p.name === cparam.alias)?.value || cparam.constValue
