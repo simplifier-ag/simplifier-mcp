@@ -1,6 +1,6 @@
 services:
   simplifier-mcp:
-    image: simplifier-mcp:latest
+    image: simplifierag/simplifier-mcp:latest
     environment:
       - SIMPLIFIER_BASE_URL=${SIMPLIFIER_BASE_URL}
       - SIMPLIFIER_TOKEN=${SIMPLIFIER_TOKEN}

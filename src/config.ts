@@ -7,12 +7,14 @@ export interface Config {
   simplifierToken?: string | undefined;
   credentialsFile?: string | undefined;
   skipConnectionTest: boolean;
+  httpRequestLogFile?: string | undefined;
 }
 
 // Config without sensitive data
 export interface DisplayConfig {
   baseUrl: string;
   skipConnectionTest: boolean;
+  httpRequestLogFile?: string | undefined;
 }
 
 export function validateConfig(): Config {
@@ -40,6 +42,7 @@ export function validateConfig(): Config {
     simplifierToken: process.env.SIMPLIFIER_TOKEN,
     credentialsFile: process.env.SIMPLIFIER_CREDENTIALS_FILE,
     skipConnectionTest: process.env.SIMPLIFIER_SKIP_CONNECTION_TEST ? process.env.SIMPLIFIER_SKIP_CONNECTION_TEST !== "false" : false,
+    httpRequestLogFile: process.env.HTTP_REQUEST_LOG_FILE,
   };
 }
 
@@ -50,6 +53,7 @@ export function getConfig(): DisplayConfig {
   return {
     baseUrl: config.simplifierBaseUrl,
     skipConnectionTest: config.skipConnectionTest,
+    httpRequestLogFile: config.httpRequestLogFile,
   };
 }
 

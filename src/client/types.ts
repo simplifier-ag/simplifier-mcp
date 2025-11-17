@@ -220,7 +220,7 @@ export interface BusinessObjectTestResponse {
 
 export interface ConnectorTestParameter {
   name: string;
-  value: unknown;
+  value?: unknown;
   alias?: string | undefined;
   constValue?: unknown | undefined;
   dataType: SimplifierDataType;

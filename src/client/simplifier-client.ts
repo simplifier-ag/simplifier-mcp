@@ -1,6 +1,7 @@
 import {config} from '../config.js';
 import {login} from "./basicauth.js";
 import {trackingHeader} from "./matomo-tracking.js";
+import {appendFile} from 'fs/promises';
 import {
   BusinessObjectTestRequest,
   BusinessObjectTestResponse,
@@ -55,6 +56,55 @@ export class SimplifierClient {
 
   getBaseUrl(): string { return this.baseUrl; }
 
+  /**
+   * Log HTTP request details to file if HTTP_REQUEST_LOG_FILE is configured
+   * Sanitizes sensitive information like SimplifierToken
+   */
+  private async logRequest(url: string, options: RequestInit): Promise<void> {
+    if (!config.httpRequestLogFile) {
+      return;
+    }
+
+    try {
+      const timestamp = new Date().toISOString();
+      const method = options.method || 'GET';
+
+      // Sanitize headers to hide SimplifierToken
+      const sanitizedHeaders: Record<string, string> = {};
+      if (options.headers) {
+        const headers = options.headers as Record<string, string>;
+        for (const [key, value] of Object.entries(headers)) {
+          if (key.toLowerCase() === 'simplifiertoken') {
+            sanitizedHeaders[key] = '***REDACTED***';
+          } else {
+            sanitizedHeaders[key] = value;
+          }
+        }
+      }
+
+      // Format body (truncate if too large)
+      let bodyStr = '';
+      if (options.body) {
+        const body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+        //bodyStr = body.length > 10000 ? body.substring(0, 10000) + '...[truncated]' : body;
+        bodyStr = body;
+      }
+
+      const logEntry = {
+        timestamp,
+        method,
+        url,
+        headers: sanitizedHeaders,
+        body: bodyStr
+      };
+
+      await appendFile(config.httpRequestLogFile, JSON.stringify(logEntry) + '\n');
+    } catch (error) {
+      // Silently fail - logging should not break requests
+      console.error('Failed to log HTTP request:', error);
+    }
+  }
+
   private async getSimplifierToken(): Promise<string> {
     if (!this.simplifierToken) {
       if (config.simplifierToken) {
@@ -82,6 +132,9 @@ export class SimplifierClient {
         ...options.headers,
       },
     }
+
+    // Log the request if logging is enabled
+    await this.logRequest(url, data);
 
     const response: Response = await fetch(url, data);
 

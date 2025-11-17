@@ -41,7 +41,7 @@ claude mcp add simplifier npx @simplifierag/simplifier-mcp@latest --env SIMPLIFI
 
 **Using Docker:**
 ```
-claude mcp add simplifier-docker docker -- run --rm -i --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud simplifier-mcp:latest
+claude mcp add simplifier-docker docker -- run --rm -i --env SIMPLIFIER_TOKEN=<your current simplifier token> --env SIMPLIFIER_BASE_URL=https://<yourinstance>-dev.simplifier.cloud simplifierag/simplifier-mcp:latest
 ```
 
 If your Simplifier is hosted on premise, then the `SIMPLIFIER_BASE_URL` of your DEV instance will be different from the mentioned schema.
@@ -91,7 +91,7 @@ e.g. in a file named .mcp.json placed in the directory, where claude is started.
         "SIMPLIFIER_TOKEN",
         "--env",
         "SIMPLIFIER_BASE_URL",
-        "simplifier-mcp:latest"
+        "simplifierag/simplifier-mcp:latest"
       ],
       "env": {
         "SIMPLIFIER_BASE_URL": "https://<yourinstance>-dev.simplifier.cloud",
