@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc && npm run copy-docs",
-    "copy-docs": "find src -name '*.md' -type f -exec sh -c 'mkdir -p \"dist/$(dirname \"$1\" | sed \"s|^src/||\")\"; cp \"$1\" \"dist/$(echo \"$1\" | sed \"s|^src/||\")\";' _ {} \\;",
+    "copy-docs": "node scripts/copy-docs.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
