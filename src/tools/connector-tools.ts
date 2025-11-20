@@ -10,48 +10,50 @@ import {trackingToolPrefix} from "../client/matomo-tracking.js";
 export function registerConnectorTools(server: McpServer, simplifier: SimplifierClient): void {
 
   const toolNameConnectorUpdate = "connector-update"
-  server.tool(toolNameConnectorUpdate,
-    readFile("tools/docs/create-or-update-connector.md"),
+  server.registerTool(toolNameConnectorUpdate,
     {
-      name: z.string(),
-      description: z.string().optional().default(""),
-      connectorType: z.string(),
-      active: z.boolean().optional().default(true),
-      timeoutTime: z.number().optional().default(60)
-        .describe(`maximum duration of a call in seconds`),
-      endpointConfiguration: z.object({
-        endpoint: z.string()
-          .describe(`The name of an existing instance, defined at the Simplifier server landscape.
-          **Use the name of the active instance, provided by simplifier://server-active-instance when creating 
-          a connector endpoint for the server, you are currently working on.**
-          HINT: In error messages, endpoint names are often eclosed in brackets [] or quotes for readability. 
-          **When using endpoint name from error message, strip off brackets and quotes**
+      description: readFile("tools/docs/create-or-update-connector.md"),
+      inputSchema: {
+        name: z.string(),
+        description: z.string().optional().default(""),
+        connectorType: z.string(),
+        active: z.boolean().optional().default(true),
+        timeoutTime: z.number().optional().default(60)
+          .describe(`maximum duration of a call in seconds`),
+        endpointConfiguration: z.object({
+          endpoint: z.string()
+            .describe(`The name of an existing instance, defined at the Simplifier server landscape.
+**Use the name of the active instance, provided by simplifier://server-active-instance when creating 
+a connector endpoint for the server, you are currently working on.**
+HINT: In error messages, endpoint names are often eclosed in brackets [] or quotes for readability. 
+**When using endpoint name from error message, strip off brackets and quotes**
           `),
-        certificates: z.array(z.string()),
-        configuration: z.any().optional()
-          .describe(`The properties, defined by this object are specific to the chosen connectorType`),
-        loginMethodName: z.string().optional()
-          .describe(`The name of an existing login method, available on the Simplifier server`),
-      }).optional()
-        .describe(
-          `On creating a new connector, an endpoint configuration is mandatory. 
-          On updating a Connector:
-          * endpoint configuration may be omitted if it is not intended to change. 
-          * a new endpoint configuration can be added by using a new endpoint name. 
-          * one endpoint configuration can be changed by using the name property of an existing configuration. 
+          certificates: z.array(z.string()),
+          configuration: z.any().optional()
+            .describe(`The properties, defined by this object are specific to the chosen connectorType`),
+          loginMethodName: z.string().optional()
+            .describe(`The name of an existing login method, available on the Simplifier server`),
+        }).optional()
+          .describe(
+            `On creating a new connector, an endpoint configuration is mandatory. 
+On updating a Connector:
+* endpoint configuration may be omitted if it is not intended to change. 
+* a new endpoint configuration can be added by using a new endpoint name. 
+* one endpoint configuration can be changed by using the name property of an existing configuration. 
         `),
-      tags: z.array(z.string()).optional().default([]),
-      projectsBefore: z.array(z.string()).optional().default([])
-        .describe('Project names before the change. Use empty array [] when creating new Connectors, or provide current projects when updating.'),
-      projectsAfterChange: z.array(z.string()).optional().default([])
-        .describe('Project names to assign the Connector to. Required for tracking project assignments.')
-    },
-    {
-      title: "Create or update a Connector",
-      readOnlyHint: false,
-      destructiveHint: false,
-      idempotentHint: false,
-      openWorldHint: true
+        tags: z.array(z.string()).optional().default([]),
+        projectsBefore: z.array(z.string()).optional().default([])
+          .describe('Project names before the change. Use empty array [] when creating new Connectors, or provide current projects when updating.'),
+        projectsAfterChange: z.array(z.string()).optional().default([])
+          .describe('Project names to assign the Connector to. Required for tracking project assignments.')
+      },
+      annotations: {
+        title: "Create or update a Connector",
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true
+      },
     },
     async ( {name, description, connectorType, active, timeoutTime, endpointConfiguration, tags, projectsBefore, projectsAfterChange}) => {
       return wrapToolResult( `create or update Connector ${name}`, async () => {
@@ -85,50 +87,52 @@ export function registerConnectorTools(server: McpServer, simplifier: Simplifier
 
 
   const toolNameConnectorCallUpdate = "connector-call-update"
-  server.tool(toolNameConnectorCallUpdate,
-    readFile("tools/docs/create-or-update-connectorcall.md"),
+  server.registerTool(toolNameConnectorCallUpdate,
     {
-      connectorName: z.string()
-        .describe(`Name of the Connector to modify calls`),
-      connectorCallName: z.string()
-        .describe(`Name of the Connector call to be added or modified`),
-      description: z.string().default(""),
-      validateIn: z.boolean().default(true)
-        .describe(`If true, validates that all mandatory input parameters are present before execution. Catches missing parameters early with clear validation errors (HTTP 422). If false, allows incomplete requests through, resulting in backend errors (HTTP 500).`),
-      validateOut: z.boolean().default(true)
-        .describe(`If true, validates and filters the output response against the defined datatype structure, returning only defined fields (type "any" allows all fields). If false, returns the complete raw API response without filtering or validation.`),
-      async: z.boolean().default(false),
-      autoGenerated: z.boolean().default(false),
-      connectorCallParameters: z.array(z.object({
-        name: z.string()
-          .describe(`Parameter name may contain '/' or '[]', indicating it's position inside a JSON object or array` ),
-        alias: z.string().optional()
-          .describe(`optional alias name`),
-        isInput: z.boolean()
-          .describe(`If true, the parameter represents an input of the connector call. Set this to false in order to define an output parameter.`),
-        constValue: z.string().optional()
-          .describe(`If constValue is given, the value is fixed and cannot be changed by the caller`),
-        dataType: z.object({
+      description: readFile("tools/docs/create-or-update-connectorcall.md"),
+      inputSchema: {
+        connectorName: z.string()
+          .describe(`Name of the Connector to modify calls`),
+        connectorCallName: z.string()
+          .describe(`Name of the Connector call to be added or modified`),
+        description: z.string().default(""),
+        validateIn: z.boolean().default(true)
+          .describe(`If true, validates that all mandatory input parameters are present before execution. Catches missing parameters early with clear validation errors (HTTP 422). If false, allows incomplete requests through, resulting in backend errors (HTTP 500).`),
+        validateOut: z.boolean().default(true)
+          .describe(`If true, validates and filters the output response against the defined datatype structure, returning only defined fields (type "any" allows all fields). If false, returns the complete raw API response without filtering or validation.`),
+        async: z.boolean().default(false),
+        autoGenerated: z.boolean().default(false),
+        connectorCallParameters: z.array(z.object({
           name: z.string()
-            .describe(`Datatype name'`),
-          nameSpace: z.string().optional()
-            .describe(`Datatype namespace`),
-          category: z.enum(['base', 'domain', 'collection', 'structure'])
-            .describe(`Datatype category`),
-        }),
-        optional: z.boolean().default(false)
-          .describe(`If true, the parameter is optional`),
-        position: z.number().default(0)
-          .describe(`Row position for display the parameter in the UI.`),
-      })).optional().default([])
-        .describe(`Call Parameters define the input and output arguments, specific to the connector type.`)
-    },
-    {
-      title: "Create or update a Connector Call",
-      readOnlyHint: false,
-      destructiveHint: false,
-      idempotentHint: false,
-      openWorldHint: true
+            .describe(`Parameter name may contain '/' or '[]', indicating it's position inside a JSON object or array`),
+          alias: z.string().optional()
+            .describe(`optional alias name`),
+          isInput: z.boolean()
+            .describe(`If true, the parameter represents an input of the connector call. Set this to false in order to define an output parameter.`),
+          constValue: z.string().optional()
+            .describe(`If constValue is given, the value is fixed and cannot be changed by the caller`),
+          dataType: z.object({
+            name: z.string()
+              .describe(`Datatype name'`),
+            nameSpace: z.string().optional()
+              .describe(`Datatype namespace`),
+            category: z.enum(['base', 'domain', 'collection', 'structure'])
+              .describe(`Datatype category`),
+          }),
+          optional: z.boolean().default(false)
+            .describe(`If true, the parameter is optional`),
+          position: z.number().default(0)
+            .describe(`Row position for display the parameter in the UI.`),
+        })).optional().default([])
+          .describe(`Call Parameters define the input and output arguments, specific to the connector type.`)
+      },
+      annotations: {
+        title: "Create or update a Connector Call",
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true
+      },
     },
     async (oArgs) => {
       return wrapToolResult(`create or update Connector call ${oArgs.connectorName}.${oArgs.connectorCallName}`, async () => {
@@ -157,23 +161,25 @@ export function registerConnectorTools(server: McpServer, simplifier: Simplifier
     }
   );
   const toolNameConnectorWizardRfcCreate = "connector-wizard-rfc-create"
-  server.tool(toolNameConnectorWizardRfcCreate,
-    `# Create one or more calls for an RFC connector using the wizard
+  server.registerTool(toolNameConnectorWizardRfcCreate,
+    {
+      description: `# Create one or more calls for an RFC connector using the wizard
 
 The RFC connector requires calls to refer to existing functions on the remote SAP system. To find available functions,
 use the resource template \`simplifier://connector-wizard/{connectorName}/search/{term}/{page}\`. Select the desired
 function names and pass them to this tool.
     `,
-    {
-      connectorName: z.string().describe(`Name of the RFC Connector to add calls to`),
-      rfcFunctionNames: z.array(z.string()).describe(`Names of the SAP system's functions for which to create connector calls`),
-    },
-    {
-      title: "Create RFC connector calls using the call wizard",
-      readOnlyHint: false,
-      destructiveHint: true,
-      idempotentHint: false,
-      openWorldHint: true
+      inputSchema: {
+        connectorName: z.string().describe(`Name of the RFC Connector to add calls to`),
+        rfcFunctionNames: z.array(z.string()).describe(`Names of the SAP system's functions for which to create connector calls`),
+      },
+      annotations: {
+        title: "Create RFC connector calls using the call wizard",
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: true
+      },
     },
     async ({connectorName, rfcFunctionNames}) => {
       return wrapToolResult(`create ${rfcFunctionNames.length} connector calls using the RFC connector wizard`, async () => {
@@ -221,22 +227,24 @@ whether validateOut is set to true - in this case values will be filtered to fit
 `;
 
   const toolNameConnectorCallTest = "connector-call-test"
-  server.tool(toolNameConnectorCallTest,
-    connectorTestDescription,
+  server.registerTool(toolNameConnectorCallTest,
     {
-      connectorName: z.string(),
-      callName: z.string(),
-      parameters: z.array(z.object({
-        name: z.string().describe("Parameter name"),
-        value: z.unknown().describe("Parameter value - can be any JSON value")
-      })).optional().default([]).describe("Input parameters for the connector call")
-    },
-    {
-      title: "Test a Connector Call",
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: true,
+      description: connectorTestDescription,
+      inputSchema: {
+        connectorName: z.string(),
+        callName: z.string(),
+        parameters: z.array(z.object({
+          name: z.string().describe("Parameter name"),
+          value: z.unknown().describe("Parameter value - can be any JSON value")
+        })).optional().default([]).describe("Input parameters for the connector call")
+      },
+      annotations: {
+        title: "Test a Connector Call",
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
     }, async ({ connectorName, callName, parameters }) => {
       return wrapToolResult(`test connector call ${connectorName}.${callName}`, async () => {
         const connectorParameters =
@@ -282,20 +290,22 @@ whether validateOut is set to true - in this case values will be filtered to fit
 
 
   const toolNameConnectorCallDelete = "connector-call-delete"
-  server.tool(toolNameConnectorCallDelete,
-    `# Delete a Connector call`,
+  server.registerTool(toolNameConnectorCallDelete,
     {
-      connectorName: z.string()
-        .describe("Name of the Connector to modify"),
-      callName: z.string()
-        .describe("Name of the connector call to delete")
-    },
-    {
-      title: "Delete a Connector Call",
-      readOnlyHint: false,
-      destructiveHint: true,
-      idempotentHint: true,
-      openWorldHint: true,
+      description: `# Delete a Connector call`,
+      inputSchema: {
+        connectorName: z.string()
+          .describe("Name of the Connector to modify"),
+        callName: z.string()
+          .describe("Name of the connector call to delete")
+      },
+      annotations: {
+        title: "Delete a Connector Call",
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
     },
     ({ connectorName, callName }) => {
       return wrapToolResult(`delete connector call ${connectorName}.${callName}`, async () => {
@@ -305,17 +315,20 @@ whether validateOut is set to true - in this case values will be filtered to fit
     });
 
   const toolNameConnectorDelete = "connector-delete"
-  server.tool(toolNameConnectorDelete, `# Delete a Connector`,
+  server.registerTool(toolNameConnectorDelete, 
     {
-      connectorName: z.string()
-        .describe("Name of the Connector to delete"),
-    },
-    {
-      title: "Delete a Connector",
-      readOnlyHint: false,
-      destructiveHint: true,
-      idempotentHint: true,
-      openWorldHint: true,
+      description: `# Delete a Connector`,
+      inputSchema: {
+        connectorName: z.string()
+          .describe("Name of the Connector to delete"),
+      },
+      annotations: {
+        title: "Delete a Connector",
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
     },
     ({ connectorName }) => {
       return wrapToolResult(`delete connector ${connectorName}`, async () => {

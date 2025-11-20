@@ -7,7 +7,7 @@ import {
   createExistingLoginMethod,
   setupSuccessfulCreate,
   setupSuccessfulUpdate,
-  getToolHandler,
+  getRegisterToolHandler,
   mockWrapToolResultSuccess,
   mockWrapToolResultSimpleSuccess,
   FIRST_CALL,
@@ -42,7 +42,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "UserCredentials" as const,
@@ -86,7 +86,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "UserCredentials" as const,
@@ -115,7 +115,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "UserCredentials" as const,
@@ -150,7 +150,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "UserCredentials" as const,
@@ -205,7 +205,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "UserCredentials" as const,
@@ -240,7 +240,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "UserCredentials" as const,
@@ -274,7 +274,7 @@ describe('registerLoginMethodTools - UserCredentials LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "UserCredentials" as const,

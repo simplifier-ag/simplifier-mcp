@@ -1,14 +1,13 @@
-import { SimplifierClient } from "../client/simplifier-client.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { wrapToolResult } from "./toolresult.js";
-import { readFile } from "../resourceprovider.js";
 import { z } from "zod";
-import { TargetAndSourceMapper } from "./loginmethod/TargetAndSourceMapper.js";
-import { UserCredentialsTargetAndSourceMapper } from "./loginmethod/UserCredentialsTargetAndSourceMapper.js";
+import { trackingToolPrefix } from "../client/matomo-tracking.js";
+import { SimplifierClient } from "../client/simplifier-client.js";
 import { OAuthTargetAndSourceMapper } from "./loginmethod/OAuthTargetAndSourceMapper.js";
-import { TokenTargetAndSourceMapper } from "./loginmethod/TokenTargetAndSourceMapper.js";
 import { SAPSSOTargetAndSourceMapper } from "./loginmethod/SAPSSOMapper.js";
-import {trackingToolPrefix} from "../client/matomo-tracking.js";
+import { TargetAndSourceMapper } from "./loginmethod/TargetAndSourceMapper.js";
+import { TokenTargetAndSourceMapper } from "./loginmethod/TokenTargetAndSourceMapper.js";
+import { UserCredentialsTargetAndSourceMapper } from "./loginmethod/UserCredentialsTargetAndSourceMapper.js";
+import { wrapToolResult } from "./toolresult.js";
 
 /**
  * Register LoginMethod tools for Simplifier Low Code Platform integration
@@ -55,17 +54,37 @@ async function checkOAuthClient(
 export function registerLoginMethodTools(server: McpServer, simplifier: SimplifierClient): void {
 
   const toolNameLoginMethodUpdate = "loginmethod-update"
-  server.tool(toolNameLoginMethodUpdate,
-    readFile("tools/docs/create-or-update-loginmethod.md"),
-    {
-      loginMethodType: z.enum(["UserCredentials", "OAuth2", "Token", "SingleSignOn"])
-        .describe(`Type of login method: UserCredentials for BasicAuth, OAuth2 for OAuth2-based auth, Token for token-based auth, SingleSignOn for SAP-SSO Logon Ticket`),
-      name: z.string().describe("Name of the login method"),
-      description: z.string().describe("Description of the login method"),
+  const toolDescriptionLoginMethodUpdate = `# Create or update a Login Method
 
-      // Source type (applies to UserCredentials, OAuth2, and Token)
-      sourceType: z.enum(["Default", "Provided", "Reference", "SystemReference", "ProfileReference", "UserAttributeReference"]).optional()
-        .describe(`Source type: 
+Create or update login methods for authenticating connectors with external systems.
+Check the documentation resource below for the type you want to create:
+
+**Supported Types:**
+- **UserCredentials (BasicAuth)**: Username/password authentication.
+  Docs: simplifier://documentation/loginmethod-type/usercredentials
+- **OAuth2**: OAuth2 client-based authentication.
+  Docs: simplifier://documentation/loginmethod-type/oauth2
+- **Token**: Token-based authentication (API keys, SimplifierToken).
+  Docs: simplifier://documentation/loginmethod-type/token
+- **SAPSSO**: SAP-Single Sign on via Logon Ticket.
+  Docs: simplifier://documentation/loginmethod-type/sapsso
+
+Note that the type of a login method cannot be changed later. If you need to
+change the type, create a new login method instead.
+`
+
+  server.registerTool(toolNameLoginMethodUpdate,
+    {
+      description: toolDescriptionLoginMethodUpdate,
+      inputSchema: {
+        loginMethodType: z.enum(["UserCredentials", "OAuth2", "Token", "SingleSignOn"])
+          .describe(`Type of login method: UserCredentials for BasicAuth, OAuth2 for OAuth2-based auth, Token for token-based auth, SingleSignOn for SAP-SSO Logon Ticket`),
+        name: z.string().describe("Name of the login method"),
+        description: z.string().describe("Description of the login method"),
+
+        // Source type (applies to UserCredentials, OAuth2, and Token)
+        sourceType: z.enum(["Default", "Provided", "Reference", "SystemReference", "ProfileReference", "UserAttributeReference"]).optional()
+          .describe(`Source type: 
           * Default (system default - credentials for UserCredentials, OAuth2 client for OAuth2, empty for Token, user logon ticket for SAP-SSO)
           * SystemReference (Token - uses SimplifierToken)
           * Provided (UserCredentials - username/password, Token - token value)
@@ -73,48 +92,49 @@ export function registerLoginMethodTools(server: McpServer, simplifier: Simplifi
           * ProfileReference (user profile key)
           * UserAttributeReference (user attribute)`),
 
-      // UserCredentials Default/Provided source fields
-      username: z.string().optional()
-        .describe(`[UserCredentials Default/Provided] Username for basic authentication. 
+        // UserCredentials Default/Provided source fields
+        username: z.string().optional()
+          .describe(`[UserCredentials Default/Provided] Username for basic authentication. 
         Must not be empty string. If the information is not given (i.e. in case of Microsoft PAT authentication), use a non empty placeholder`),
-      password: z.string().optional()
-        .describe("[UserCredentials Default/Provided] Password for basic authentication"),
-      changePassword: z.boolean().optional().default(false)
-        .describe("[UserCredentials Default/Provided] Set to true when updating to change the password"),
+        password: z.string().optional()
+          .describe("[UserCredentials Default/Provided] Password for basic authentication"),
+        changePassword: z.boolean().optional().default(false)
+          .describe("[UserCredentials Default/Provided] Set to true when updating to change the password"),
 
-      // Token Provided source fields
-      token: z.string().optional().describe("[Token Provided] Token value for authentication"),
-      changeToken: z.boolean().optional().default(false)
-        .describe("[Token Provided] Set to true when updating to change the token"),
+        // Token Provided source fields
+        token: z.string().optional().describe("[Token Provided] Token value for authentication"),
+        changeToken: z.boolean().optional().default(false)
+          .describe("[Token Provided] Set to true when updating to change the token"),
 
-      // Token Provided source fields
-      ticket: z.string().optional().describe("[SingleSignOn Provided] Ticket value for authentication"),
-      changeTicket: z.boolean().optional().default(false)
-        .describe("[SingleSignOn Provided] Set to true when updating to change the ticket"),
+        // Token Provided source fields
+        ticket: z.string().optional().describe("[SingleSignOn Provided] Ticket value for authentication"),
+        changeTicket: z.boolean().optional().default(false)
+          .describe("[SingleSignOn Provided] Set to true when updating to change the ticket"),
 
-      // OAuth2 Default/Reference fields
-      oauth2ClientName: z.string().optional()
-        .describe("[OAuth2 Default/Reference] Name of the OAuth2 client (discover via simplifier://oauthclients). **Important**: The `oauth2ClientName` **MUST** match one of the existing OAuth2 clients configured in Simplifier. You should discover available clients using the `simplifier://oauthclients` resource before creating the login method."),
+        // OAuth2 Default/Reference fields
+        oauth2ClientName: z.string().optional()
+          .describe("[OAuth2 Default/Reference] Name of the OAuth2 client (discover via simplifier://oauthclients). **Important**: The `oauth2ClientName` **MUST** match one of the existing OAuth2 clients configured in Simplifier. You should discover available clients using the `simplifier://oauthclients` resource before creating the login method."),
 
-      // ProfileReference fields (UserCredentials and OAuth2)
-      profileKey: z.string().optional().describe("[ProfileReference] Key name in the user's profile"),
+        // ProfileReference fields (UserCredentials and OAuth2)
+        profileKey: z.string().optional().describe("[ProfileReference] Key name in the user's profile"),
 
-      // UserAttributeReference fields (UserCredentials and OAuth2)
-      userAttributeName: z.string().optional().describe("[UserAttributeReference] Name of the user attribute"),
-      userAttributeCategory: z.string().optional().describe("[UserAttributeReference] Category of the user attribute"),
+        // UserAttributeReference fields (UserCredentials and OAuth2)
+        userAttributeName: z.string().optional().describe("[UserAttributeReference] Name of the user attribute"),
+        userAttributeCategory: z.string().optional().describe("[UserAttributeReference] Category of the user attribute"),
 
-      // Target configuration (for OAuth2 and Token)
-      targetType: z.enum(["Default", "CustomHeader", "QueryParameter"]).optional().default("Default")
-        .describe("[OAuth2/Token] Target type: Default (standard auth header), CustomHeader (custom header name), QueryParameter (query param - OAuth2 only)"),
-      customHeaderName: z.string().optional().describe("[OAuth2 CustomHeader] Name of the custom authentication header"),
-      queryParameterKey: z.string().optional().describe("[OAuth2 QueryParameter] Key name for the query parameter")
-    },
-    {
-      title: "Create or update a Login Method",
-      readOnlyHint: false,
-      destructiveHint: false,
-      idempotentHint: false,
-      openWorldHint: true
+        // Target configuration (for OAuth2 and Token)
+        targetType: z.enum(["Default", "CustomHeader", "QueryParameter"]).optional().default("Default")
+          .describe("[OAuth2/Token] Target type: Default (standard auth header), CustomHeader (custom header name), QueryParameter (query param - OAuth2 only)"),
+        customHeaderName: z.string().optional().describe("[OAuth2 CustomHeader] Name of the custom authentication header"),
+        queryParameterKey: z.string().optional().describe("[OAuth2 QueryParameter] Key name for the query parameter")
+      },
+      annotations: {
+        title: "Create or update a Login Method",
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true
+      },
     }, async (params) => {
       return wrapToolResult(`create or update Login Method ${params.name}`, async () => {
         // Check if login method exists

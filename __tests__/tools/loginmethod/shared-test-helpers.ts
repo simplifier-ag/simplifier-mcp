@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SimplifierClient } from "../../../src/client/simplifier-client.js";
 import { SimplifierLoginMethodDetailsRaw } from "../../../src/client/types.js";
+import { ZodRawShape } from "zod";
 
 /**
  * Shared test helpers for LoginMethod tool tests
@@ -10,9 +11,16 @@ import { SimplifierLoginMethodDetailsRaw } from "../../../src/client/types.js";
 // Named constants for server.tool() call indices
 export const TOOL_CALL_INDEX = 0; // First (and only) tool registration call
 
+// Named constants for server.registerTool() call indices
+export const REGISTER_TOOL_CALL_INDEX = 0; // First (and only) tool registration call
+
 // Named constants for server.tool() argument positions
 export const TOOL_ARG_SCHEMA = 2;
 export const TOOL_ARG_HANDLER = 4;
+
+// Named constants for server.registerTool() argument positions
+export const REGISTER_TOOL_ARG_CONFIG= 1;
+export const REGISTER_TOOL_ARG_HANDLER = 2;
 
 // Named constants for client method call positions
 export const FIRST_CALL = 0;
@@ -24,7 +32,8 @@ export const SECOND_ARG = 1;
  */
 export function createMockServer(): jest.Mocked<McpServer> {
   return {
-    tool: jest.fn()
+    tool: jest.fn(),
+    registerTool: jest.fn(),
   } as any;
 }
 
@@ -184,11 +193,26 @@ export function getToolHandler(mockServer: jest.Mocked<McpServer>): Function {
 }
 
 /**
+ * Extracts the tool handler function from the mock server
+ */
+export function getRegisterToolHandler(mockServer: jest.Mocked<McpServer>): Function {
+  return mockServer.registerTool.mock.calls[REGISTER_TOOL_CALL_INDEX][REGISTER_TOOL_ARG_HANDLER];
+}
+
+/**
  * Extracts the schema from the mock server
  */
 export function getToolSchema(mockServer: jest.Mocked<McpServer>): any {
   return mockServer.tool.mock.calls[TOOL_CALL_INDEX][TOOL_ARG_SCHEMA];
 }
+
+/**
+ * Extracts the schema from the mock server
+ */
+export function getRegisterToolSchema(mockServer: jest.Mocked<McpServer>): ZodRawShape {
+  return mockServer.registerTool.mock.calls[REGISTER_TOOL_CALL_INDEX][REGISTER_TOOL_ARG_CONFIG].inputSchema!!;
+}
+
 
 /**
  * Sets up mock OAuth2 clients for validation tests

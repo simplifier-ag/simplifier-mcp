@@ -7,7 +7,7 @@ import {
   setupSuccessfulCreate,
   setupMockOAuth2Clients,
   setupEmptyOAuth2Clients,
-  getToolHandler,
+  getRegisterToolHandler,
   mockWrapToolResultSimpleSuccess,
   mockWrapToolResultWithErrorHandling
 } from "./loginmethod/shared-test-helpers.js";
@@ -39,7 +39,7 @@ describe('registerLoginMethodTools - OAuth2 client name validation', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "OAuth2" as const,
@@ -64,7 +64,7 @@ describe('registerLoginMethodTools - OAuth2 client name validation', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "OAuth2" as const,
@@ -89,7 +89,7 @@ describe('registerLoginMethodTools - OAuth2 client name validation', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "OAuth2" as const,
@@ -116,7 +116,7 @@ describe('registerLoginMethodTools - OAuth2 client name validation', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "OAuth2" as const,
@@ -141,7 +141,7 @@ describe('registerLoginMethodTools - OAuth2 client name validation', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "OAuth2" as const,
@@ -168,7 +168,7 @@ describe('registerLoginMethodTools - OAuth2 client name validation', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "OAuth2" as const,
@@ -193,7 +193,7 @@ describe('registerLoginMethodTools - OAuth2 client name validation', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "OAuth2" as const,
@@ -221,7 +221,7 @@ describe('registerLoginMethodTools - OAuth2 client name validation', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "OAuth2" as const,

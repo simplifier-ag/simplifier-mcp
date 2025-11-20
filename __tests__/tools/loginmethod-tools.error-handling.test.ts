@@ -5,7 +5,7 @@ import {
   createMockServer,
   createMockSimplifierClient,
   createExistingLoginMethod,
-  getToolHandler,
+  getRegisterToolHandler,
   mockWrapToolResultWithFullErrorCaption
 } from "./loginmethod/shared-test-helpers.js";
 
@@ -35,7 +35,7 @@ describe('registerLoginMethodTools - error handling', () => {
     const mockClient = createMockSimplifierClient();
 
     registerLoginMethodTools(mockServer, mockClient);
-    const toolHandler = getToolHandler(mockServer);
+    const toolHandler = getRegisterToolHandler(mockServer);
 
     const testParams = {
       loginMethodType: "UserCredentials" as const,
@@ -72,7 +72,7 @@ describe('registerLoginMethodTools - error handling', () => {
     const mockClient = createMockSimplifierClient();
 
     registerLoginMethodTools(mockServer, mockClient);
-    const toolHandler = getToolHandler(mockServer);
+    const toolHandler = getRegisterToolHandler(mockServer);
 
     const testParams = {
       loginMethodType: "UserCredentials" as const,
