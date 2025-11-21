@@ -1,32 +1,32 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 
-export function registerUtilsApiDocumentation(server: McpServer): void {
-  server.resource(
-    "utils-api-docs",
-    "simplifier://documentation/server-businessobjects/api/Utils",
+export function registerUtilApiDocumentation(server: McpServer): void {
+  server.registerResource(
+    "util-api-docs",
+    "simplifier://documentation/server-businessobjects/api/Util",
     {
-      title: "Simplifier Utils API Documentation",
+      title: "Simplifier.Util API Documentation",
       mimeType: "text/markdown",
-      description: "Complete reference for Simplifier.Utils methods available in server-side Business Objects"
+      description: "Complete reference for Simplifier.Util methods available in server-side Business Objects"
     },
     async (uri): Promise<ReadResourceResult> => {
-      const markdownContent = `# Simplifier Utils API Reference
+      const markdownContent = `# Simplifier.Util API Reference
 
-The Simplifier Utils API provides essential utility functions for data conversion and transformation within server-side Business Objects.
+The Simplifier.Util API provides essential utility functions for data conversion and transformation within server-side Business Objects.
 
 ## Overview
-Access utility methods via: \`Simplifier.Utils.<method>\`
+Access utility methods via: \`Simplifier.Util.<method>\`
 
 ## Base64 Encoding and Decoding
 
-### \`Simplifier.Utils.base64Encode(data)\`
+### \`Simplifier.Util.encodeBase64(data)\`
 Encodes data to Base64 format.
 - **Input**: (string)
 - **Result**: string
 
 \`\`\`javascript
-var encodedData = Simplifier.Utils.base64Encode("Hello World!");
+var encodedData = Simplifier.Util.encodeBase64("Hello World!");
 // Result: "SGVsbG8gV29ybGQh"
 \`\`\`
 
@@ -35,13 +35,13 @@ var encodedData = Simplifier.Utils.base64Encode("Hello World!");
 - Preparing data for API calls requiring Base64 format
 - Storing binary content in text-based systems
 
-### \`Simplifier.Utils.base64Decode(encodedData)\`
+### \`Simplifier.Util.decodeBase64(encodedData)\`
 Decodes Base64 encoded data back to original format.
 - **Input**: (string)
 - **Result**: string
 
 \`\`\`javascript
-var decodedData = Simplifier.Utils.base64Decode("SGVsbG8gV29ybGQh");
+var decodedData = Simplifier.Util.decodeBase64("SGVsbG8gV29ybGQh");
 // Result: "Hello World!"
 \`\`\`
 
@@ -52,14 +52,14 @@ var decodedData = Simplifier.Utils.base64Decode("SGVsbG8gV29ybGQh");
 
 ## XML and JSON Conversion
 
-### \`Simplifier.Utils.xmlToJson(xmlString)\`
+### \`Simplifier.Util.xml2Json(xmlString)\`
 Converts XML string to JSON object.
 - **Input**: (string)
 - **Result**: object
 
 \`\`\`javascript
 var xmlData = '<root><name>John</name><age>30</age></root>';
-var jsonResult = Simplifier.Utils.xmlToJson(xmlData);
+var jsonResult = Simplifier.Util.xml2Json(xmlData);
 // Result: { root: { name: "John", age: "30" } }
 \`\`\`
 
@@ -69,14 +69,14 @@ var jsonResult = Simplifier.Utils.xmlToJson(xmlData);
 - Transforming SOAP response data
 - Integrating with legacy XML systems
 
-### \`Simplifier.Utils.jsonToXml(jsonObject)\`
+### \`Simplifier.Util.json2Xml(jsonObject)\`
 Converts JSON object to XML string.
 - **Input**: (object)
 - **Result**: string
 
 \`\`\`javascript
 var jsonData = { root: { name: "John", age: 30 } };
-var xmlResult = Simplifier.Utils.jsonToXml(jsonData);
+var xmlResult = Simplifier.Util.json2Xml(jsonData);
 // Result: "<root><name>John</name><age>30</age></root>"
 \`\`\`
 
@@ -92,10 +92,10 @@ var xmlResult = Simplifier.Utils.jsonToXml(jsonData);
 \`\`\`javascript
 function processExternalData(rawData) {
   // Step 1: Decode Base64 received data
-  var decodedData = Simplifier.Utils.base64Decode(rawData);
+  var decodedData = Simplifier.Util.decodeBase64(rawData);
 
   // Step 2: Parse XML to JSON for easier manipulation
-  var jsonData = Simplifier.Utils.xmlToJson(decodedData);
+  var jsonData = Simplifier.Util.xml2Json(decodedData);
 
   // Step 3: Process the data
   if (jsonData.response && jsonData.response.status === "success") {
@@ -110,7 +110,7 @@ function processExternalData(rawData) {
 \`\`\`javascript
 function sendXMLRequest(requestData) {
   // Convert JSON to XML for SOAP API
-  var xmlPayload = Simplifier.Utils.jsonToXml({
+  var xmlPayload = Simplifier.Util.json2Xml({
     soap: {
       body: {
         request: requestData
@@ -119,7 +119,7 @@ function sendXMLRequest(requestData) {
   });
 
   // Encode for transmission
-  var encodedPayload = Simplifier.Utils.base64Encode(xmlPayload);
+  var encodedPayload = Simplifier.Util.encodeBase64(xmlPayload);
 
   // Send to external system
   var response = Simplifier.Connector.ExternalAPI.sendRequest({
@@ -136,10 +136,10 @@ function sendXMLRequest(requestData) {
 function processUploadedXMLFile(base64FileContent) {
   try {
     // Decode the file content
-    var xmlContent = Simplifier.Utils.base64Decode(base64FileContent);
+    var xmlContent = Simplifier.Util.decodeBase64(base64FileContent);
 
     // Convert XML to JSON for processing
-    var jsonData = Simplifier.Utils.xmlToJson(xmlContent);
+    var jsonData = Simplifier.Util.xml2Json(xmlContent);
 
     // Validate structure
     if (!jsonData.document || !jsonData.document.records) {
@@ -180,7 +180,7 @@ function processUploadedXMLFile(base64FileContent) {
 \`\`\`javascript
 function safeBase64Decode(encodedData) {
   try {
-    var decodedData = Simplifier.Utils.base64Decode(encodedData);
+    var decodedData = Simplifier.Util.decodeBase64(encodedData);
     return { success: true, data: decodedData };
   } catch (error) {
     Simplifier.Log.error("Base64 decode failed", {
@@ -201,7 +201,7 @@ function safeXmlToJson(xmlString) {
       throw new Error("XML string is empty");
     }
 
-    var jsonResult = Simplifier.Utils.xmlToJson(xmlString);
+    var jsonResult = Simplifier.Util.xml2Json(xmlString);
 
     // Validate conversion result
     if (!jsonResult || typeof jsonResult !== 'object') {
@@ -235,8 +235,8 @@ function processLargeXMLFile(base64Content) {
   }
 
   try {
-    var xmlContent = Simplifier.Utils.base64Decode(base64Content);
-    var jsonData = Simplifier.Utils.xmlToJson(xmlContent);
+    var xmlContent = Simplifier.Util.decodeBase64(base64Content);
+    var jsonData = Simplifier.Util.xml2Json(xmlContent);
 
     var processingTime = Date.now() - startTime;
 
@@ -264,7 +264,7 @@ function processLargeXMLFile(base64Content) {
 \`\`\`javascript
 function batchProcessXMLRecords(xmlData) {
   var batchSize = 100;
-  var jsonData = Simplifier.Utils.xmlToJson(xmlData);
+  var jsonData = Simplifier.Util.xml2Json(xmlData);
 
   if (jsonData.records && jsonData.records.record) {
     var records = Array.isArray(jsonData.records.record)
@@ -325,7 +325,7 @@ function validateAndProcessXML(xmlInput) {
 
   // Process safe XML
   try {
-    var jsonResult = Simplifier.Utils.xmlToJson(xmlInput);
+    var jsonResult = Simplifier.Util.xml2Json(xmlInput);
     output.data = jsonResult;
     return output;
   } catch (error) {
@@ -351,7 +351,7 @@ function callSOAPService(operation, parameters) {
   soapRequest['soap:Envelope']['soap:Body'][operation] = parameters;
 
   // Convert to XML
-  var xmlRequest = Simplifier.Utils.jsonToXml(soapRequest);
+  var xmlRequest = Simplifier.Util.json2Xml(soapRequest);
 
   // Send to SOAP service
   var response = Simplifier.Connector.SOAPService.call({
@@ -364,7 +364,7 @@ function callSOAPService(operation, parameters) {
 
   // Parse response
   if (response && response.body) {
-    var responseJson = Simplifier.Utils.xmlToJson(response.body);
+    var responseJson = Simplifier.Util.xml2Json(response.body);
     return responseJson;
   }
 
@@ -389,10 +389,10 @@ function exportDataAsXML(dataArray) {
   };
 
   // Convert to XML
-  var xmlContent = Simplifier.Utils.jsonToXml(xmlStructure);
+  var xmlContent = Simplifier.Util.json2Xml(xmlStructure);
 
   // Encode for download
-  var base64Content = Simplifier.Utils.base64Encode(xmlContent);
+  var base64Content = Simplifier.Util.encodeBase64(xmlContent);
 
   output.downloadData = base64Content;
   output.filename = "export_" + new Date().toISOString().split('T')[0] + ".xml";
@@ -402,7 +402,7 @@ function exportDataAsXML(dataArray) {
 }
 \`\`\`
 
-This comprehensive Utils API documentation provides all the essential utility functions for data conversion and transformation, complete with practical examples, error handling patterns, and security considerations for robust Business Object implementations.`;
+This comprehensive Util API documentation provides all the essential utility functions for data conversion and transformation, complete with practical examples, error handling patterns, and security considerations for robust Business Object implementations.`;
 
       return {
         contents: [{
