@@ -7,7 +7,7 @@ import {
   createExistingLoginMethod,
   setupSuccessfulCreate,
   setupSuccessfulUpdate,
-  getToolHandler,
+  getRegisterToolHandler,
   mockWrapToolResultSimpleSuccess,
   FIRST_CALL,
   FIRST_ARG,
@@ -41,7 +41,7 @@ describe('registerLoginMethodTools - Token LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "Token" as const,
@@ -75,7 +75,7 @@ describe('registerLoginMethodTools - Token LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "Token" as const,
@@ -105,7 +105,7 @@ describe('registerLoginMethodTools - Token LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "Token" as const,
@@ -138,7 +138,7 @@ describe('registerLoginMethodTools - Token LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "Token" as const,

@@ -3,8 +3,7 @@ import { readFile } from "../../src/resourceprovider.js";
 import {
   createMockServer,
   createMockSimplifierClient,
-  TOOL_CALL_INDEX,
-  TOOL_ARG_SCHEMA
+  getRegisterToolSchema
 } from "./loginmethod/shared-test-helpers.js";
 
 // Mock the resourceprovider
@@ -27,24 +26,26 @@ describe('registerLoginMethodTools - function registration', () => {
 
     registerLoginMethodTools(mockServer, mockClient);
 
-    expect(mockServer.tool).toHaveBeenCalledTimes(1);
+    expect(mockServer.registerTool).toHaveBeenCalledTimes(1);
 
-    expect(mockServer.tool).toHaveBeenCalledWith(
+    expect(mockServer.registerTool).toHaveBeenCalledWith(
       "loginmethod-update",
-      expect.any(String),
       expect.objectContaining({
-        name: expect.any(Object),
-        description: expect.any(Object),
-        username: expect.any(Object),
-        password: expect.any(Object),
-        changePassword: expect.any(Object)
-      }),
-      expect.objectContaining({
-        title: "Create or update a Login Method",
-        readOnlyHint: false,
-        destructiveHint: false,
-        idempotentHint: false,
-        openWorldHint: true
+        description: expect.any(String),
+        inputSchema: expect.objectContaining({
+          name: expect.any(Object),
+          description: expect.any(Object),
+          username: expect.any(Object),
+          password: expect.any(Object),
+          changePassword: expect.any(Object)
+        }),
+        annotations: expect.objectContaining({
+          title: "Create or update a Login Method",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: true
+        }),
       }),
       expect.any(Function)
     );
@@ -56,8 +57,7 @@ describe('registerLoginMethodTools - function registration', () => {
 
     registerLoginMethodTools(mockServer, mockClient);
 
-    const toolCall = mockServer.tool.mock.calls[TOOL_CALL_INDEX];
-    const schema = toolCall[TOOL_ARG_SCHEMA];
+    const schema = getRegisterToolSchema(mockServer)
 
     // Test that schema validates required fields
     expect(schema.name).toBeDefined();
@@ -80,8 +80,7 @@ describe('registerLoginMethodTools - function registration', () => {
 
     registerLoginMethodTools(mockServer, mockClient);
 
-    const toolCall = mockServer.tool.mock.calls[TOOL_CALL_INDEX];
-    const schema = toolCall[TOOL_ARG_SCHEMA];
+    const schema = getRegisterToolSchema(mockServer)
 
     // Test default value for changePassword
     expect(schema.changePassword.parse(undefined)).toBe(false);
@@ -93,8 +92,7 @@ describe('registerLoginMethodTools - function registration', () => {
 
     registerLoginMethodTools(mockServer, mockClient);
 
-    const toolCall = mockServer.tool.mock.calls[TOOL_CALL_INDEX];
-    const schema = toolCall[TOOL_ARG_SCHEMA];
+    const schema = getRegisterToolSchema(mockServer)
 
     // Test that required fields throw on undefined
     expect(() => schema.name.parse(undefined)).toThrow();

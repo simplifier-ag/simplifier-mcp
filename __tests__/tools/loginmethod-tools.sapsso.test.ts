@@ -8,7 +8,7 @@ import {
   setupSuccessfulCreate,
   setupSuccessfulUpdate,
   setupFailureScenario,
-  getToolHandler,
+  getRegisterToolHandler,
   mockWrapToolResultSimpleSuccess,
   mockWrapToolResultWithErrorHandling,
   FIRST_CALL,
@@ -43,7 +43,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -74,7 +74,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -106,7 +106,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -139,7 +139,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -173,7 +173,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -201,7 +201,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -226,7 +226,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -260,7 +260,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -285,7 +285,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -321,7 +321,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -345,7 +345,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -371,7 +371,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -404,7 +404,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -439,7 +439,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -470,7 +470,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -502,7 +502,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -540,7 +540,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -572,7 +572,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,
@@ -602,7 +602,7 @@ describe('registerLoginMethodTools - SingleSignOn/SAPSSO LoginMethod', () => {
       const mockClient = createMockSimplifierClient();
 
       registerLoginMethodTools(mockServer, mockClient);
-      const toolHandler = getToolHandler(mockServer);
+      const toolHandler = getRegisterToolHandler(mockServer);
 
       const testParams = {
         loginMethodType: "SingleSignOn" as const,

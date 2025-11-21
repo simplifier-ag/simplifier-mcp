@@ -1,240 +1,121 @@
-# Create or update a Connector call
-
-This tool allows to
-* create new connector calls
-* modify existing connector calls
-
-**Attention:** When updating a call, allways fetch the existing resource first to ensure operating on the latest version.
-Existing parameters have to be resent when doing an update - otherwise they would be cleared.
-
-## Connector Types
-
-### Connector type 'REST'
-
-A REST Connector call defines a HTTP request to the configured endpoint address of the Connector.
-
-Call parameters may define the following:
-
-#### HTTP Method
-Parameter name: **`verb`**
-
-Type: String
-
-Possible Values: GET, POST, PUT, PATCH, DELETE, HEAD, OPTION
-
-The parameter is mandatory. If not specified differently, use constValue "GET".
-
-
-#### Request body format
-Parameter name: **`postFormat`**
-
-Type: String
-
-Possible Values: JSON, PLAIN, FORM, XML
-
-
-#### Request Body
-Parameter name: **`body`**
-
-It can have an arbitrary data type. The data is converted and *Content-Type* header is set according to the parameter **`format`**.
-
-
-#### Request Headers
-Parameter name: **`headParams/<http-header-name>`**
-
-Type: String
-
-Example:
-To add a header "X-TEST", define a parameter with the name "headParams/X-TEST".
-
-
-#### Path parameters
-Parameter name: **`pathParams[<n>]`**
-
-Type: Array[String]  - that means it must always be given with array index, i.e. pathParams[0].
-
-To form the URL of the call with complete path, all components of the array are joined by "/" and appended to the endpoint URL or the connector.
-
-Defining a path is optional. If omitted, just the endpoint URL is called.
-
-Examples: (assume endpoint URL is http://test-api.com)
-* If pathParams[0] is "data", the address of the call is "http://test-api.com/data".
-* If pathParams[0]="data" and pathParams[1]="customer", the address of the call is "http://test-api.com/data/customer".
-
-
-#### URL parameters
-
-Parameter name: **`queryParams/<query-param-name>`** (Type: String)
-
-Example:
-To set the url parameter like in "http://test-api.com?level=4", define a parameter with the name "queryParams/level" and give it a value 4.
-
-
-#### Output parameters
-
-A REST Connector must have at least one output parameter
-
-An empty parameter name, or "/" refers to the whole output object.
-
-Use alias "data" for the whole output object.
-
-
-### Connector type 'SOAP'
-
-A SOAP Connector call defines a SOAP operation to be invoked on the configured WSDL service endpoint of the Connector.
-You can retrieve the configured WSDL for a connector using the resource simplifier://connector/{connectorName}/wsdl
-
-Call parameters may define the following:
-
-#### Binding Name
-Parameter name: **`bindingName`**
-
-Type: String
-
-The binding name identifies the specific service binding to use from the WSDL specification.
-
-The parameter is mandatory.
-
-
-#### Operation Name
-Parameter name: **`operationName`**
-
-Type: String
-
-The operation name specifies which SOAP operation to invoke from the binding.
-
-The parameter is mandatory.
-
-#### Operation parameters
-
-Parameter name: **`soap/<operationName>/<parameterName>`**
-
-Type: depends on operation
-
-Example: `soap/_-ITIZ_-BUS2038_CREATE/index`
-
-Operation parameters contains the SOAP request parameters according to the
-operation's input schema defined in the WSDL.
-
-
-
-#### URL parameters
-Parameter name: **`queryParams/<query-param-name>`**
-
-Type: String
-
-Optional parameters can be added as query parameters appended to the SOAP request URL.
-
-Example:
-To set a URL parameter like in "http://soap-service.com?version=1.0", define a parameter with the name "queryParams/version" and give it a value "1.0".
-
-
-#### Output parameters
-
-Parameter name: **`soap/<response-message-name>/<element>`**
-
-An empty parameter name, or "/" refers to the whole output object.
-
-Use alias "data" for the whole output object.
-
-The output typically contains the SOAP response parsed according to the operation's output schema defined in the WSDL.
-
-For example, given the following WSDL operation:
-
-```xml
-<wsdl:operation name="InputOutput">
-    <wsp:Policy>
-        <wsp:PolicyReference URI="#OP___-ITIZ_-DRAW_READ_ORIGINAL_FILE" />
-    </wsp:Policy>
-    <wsdl:input message="tns:InputOutput" />
-    <wsdl:output message="tns:InputOutputResponse" />
-</wsdl:operation>
-```
-With the corresponding message and element definitions:
-```xml
-<wsdl:message name="InputOutputResponse">
-    <wsdl:part name="parameter" element="tns:InputOutputResponse" />
-</wsdl:message>
-```
-
-```xml
-<xsd:element name="InputOutputResponse">
-    <xsd:complexType>
-        <xsd:sequence>
-            <xsd:element name="InputOutput" type="xsd:base64Binary" />
-        </xsd:sequence>
-    </xsd:complexType>
-</xsd:element>
-```
-
-the resulting object for the `/` output parameter would look like this:
+# Connector type 'SQL'
+
+# Endpoint settings
+
+The object under **endpointConfiguration / configuration** defines properties, specific to SQL Connector:
+* **dataSource** - the database type (e.g., "oracle", "mysql", "postgresql", "mssql", "db2")
+* **host** - the hostname or IP address of the database server
+* **port** - the port number the database server is listening on (as string)
+* **database** - the database name to connect to
+* **connectionString** - the JDBC connection string (constructed from host, port, database, and specific to the database type)
+* **resultType** - the format for query results, typically "resultSet"
+* **schema** - the database schema name (required for DB2, not accepted for other databases)
+
+**Important Notes:**
+* For **Oracle** databases, the database schema name is defined by the username specified in the login method (not in the connector configuration itself)
+* For **DB2** databases, the **schema** field is required and must be included in the configuration. The schema is also included in the connectionString as `currentSchema=[schema]`; all other types don't accept the schema
+* The **loginMethodName** field in the endpointConfiguration should reference an existing login method that provides the database credentials
+* Connection strings are database-specific. Examples:
+  * Oracle: `jdbc:oracle:thin:@//[host]:[port]/[database]` typical port: 1521, dataSource: oracle
+  * MySQL: `jdbc:mysql://[host]:[port]/[database]` typical port: 3306, dataSource: mysql
+  * Sybase: `jdbc:sybase:Tds://[host]:[port]/[database]` typical port: 5000, dataSource: sybase
+  * PostgreSQL: `jdbc:postgresql://[host]:[port]/[database]` typical port: 5432, dataSource: postgresql
+  * SQLite: `jdbc:sqlite:[connector-name]`, dataSource: sqlite
+  * HANA: `jdbc:sap://[host]:[port]/[database]` typical port: 30015, dataSource: hana
+  * MS SQL: `jdbc:sqlserver://[host]:[port];databaseName=[database]` typical port: 1433, dataSource: mssql
+  * DB2: `jdbc:db2://[host]:[port]/[database]:currentSchema=[schema];` typical port: 50000, dataSource: db2
+  * DB2AS400: `jdbc:as400://[host]:[port]/[database]` typical port: 446, dataSource: db2_as400
+
+**Complete Example (Oracle):**
 ```json
 {
-  "soap": {
-    "InputOutputResponse": {
-      "InputOutput": "some value here"
+  "name": "OraExample",
+  "description": "connector to oracle database",
+  "connectorType": "SQL",
+  "active": true,
+  "timeoutTime": 60,
+  "endpointConfiguration": {
+    "endpoint": "Default",
+    "loginMethodName": "OracleDBCredentials",
+    "certificates": [],
+    "configuration": {
+      "dataSource": "oracle",
+      "host": "172.17.0.3",
+      "port": "1521",
+      "database": "ORCLCDB",
+      "connectionString": "jdbc:oracle:thin:@//172.17.0.3:1521/ORCLCDB",
+      "resultType": "resultSet"
     }
+  },
+  "tags": [],
+  "assignedProjects": {
+    "projectsAfterChange": []
   }
 }
 ```
-To get the relevant field only, the output parameter name would be `/soap/InputOutputResponse/InputOutput`
 
-### Connector type 'SAPRFC'
+**Complete Example (MySQL):**
+```json
+{
+  "name": "MySQLExample",
+  "description": "connector to mysql database",
+  "connectorType": "SQL",
+  "active": true,
+  "timeoutTime": 60,
+  "endpointConfiguration": {
+    "endpoint": "Default",
+    "loginMethodName": "MySQLCredentials",
+    "certificates": [],
+    "configuration": {
+      "dataSource": "mysql",
+      "host": "localhost",
+      "port": "3306",
+      "database": "mydb",
+      "connectionString": "jdbc:mysql://localhost:3306/mydb",
+      "resultType": "resultSet"
+    }
+  },
+  "tags": [],
+  "assignedProjects": {
+    "projectsAfterChange": []
+  }
+}
+```
 
-An SAP RFC connector call executes a function on the SAP system defined in the
-endpoint.
+**Complete Example (DB2):**
+```json
+{
+  "name": "McpDb2Test",
+  "description": "DB2 connector for testdb database",
+  "connectorType": "SQL",
+  "active": true,
+  "timeoutTime": 60,
+  "endpointConfiguration": {
+    "endpoint": "Default",
+    "loginMethodName": "DB2Credentials",
+    "certificates": [],
+    "configuration": {
+      "dataSource": "db2",
+      "host": "localhost",
+      "port": "50000",
+      "database": "testdb",
+      "schema": "MYSCHEMA",
+      "connectionString": "jdbc:db2://localhost:50000/testdb:currentSchema=MYSCHEMA;",
+      "resultType": "resultSet"
+    }
+  },
+  "tags": [],
+  "assignedProjects": {
+    "projectsAfterChange": []
+  }
+}
+```
 
-As RFC calls only work with existing functions in the SAP system, use the
-connector wizard to create them by first searching for available calls using the
-resource `simplifier://connector-wizard/{connectorName}/search/{term}/{page}`.
-After selecting the appropriate calls, use the tool `connector-wizard-rfc-create`
-to generate the calls.
-
-RFC connector calls should define the following parameters with constant values:
-
-#### SOAP compatibility mode
-Parameter name: **`configuration/output/soapCompatibility`**
-
-Type: Boolean
-
-This parameter should be set to false, unless the user specified otherwise.
-
-#### Use default values in output
-Parameter name: **`configuration/output/useDefaultValues`**
-
-Type: boolean
-
-This parameter should be set to true, unless the user specified otherwise.
-
-
-#### Autocommit
-Parameter name: **`configuration/autocommit`**
-
-This parameter should be set to true, unless the user specified otherwise.
-
-
-#### Additional return information
-Parameter name: **`configuration/operation/additionalReturnInformation`**
-
-Type: Array of strings
-
-Possible values: IMPORT, CHANGING, TABLE,  EXPORT, EXCEPTION
-
-Unless specified otherwise by the user, this should be set to `["IMPORT", "EXPORT", "CHANGING", "TABLE", "EXCEPTION"]`.
-
-
-#### Output parameters
-
-An RFC connector's output parameters depend on the called SAP system function.
-You should usually let the wizard create them, as it has all the metadata
-available.
-
-
-### Connector type 'SQL'
+## Call settings
 
 A SQL Connector call defines a database operation to be executed on the configured SQL database endpoint. The Simplifier platform supports different modes for SQL operations, each optimized for specific use cases.
 
-#### Supporting the user to create connector calls
+### Supporting the user to create connector calls
 
 In case the user asks, to create a connector call, it is a good practice to collect metadata of the
 existing tables first. You can achieve this by creating temporary connector calls for that and execute them as needed.
@@ -250,8 +131,8 @@ Here are hints how to create the temporary calls:
 
 Delete the temporarily created connector calls after supporting the user.
 
-#### Notes for different databases
-##### MySQL
+### Notes for different databases
+#### MySQL
 Supports returning a field called 'generatedKeys'. E.g. when creating a call with mode 'transaction' and 
 this insert statement: "INSERT INTO GEOCODE_SEARCHES (SEARCH_QUERY) VALUES (:query:)", then this values 
 could be returned:
@@ -271,9 +152,9 @@ could be returned:
 }
 ```
 and the returned generatedKeys of 11 is the value of the primary key column SEARCH_ID, which has the extra AUTO_INCREMENT.
-##### SQLite
+#### SQLite
 Natively supports returning 'generatedKeys'. For an example see the MySQL section directly above.
-##### Oracle 
+#### Oracle 
 Oracle DB does not directly support returning generated keys out of the box. Here you can apply this pattern:
 - Do e.g. the INSERT in a call with the mode 'transaction'
 - as a second statement (separeted by ;) add a select to get the current value of a sequence
@@ -282,7 +163,7 @@ Oracle DB does not directly support returning generated keys out of the box. Her
 INSERT INTO GEOCODE_RESULTS (SEARCH_ID, ADDRESS_ID, ...) VALUES (:search_id:, :address_id:, ...);
 SELECT <some_sequence>.CURRVAL AS RESULT_ID FROM DUAL
 ```
-##### PostgreSQL
+#### PostgreSQL
 For postgres this pattern is working even for connector calls of mode query:
 ```sql
 INSERT INTO sometable (col1, col2) VALUES (:col1:, :col2:) RETURNING someid
@@ -297,11 +178,11 @@ will return (given, that sometable has a column 'someid' with a default like: ne
   ]
 }
 ```
-#### SQL Connector Call Modes
+### SQL Connector Call Modes
 
 SQL Connector calls support the following execution modes, specified via the **`mode`** parameter:
 
-##### 1. Simple Mode
+#### 1. Simple Mode
 **Parameter name:** `mode` with value `"simple"`
 
 Supports a dynamic where clause (if the statement not yet has an appended where clause). See later example
@@ -368,7 +249,7 @@ how to configure this parameter at the end of this document.
 }
 ```
 
-##### 2. Query Mode
+#### 2. Query Mode
 **Parameter name:** `mode` with value `"query"`
 
 Query mode allows execution of arbitrary SELECT statements with parameter binding. 
@@ -443,7 +324,7 @@ how to configure this parameter at the end of this document.
 ```
 
 
-##### 3. Execute Mode
+#### 3. Execute Mode
 **Parameter name:** `mode` with value `"execute"`
 
 Execute mode is used for data modification statements (INSERT, UPDATE, DELETE) and DDL statements. It provides parameter binding for safe execution of write operations.
@@ -519,7 +400,7 @@ how to configure this parameter at the end of this document.
 }
 ```
 
-##### 4. Transaction Mode
+#### 4. Transaction Mode
 **Parameter name:** `mode` with value `"transaction"`
 
 Transaction mode allows execution of multiple SQL statements within a single database transaction.
@@ -650,7 +531,7 @@ The result of each statement is returned.
 ```
 
 
-##### 5. Repeatable Statement Mode
+#### 5. Repeatable Statement Mode
 **Parameter name:** `mode` with value `"repeatableStatement"`
 
 Repeatable Statement mode is optimized for bulk operations where the same SQL statement needs to be executed multiple 
@@ -759,11 +640,11 @@ a value, which is an array like this: [ { "myint": value1, "mystring": "mystring
 }
 ```
 
-#### dynamic where clause
+### dynamic where clause
 For modes, that support a dynamic where clause, one can add this additional parameter. It will only
 work, if the statement of the connector call does not yet have a where clause itself.
 
-##### Configuration example 
+#### Configuration example 
 The index of position has to be adapted.
 ```json
 {

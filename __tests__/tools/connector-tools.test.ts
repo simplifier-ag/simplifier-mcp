@@ -23,23 +23,24 @@ describe('registerConnectorTools', () => {
 
   // Helper function to find a tool registration by name
   const findToolByName = (toolName: string) => {
-    const call = mockServer.tool.mock.calls.find(call => call[0] === toolName);
+    const call = mockServer.registerTool.mock.calls.find(call => call[0] === toolName);
     if (!call) {
       throw new Error(`Tool '${toolName}' not found in registered tools`);
     }
     return {
       name: call[0],
-      description: call[1],
-      schema: call[2],
-      metadata: call[3],
-      handler: call[4]
+      description: call[1].description,
+      schema: call[1].inputSchema,
+      metadata: call[1].annotations,
+      handler: call[2]
     };
   };
 
   beforeEach(() => {
     // Create a mock McpServer
     mockServer = {
-      tool: jest.fn()
+      tool: jest.fn(),
+      registerTool: jest.fn(),
     } as any;
 
     // Create a mock SimplifierClient
@@ -73,15 +74,11 @@ describe('registerConnectorTools', () => {
     it('should register all six connector tools', () => {
       registerConnectorTools(mockServer, mockSimplifierClient);
 
-      expect(mockServer.tool).toHaveBeenCalledTimes(6);
-
-      // Check that readFile was called with the correct paths
-      expect(mockReadFile).toHaveBeenCalledWith("tools/docs/create-or-update-connector.md");
-      expect(mockReadFile).toHaveBeenCalledWith("tools/docs/create-or-update-connectorcall.md");
+      expect(mockServer.registerTool).toHaveBeenCalledTimes(6);
 
       // Check the connector-update tool registration
       const connectorUpdate = findToolByName("connector-update");
-      expect(connectorUpdate.description).toBe("This is the connector documentation content");
+      expect(connectorUpdate.description).toContain("Create or update a Connector");
       expect(connectorUpdate.schema).toMatchObject({
         name: expect.any(Object),
         description: expect.any(Object),
@@ -102,7 +99,7 @@ describe('registerConnectorTools', () => {
 
       // Check the connector-call-update tool registration
       const connectorCallUpdate = findToolByName("connector-call-update");
-      expect(connectorCallUpdate.description).toBe("This is the connector documentation content");
+      expect(connectorCallUpdate.description).toContain("Create or update a Connector call");
       expect(connectorCallUpdate.schema).toMatchObject({
         connectorName: expect.any(Object),
         connectorCallName: expect.any(Object),
@@ -171,7 +168,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that schema validates required fields
         expect(schema.name).toBeDefined();
@@ -212,7 +209,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that valid string passes
         expect(() => schema.name.parse("ValidName")).not.toThrow();
@@ -231,7 +228,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that optional fields can be undefined and get defaults
         expect(() => schema.description.parse(undefined)).not.toThrow();
@@ -252,7 +249,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Valid endpoint configuration
         const validConfig = {
@@ -950,7 +947,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that schema validates required fields
         expect(schema.connectorName).toBeDefined();
@@ -976,7 +973,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that valid strings pass
         expect(() => schema.connectorName.parse("ValidConnector")).not.toThrow();
@@ -995,7 +992,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that optional fields can be undefined and get defaults
         expect(() => schema.description.parse(undefined)).not.toThrow();
@@ -1018,7 +1015,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Valid parameter
         const validParameter = {
@@ -1065,10 +1062,10 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test valid categories
-        const validCategories = ['base', 'domain', 'collection', 'structure'];
+        const validCategories = ['base', 'domain', 'collection', 'struct'];
 
         validCategories.forEach(category => {
           const parameter = {
@@ -1099,7 +1096,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-update");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test parameter names with special characters (/, [])
         const specialNameParameters = [
@@ -1116,7 +1113,7 @@ describe('registerConnectorTools', () => {
           {
             name: "complex[]/nested/path",
             isInput: true,
-            dataType: { name: "Object", category: "structure" }
+            dataType: { name: "Object", category: "struct" }
           }
         ];
 
@@ -1724,7 +1721,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-wizard-rfc-create");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that schema validates required fields
         expect(schema.connectorName).toBeDefined();
@@ -1739,7 +1736,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-wizard-rfc-create");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that valid values pass
         expect(() => schema.connectorName.parse("ValidConnector")).not.toThrow();
@@ -1758,7 +1755,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-wizard-rfc-create");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test valid array passes
         expect(() => schema.rfcFunctionNames.parse([])).not.toThrow();
@@ -2194,7 +2191,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-test");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that schema validates required fields
         expect(schema.connectorName).toBeDefined();
@@ -2211,7 +2208,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-test");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that valid strings pass
         expect(() => schema.connectorName.parse("ValidConnector")).not.toThrow();
@@ -2230,7 +2227,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-test");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test that parameters can be undefined and defaults to empty array
         expect(() => schema.parameters.parse(undefined)).not.toThrow();
@@ -2241,7 +2238,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-test");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test valid parameter structure
         const validParameters = [
@@ -2261,7 +2258,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-test");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         const parametersWithVariousValues = [
           { name: "string", value: "text" },
@@ -2845,7 +2842,7 @@ describe('registerConnectorTools', () => {
         registerConnectorTools(mockServer, mockSimplifierClient);
 
         const tool = findToolByName("connector-call-delete");
-        const schema = tool.schema;
+        const schema = tool.schema!;
 
         // Test required fields exist
         expect(schema.connectorName).toBeDefined();
@@ -2958,7 +2955,7 @@ describe('registerConnectorTools', () => {
           registerConnectorTools(mockServer, mockSimplifierClient);
 
           const tool = findToolByName("connector-delete");
-          const schema = tool.schema;
+          const schema = tool.schema!;
 
           // Test required fields exist
           expect(schema.connectorName).toBeDefined();
