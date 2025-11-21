@@ -1,6 +1,6 @@
 {
   "name": "@simplifierag/simplifier-mcp",
-  "version": "0.9.56",
+  "version": "0.9.57",
   "description": "MCP Server for Simplifier Low Code Platform - enables creation of Connectors and BusinessObjects",
   "main": "dist/index.js",
   "type": "module",
