@@ -1,18 +1,58 @@
-import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
-import {z} from "zod";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+import { trackingToolPrefix } from "../client/matomo-tracking.js";
+import { SimplifierClient } from "../client/simplifier-client.js";
 import type { ConnectorTestParameter, ConnectorTestRequest, RFCWizardCreateCallsPayload } from "../client/types.js";
-import {SimplifierClient} from "../client/simplifier-client.js";
-import {SimplifierConnectorCallUpdate, SimplifierConnectorUpdate} from "../client/types.js";
-import {readFile} from "../resourceprovider.js";
-import {wrapToolResult} from "./toolresult.js";
-import {trackingToolPrefix} from "../client/matomo-tracking.js";
+import { SimplifierConnectorCallUpdate, SimplifierConnectorUpdate } from "../client/types.js";
+import { wrapToolResult } from "./toolresult.js";
 
 export function registerConnectorTools(server: McpServer, simplifier: SimplifierClient): void {
 
   const toolNameConnectorUpdate = "connector-update"
+  const toolDescriptionConnectorUpdate = `# Create or update a Connector
+
+This tool allows to
+* create new connectors
+* modify existing connectors
+
+**Attention:** When updating a Connector, allways fetch the existing resource first to ensure operating on the latest version.
+Existing tags and endpoints have to be resent when doing an update - otherwise they would be cleared.
+
+
+## Common settings
+
+For all connectors using SSL / TLS, the \`sslSettings\` option has two fields:
+* **trustType**: An integer, with the following meaning:
+  * \`0\`: Always trust any certificate, regardless of CA signing
+  * \`1\`: Only trust the certificate specified explicitly
+  * \`2\`: Use system certificates for trust
+  * \`3\`: Combination of 1+2, trust explicitly specified certificate and any
+         system trusted certificate.
+* **ignoreSSLCertificates**: boolean, if set to true, any TLS validation will be
+  skipped and the target will always be trusted, even when the certificate does
+  not match the hostname.
+
+When no SSL is required, or no specific settings apply, use the following sslSettings:
+\`\`\`json
+{
+"trustType": 2,
+"ignoreSSLCertificates": false
+}
+\`\`\`
+
+## Type-specific settings
+
+Each connector type requires different settings, check the corresponding resource:
+
+- REST: simplifier://documentation/connector-type/rest
+- SOAP: simplifier://documentation/connector-type/soap
+- SAP RFC: simplifier://documentation/connector-type/rfc
+- SQL: simplifier://documentation/connector-type/sql
+`
+
   server.registerTool(toolNameConnectorUpdate,
     {
-      description: readFile("tools/docs/create-or-update-connector.md"),
+      description: toolDescriptionConnectorUpdate,
       inputSchema: {
         name: z.string(),
         description: z.string().optional().default(""),
@@ -87,9 +127,26 @@ On updating a Connector:
 
 
   const toolNameConnectorCallUpdate = "connector-call-update"
+  const toolDescriptionConnectorCallUpdate = `# Create or update a Connector call
+
+This tool allows to
+* create new connector calls
+* modify existing connector calls
+
+**Attention:** When updating a call, allways fetch the existing resource first to ensure operating on the latest version.
+Existing parameters have to be resent when doing an update - otherwise they would be cleared.
+
+Each connector type requires different call configuration, check the corresponding resource:
+
+- REST: simplifier://documentation/connector-type/rest
+- SOAP: simplifier://documentation/connector-type/soap
+- SAP RFC: simplifier://documentation/connector-type/rfc
+- SQL: simplifier://documentation/connector-type/sql
+`
+
   server.registerTool(toolNameConnectorCallUpdate,
     {
-      description: readFile("tools/docs/create-or-update-connectorcall.md"),
+      description: toolDescriptionConnectorCallUpdate,
       inputSchema: {
         connectorName: z.string()
           .describe(`Name of the Connector to modify calls`),

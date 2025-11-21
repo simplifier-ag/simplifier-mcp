@@ -76,13 +76,9 @@ describe('registerConnectorTools', () => {
 
       expect(mockServer.registerTool).toHaveBeenCalledTimes(6);
 
-      // Check that readFile was called with the correct paths
-      expect(mockReadFile).toHaveBeenCalledWith("tools/docs/create-or-update-connector.md");
-      expect(mockReadFile).toHaveBeenCalledWith("tools/docs/create-or-update-connectorcall.md");
-
       // Check the connector-update tool registration
       const connectorUpdate = findToolByName("connector-update");
-      expect(connectorUpdate.description).toBe("This is the connector documentation content");
+      expect(connectorUpdate.description).toContain("Create or update a Connector");
       expect(connectorUpdate.schema).toMatchObject({
         name: expect.any(Object),
         description: expect.any(Object),
@@ -103,7 +99,7 @@ describe('registerConnectorTools', () => {
 
       // Check the connector-call-update tool registration
       const connectorCallUpdate = findToolByName("connector-call-update");
-      expect(connectorCallUpdate.description).toBe("This is the connector documentation content");
+      expect(connectorCallUpdate.description).toContain("Create or update a Connector call");
       expect(connectorCallUpdate.schema).toMatchObject({
         connectorName: expect.any(Object),
         connectorCallName: expect.any(Object),
