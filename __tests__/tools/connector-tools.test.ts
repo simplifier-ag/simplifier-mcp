@@ -1065,7 +1065,7 @@ describe('registerConnectorTools', () => {
         const schema = tool.schema!;
 
         // Test valid categories
-        const validCategories = ['base', 'domain', 'collection', 'structure'];
+        const validCategories = ['base', 'domain', 'collection', 'struct'];
 
         validCategories.forEach(category => {
           const parameter = {
@@ -1113,7 +1113,7 @@ describe('registerConnectorTools', () => {
           {
             name: "complex[]/nested/path",
             isInput: true,
-            dataType: { name: "Object", category: "structure" }
+            dataType: { name: "Object", category: "struct" }
           }
         ];
 
