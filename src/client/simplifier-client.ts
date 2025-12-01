@@ -426,10 +426,23 @@ export class SimplifierClient {
   }
 
   async getConnectorCall(connectorName: string, callName: string, trackingKey?: string): Promise<SimplifierConnectorCallDetails> {
-    return this.makeUnwrappedRequest(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`, {
+    const response = await this.makeUnwrappedRequest<SimplifierConnectorCallDetails>(`/UserInterface/api/connectors/${connectorName}/calls/${callName}`, {
       method: "GET",
       headers: trackingHeader(trackingKey)
     });
+
+    // Normalize category values from API - 'any' should be 'base'
+    if (response.connectorCallParameters) {
+      response.connectorCallParameters = response.connectorCallParameters.map(param => ({
+        ...param,
+        dataType: {
+          ...param.dataType,
+          category: param.dataType.category === 'any' ? 'base' : param.dataType.category
+        }
+      }));
+    }
+
+    return response;
   }
 
 
