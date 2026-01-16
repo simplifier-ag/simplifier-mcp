@@ -8,14 +8,17 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Install NPM
+RUN npm install -g npm@latest
+
 # Install all dependencies (including devDependencies for build)
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
 # Build the project
-RUN npm run build
+RUN pnpm run build
 
 # Stage 2: Runtime
 FROM node:20-alpine
@@ -23,11 +26,11 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package*.json pnpm-lock.yaml ./
 
 # Install only production dependencies
-RUN npm ci --only=production && \
-    npm cache clean --force
+RUN pnpm install --frozen-lockfile --prod && \
+    pnpm cache clean --force
 
 # Copy built artifacts from builder stage
 COPY --from=builder /app/dist ./dist
