@@ -130,7 +130,9 @@ jobs:
           echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
 
       - name: Publish to NPM
-        run: pnpm publish --access public --no-git-checks
+        run: |
+          pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
+          pnpm publish --access public --no-git-checks
 
       # Push version commit and tag to GitHub
       # The version commit includes [skip ci] so it won't trigger another workflow run
