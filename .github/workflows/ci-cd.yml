@@ -40,20 +40,25 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build TypeScript
-        run: npm run build
+        run: pnpm run build
 
       - name: Run unit tests
-        run: npm test -- --ci --coverage --testResultsProcessor=jest-junit
+        run: pnpm test -- --ci --coverage --testResultsProcessor=jest-junit
         env:
           JEST_JUNIT_OUTPUT_DIR: test-results
           JEST_JUNIT_OUTPUT_NAME: test-results.xml
@@ -89,21 +94,23 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Update npm
-        run: npm install -g npm@latest
-
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build TypeScript
-        run: npm run build
+        run: pnpm run build
 
       - name: Configure git for version tagging
         run: |
@@ -117,11 +124,11 @@ jobs:
         run: |
           git status
           echo "--"
-          npm version patch -m "chore: bump version to %s [skip ci]"
+          pnpm version patch -m "chore: bump version to %s [skip ci]"
           echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
 
       - name: Publish to NPM
-        run: npm publish --access public
+        run: pnpm publish --access public --no-git-checks
 
       # Push version commit and tag to GitHub
       # The version commit includes [skip ci] so it won't trigger another workflow run
@@ -146,7 +153,7 @@ jobs:
           echo "Package: @simplifierag/simplifier-mcp"
           echo "Version: ${{ env.PACKAGE_VERSION }}"
           echo "Published to: https://www.npmjs.com/package/@simplifierag/simplifier-mcp"
-          echo "Install with: npm install @simplifierag/simplifier-mcp"
+          echo "Install with: pnpm add @simplifierag/simplifier-mcp"
           echo "=========================================="
           cat >> $GITHUB_STEP_SUMMARY <<EOF
           ## 🎉 NPM Publication Successful
@@ -154,5 +161,5 @@ jobs:
           - **Package**: @simplifierag/simplifier-mcp
           - **Version**: ${{ env.PACKAGE_VERSION }}
           - **Registry**: [npm](https://www.npmjs.com/package/@simplifierag/simplifier-mcp)
-          - **Install**: \`npm install @simplifierag/simplifier-mcp\`
+          - **Install**: \`pnpm add @simplifierag/simplifier-mcp\`
           EOF
