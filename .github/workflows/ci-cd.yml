@@ -95,6 +95,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
@@ -131,7 +134,6 @@ jobs:
 
       - name: Publish to NPM
         run: |
-          pnpm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
           pnpm publish --access public --no-git-checks
 
       # Push version commit and tag to GitHub
