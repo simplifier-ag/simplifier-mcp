@@ -153,10 +153,10 @@ This section describes the Continuous Integration and Continuous Deployment (CI/
 
 ## Pipeline Overview
 
-The Azure DevOps pipeline (`azure-pipelines.yml`) implements a two-stage process:
+The Azure DevOps pipeline (`.github/workflows/ci-cd.yml`) implements a two-stage process:
 
 1. **Build_and_Test** - Validates code quality and functionality
-2. **Publish_to_NPM** - Automatically publishes to npmjs.com with version management
+2. **Publish_to_npm** - Automatically publishes to npmjs.com with version management
 
 ## Pipeline Triggers
 
