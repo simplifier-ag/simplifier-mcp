@@ -12,7 +12,7 @@
     "simplifier-mcp": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc && npm run copy-docs",
+    "build": "tsc && pnpm run copy-docs",
     "copy-docs": "node scripts/copy-docs.js",
     "test": "jest",
     "test:watch": "jest --watch",

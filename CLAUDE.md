@@ -29,9 +29,9 @@ This is a Model Context Protocol (MCP) server for the Simplifier Low Code Platfo
 - **Capabilities**: ❌ Empty arrays - tools, resources, prompts need implementation
 
 ### Testing
-- Run tests: `npm test`
-- Build project: `npm run build`
-- Start server: `npm run dev` or `npm start`
+- Run tests: `pnpm test`
+- Build project: `pnpm run build`
+- Start server: `pnpm run dev` or `pnpm start`
 - Test MCP protocol: `echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js`
 
 ### File Structure Notes
@@ -56,21 +56,23 @@ This is a Model Context Protocol (MCP) server for the Simplifier Low Code Platfo
 
 ## Development Commands
 
+Use pnpm package manager rather than npm. 
+
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Run tests
-npm test
+pnpm test
 
 # Build project
-npm run build
+pnpm run build
 
 # Start server
-npm start
+pnpm start
 
 # Development mode
-npm run dev
+pnpm run dev
 
 # Test MCP server (with environment variables)
 export SIMPLIFIER_BASE_URL=http://localhost:8087 && export SIMPLIFIER_CREDENTIALS_FILE=credentials.json && echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
@@ -78,7 +80,7 @@ export SIMPLIFIER_BASE_URL=http://localhost:8087 && export SIMPLIFIER_CREDENTIAL
 
 ## Important Notes for Claude
 
-- Always run tests after making changes: `npm test`
+- Always run tests after making changes: `pnpm test`
 - Follow existing TypeScript patterns and imports
 - Keep SimplifierToken authentication as TODO comments until implementation story
 - Maintain comprehensive test coverage for new features

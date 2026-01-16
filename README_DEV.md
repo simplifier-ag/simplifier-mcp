@@ -109,7 +109,7 @@ The actual implementation of MCP capabilities
 
 1. **Install dependencies**:
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Configure environment**:
@@ -120,30 +120,30 @@ The actual implementation of MCP capabilities
 
 3. **Build the project**:
    ```bash
-   npm run build
+   pnpm run build
    ```
 
 4. **Run tests**:
    ```bash
-   npm test
+   pnpm test
    ```
 
 5. **Start the server**:
    ```bash
-   npm start
+   pnpm start
    ```
 
 ## Development
 
 ### Available Scripts
 
-- `npm run build` - Compile TypeScript to JavaScript
-- `npm test` - Run the full test suite
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Run tests with coverage report
-- `npm run dev` - Run server in development mode with tsx
-- `npm run lint` - Check code style with ESLint
-- `npm run lint:fix` - Fix linting issues automatically
+- `pnpm run build` - Compile TypeScript to JavaScript
+- `pnpm test` - Run the full test suite
+- `pnpm run test:watch` - Run tests in watch mode
+- `pnpm run test:coverage` - Run tests with coverage report
+- `pnpm run dev` - Run server in development mode with tsx
+- `pnpm run lint` - Check code style with ESLint
+- `pnpm run lint:fix` - Fix linting issues automatically
 
 ---
 
@@ -172,8 +172,8 @@ The Azure DevOps pipeline (`azure-pipelines.yml`) implements a two-stage process
    - npm ci for clean dependency installation
 
 2. **Code Validation**
-   - TypeScript compilation (`npm run build`)
-   - Unit test execution with coverage (`npm test`)
+   - TypeScript compilation (`pnpm run build`)
+   - Unit test execution with coverage (`pnpm test`)
    - MCP server functionality test
 
 3. **Artifacts**
