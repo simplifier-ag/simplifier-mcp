@@ -25,6 +25,14 @@ The Simplifier MCP Server allows to interact with a Simplifier instance to:
 - **Execute Connector Calls**: Call external systems via Simplifier Connector
 - **Access platform resources**: Browse connectors, business objects, and system information
 
+### Supported Connector types
+
+Currently only the following connector types are fully supported:
+
+* REST
+* SOAP
+* SQL
+* SAPRFC
 
 
 ## Usage
