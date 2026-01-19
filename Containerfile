@@ -8,8 +8,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json pnpm-lock.yaml ./
 
-# Install NPM
-RUN npm install -g npm@latest
+# Enable pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Install all dependencies (including devDependencies for build)
 RUN pnpm install --frozen-lockfile
@@ -24,6 +24,9 @@ RUN pnpm run build
 FROM node:20-alpine
 
 WORKDIR /app
+
+# Enable pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files
 COPY package*.json pnpm-lock.yaml ./
