@@ -1,5 +1,5 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-11-05/server.schema.json",
   "name": "io.github.simplifier-ag/simplifier-mcp",
   "description": "MCP Server for Simplifier - manage Connectors, BusinessObjects, Datatypes and logins",
   "repository": {
