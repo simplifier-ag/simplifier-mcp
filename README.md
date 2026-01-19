@@ -1,5 +1,5 @@
 # Simplifier MCP Server
-
+  
 Simplifier is the leading low-code platform in the SAP ecosystem. Build custom
 apps in a full-stack low-code cloud development environment, reducing your
 dependency on full-scale coding. Integrate with ERP, CRM and other systems
