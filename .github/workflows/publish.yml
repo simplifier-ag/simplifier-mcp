@@ -50,8 +50,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ secrets.DOCKER_HUB_USER }}/simplifier-mcp-arm:latest
-            ${{ secrets.DOCKER_HUB_USER }}/simplifier-mcp-arm:${{ steps.package-version.outputs.VERSION }}
+            ${{ secrets.DOCKER_HUB_USER }}/simplifier-mcp:arm-test
+#            ${{ secrets.DOCKER_HUB_USER }}/simplifier-mcp:${{ steps.package-version.outputs.VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
