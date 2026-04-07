@@ -57,9 +57,10 @@ Possible Values: JSON, PLAIN, FORM, XML
 
 
 ### Request Body
-Parameter name: **`body`**
+Parameter name: **`postBody`**
 
 It can have an arbitrary data type. The data is converted and *Content-Type* header is set according to the parameter **`format`**.
+Note that the parameter is always called `postBody`, even when the method is e.g. PUT.
 
 
 ### Request Headers
