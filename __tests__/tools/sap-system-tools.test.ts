@@ -36,10 +36,10 @@ describe('registerSapSystemTools', () => {
   });
 
   describe('function registration', () => {
-    it('should register two SAP system tools', () => {
+    it('should register four SAP system tools (write/delete + read mirrors)', () => {
       registerSapSystemTools(mockServer, mockSimplifierClient);
 
-      expect(mockServer.tool).toHaveBeenCalledTimes(2);
+      expect(mockServer.tool).toHaveBeenCalledTimes(4);
 
       // Check the sap-system-update tool registration
       expect(mockServer.tool).toHaveBeenCalledWith(

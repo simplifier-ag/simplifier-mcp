@@ -34,6 +34,23 @@ Currently only the following connector types are fully supported:
 * SQL
 * SAPRFC
 
+### Client compatibility
+
+The Simplifier MCP server exposes its data through two parallel surfaces so that
+every MCP client can use it in full, regardless of which parts of the MCP
+protocol that client supports:
+
+* Clients that implement MCP **Resources** (e.g. Claude Code, Claude Desktop,
+  MCP Inspector) can browse and read Simplifier data through
+  `simplifier://…` URIs — for example `simplifier://businessobjects`,
+  `simplifier://connector/{name}`, or `simplifier://documentation/…`.
+* Clients that only implement MCP **Tools** (e.g. OpenCode, Cursor, Cline,
+  Continue, Windsurf) get equivalent read access through tools named
+  `*-list`, `*-get`, `documentation-get` and `connector-wizard-rfc-search`.
+
+Both surfaces share the same underlying implementation, so behaviour is
+identical. Where both are available, clients should prefer resources.
+
 
 ## Usage
 

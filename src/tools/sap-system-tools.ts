@@ -128,6 +128,70 @@ SAP systems must be assigned to projects using the project assignment parameters
         return await simplifier.deleteSapSystem(name, trackingKey);
       })
     });
+
+  // Read-only tool mirrors for the SAP system resources. These allow MCP clients
+  // without the `resources/*` capability (e.g. OpenCode, Cursor, Cline, Continue,
+  // Windsurf) to discover SAP systems. Clients that DO support resources should
+  // prefer the `simplifier://sap-system/...` resources.
+
+  const toolNameSapSystemList = "sap-system-list";
+  server.tool(toolNameSapSystemList,
+    `# List all SAP systems
+
+Returns all SAP systems configured on the connected Simplifier instance, including their
+instance restrictions and system type.
+
+Equivalent to reading the \`simplifier://sap-systems\` resource; prefer the resource in clients that support MCP Resources.`,
+    {},
+    {
+      title: "List SAP systems",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    async () => {
+      return wrapToolResult("list SAP systems", async () => {
+        const trackingKey = trackingToolPrefix + toolNameSapSystemList;
+        const response = await simplifier.listSapSystems(trackingKey);
+        return {
+          sapSystems: response.sapSystems,
+          totalCount: response.sapSystems.length
+        };
+      });
+    });
+
+  const toolNameSapSystemGet = "sap-system-get";
+  server.tool(toolNameSapSystemGet,
+    `# Get details of a single SAP system
+
+Returns full configuration (system id, client, application server, SNC settings, etc.) for a SAP system.
+SNC Quality of Protection is returned as its string form for convenience.
+
+Equivalent to reading the \`simplifier://sap-system/{name}\` resource; prefer the resource in clients that support MCP Resources.`,
+    {
+      name: z.string().describe("SAP system name")
+    },
+    {
+      title: "Get SAP system details",
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
+    async ({ name }) => {
+      return wrapToolResult(`get SAP system ${name}`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameSapSystemGet;
+        const sapSystem = await simplifier.getSapSystem(name, trackingKey);
+        return {
+          ...sapSystem,
+          configuration: {
+            ...sapSystem.configuration,
+            sncQualityOfProtection: sncProtectionQualityById(sapSystem.configuration.sncQualityOfProtection)
+          }
+        };
+      });
+    });
 }
 
 export const sncProtectionQualities: { [key: string]: number } = {

@@ -1,17 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 
-export function registerLoggingApiDocumentation(server: McpServer): void {
-  server.resource(
-    "logging-api-docs",
-    "simplifier://documentation/server-businessobjects/api/Logging",
-    {
-      title: "Simplifier Logging API Documentation",
-      mimeType: "text/markdown",
-      description: "Complete reference for Simplifier.Log methods available in server-side Business Objects"
-    },
-    async (uri): Promise<ReadResourceResult> => {
-      const markdownContent = `# Simplifier Logging API Reference
+export const LOGGING_API_DOCUMENTATION_MARKDOWN = `# Simplifier Logging API Reference
 
 The Simplifier Logging API provides comprehensive logging functionality within server-side Business Objects for debugging, monitoring, and auditing purposes.
 
@@ -411,10 +401,20 @@ function trackPerformance(operationName, fn) {
 \`\`\`
 `;
 
+export function registerLoggingApiDocumentation(server: McpServer): void {
+  server.resource(
+    "logging-api-docs",
+    "simplifier://documentation/server-businessobjects/api/Logging",
+    {
+      title: "Simplifier Logging API Documentation",
+      mimeType: "text/markdown",
+      description: "Complete reference for Simplifier.Log methods available in server-side Business Objects"
+    },
+    async (uri): Promise<ReadResourceResult> => {
       return {
         contents: [{
           uri: uri.href,
-          text: markdownContent,
+          text: LOGGING_API_DOCUMENTATION_MARKDOWN,
           mimeType: "text/markdown"
         }]
       };
