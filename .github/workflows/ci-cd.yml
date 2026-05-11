@@ -108,7 +108,11 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Update npm
+      - name: Update npm (11.11.0)
+        # temporary workaround: see https://github.com/npm/cli/issues/9151
+        run: npm install -g npm@11.11.0
+
+      - name: Update npm (latest)
         run: npm install -g npm@latest
 
       - name: Install dependencies
