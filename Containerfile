@@ -6,7 +6,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json pnpm-lock.yaml ./
+COPY package*.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
 # Enable pnpm via corepack
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -29,7 +29,7 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files
-COPY package*.json pnpm-lock.yaml ./
+COPY package*.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
 # Install only production dependencies
 RUN pnpm install --frozen-lockfile --prod && \
