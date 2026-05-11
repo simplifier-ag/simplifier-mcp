@@ -1,17 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 
-export function registerUtilApiDocumentation(server: McpServer): void {
-  server.registerResource(
-    "util-api-docs",
-    "simplifier://documentation/server-businessobjects/api/Util",
-    {
-      title: "Simplifier.Util API Documentation",
-      mimeType: "text/markdown",
-      description: "Complete reference for Simplifier.Util methods available in server-side Business Objects"
-    },
-    async (uri): Promise<ReadResourceResult> => {
-      const markdownContent = `# Simplifier.Util API Reference
+export const UTIL_API_DOCUMENTATION_MARKDOWN = `# Simplifier.Util API Reference
 
 The Simplifier.Util API provides essential utility functions for data conversion and transformation within server-side Business Objects.
 
@@ -404,10 +394,20 @@ function exportDataAsXML(dataArray) {
 
 This comprehensive Util API documentation provides all the essential utility functions for data conversion and transformation, complete with practical examples, error handling patterns, and security considerations for robust Business Object implementations.`;
 
+export function registerUtilApiDocumentation(server: McpServer): void {
+  server.registerResource(
+    "util-api-docs",
+    "simplifier://documentation/server-businessobjects/api/Util",
+    {
+      title: "Simplifier.Util API Documentation",
+      mimeType: "text/markdown",
+      description: "Complete reference for Simplifier.Util methods available in server-side Business Objects"
+    },
+    async (uri): Promise<ReadResourceResult> => {
       return {
         contents: [{
           uri: uri.href,
-          text: markdownContent,
+          text: UTIL_API_DOCUMENTATION_MARKDOWN,
           mimeType: "text/markdown"
         }]
       };

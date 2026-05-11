@@ -2,17 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 
-export function registerServerBusinessObjectGuide(server: McpServer): void {
-  server.registerResource(
-    "server-businessobjects-guide",
-    "simplifier://documentation/server-businessobjects/guide",
-    {
-      title: "Simplifier Server-Side Business Objects",
-      mimeType: "text/markdown",
-      description: "Comprehensive information for implementing Business Object functions in Simplifier, including Object API usage, connector access patterns, and Business Object to Business Object communication."
-    },
-    async (uri): Promise<ReadResourceResult> => {
-      const markdownContent = `# Business Objects Development Guide
+export const SERVER_BUSINESSOBJECTS_GUIDE_MARKDOWN = `# Business Objects Development Guide
 
 ## Overview
 This guide provides comprehensive information for implementing Business Object functions in Simplifier, including Object API usage, connector access patterns, and Business Object to Business Object communication.
@@ -117,10 +107,20 @@ var userResult = Simplifier.BusinessObject.UserService.getUser({
 ---
 `;
 
+export function registerServerBusinessObjectGuide(server: McpServer): void {
+  server.registerResource(
+    "server-businessobjects-guide",
+    "simplifier://documentation/server-businessobjects/guide",
+    {
+      title: "Simplifier Server-Side Business Objects",
+      mimeType: "text/markdown",
+      description: "Comprehensive information for implementing Business Object functions in Simplifier, including Object API usage, connector access patterns, and Business Object to Business Object communication."
+    },
+    async (uri): Promise<ReadResourceResult> => {
       return {
         contents: [{
           uri: uri.href,
-          text: markdownContent,
+          text: SERVER_BUSINESSOBJECTS_GUIDE_MARKDOWN,
           mimeType: "text/markdown"
         }]
       };

@@ -1,17 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 
-export function registerUserApiDocumentation(server: McpServer): void {
-  server.resource(
-    "user-api-docs",
-    "simplifier://documentation/server-businessobjects/api/User",
-    {
-      title: "Simplifier User API Documentation",
-      mimeType: "text/markdown",
-      description: "Complete reference for Simplifier.User methods available in server-side Business Objects"
-    },
-    async (uri): Promise<ReadResourceResult> => {
-      const markdownContent = `# Simplifier User API Reference
+export const USER_API_DOCUMENTATION_MARKDOWN = `# Simplifier User API Reference
 
 The Simplifier User API provides comprehensive user management functionality within server-side Business Objects.
 
@@ -335,10 +325,20 @@ if (!hasAdminRole) {
 \`\`\`
 `;
 
+export function registerUserApiDocumentation(server: McpServer): void {
+  server.resource(
+    "user-api-docs",
+    "simplifier://documentation/server-businessobjects/api/User",
+    {
+      title: "Simplifier User API Documentation",
+      mimeType: "text/markdown",
+      description: "Complete reference for Simplifier.User methods available in server-side Business Objects"
+    },
+    async (uri): Promise<ReadResourceResult> => {
       return {
         contents: [{
           uri: uri.href,
-          text: markdownContent,
+          text: USER_API_DOCUMENTATION_MARKDOWN,
           mimeType: "text/markdown"
         }]
       };
