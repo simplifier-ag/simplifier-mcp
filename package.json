@@ -1,6 +1,6 @@
 {
   "name": "@simplifierag/simplifier-mcp",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "description": "MCP Server for Simplifier Low Code Platform - enables creation of Connectors and BusinessObjects",
   "main": "dist/index.js",
   "type": "module",
@@ -64,6 +64,8 @@
     "titleTemplate": "{title}"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
