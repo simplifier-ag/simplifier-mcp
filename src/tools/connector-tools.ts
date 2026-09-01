@@ -8,6 +8,21 @@ import { wrapToolResult } from "./toolresult.js";
 
 const ODATA_PROXY_CONNECTOR_TYPE = "oDataProxy";
 
+/**
+ * OData connectors act as a proxy and don't define Connector Calls (see
+ * simplifier://documentation/connector-type/odata). Throws a clear error instead of letting
+ * tools that operate on Connector Calls fail with a confusing backend error.
+ */
+async function assertConnectorSupportsCalls(simplifier: SimplifierClient, connectorName: string, trackingKey: string): Promise<void> {
+  const connector = await simplifier.getConnector(connectorName, trackingKey, false);
+  if (connector.connectorType.technicalName === ODATA_PROXY_CONNECTOR_TYPE) {
+    throw new Error(
+      `Connector '${connectorName}' is an OData connector (oDataProxy) and does not support Connector Calls. ` +
+      `See simplifier://documentation/connector-type/odata for how OData connectors are used instead.`
+    );
+  }
+}
+
 export function registerConnectorTools(server: McpServer, simplifier: SimplifierClient): void {
 
   const toolNameConnectorUpdate = "connector-update"
@@ -201,13 +216,7 @@ Each connector type requires different call configuration, check the correspondi
     async (oArgs) => {
       return wrapToolResult(`create or update Connector call ${oArgs.connectorName}.${oArgs.connectorCallName}`, async () => {
         const trackingKey = trackingToolPrefix + toolNameConnectorCallUpdate
-        const oConnector = await simplifier.getConnector(oArgs.connectorName, trackingKey, false);
-        if (oConnector.connectorType.technicalName === ODATA_PROXY_CONNECTOR_TYPE) {
-          throw new Error(
-            `Connector '${oArgs.connectorName}' is an OData connector (oDataProxy) and does not support Connector Calls. ` +
-            `See simplifier://documentation/connector-type/odata for how OData connectors are used instead.`
-          );
-        }
+        await assertConnectorSupportsCalls(simplifier, oArgs.connectorName, trackingKey);
         let oExisting: any;
         try {
           oExisting = await simplifier.getConnectorCall(oArgs.connectorName, oArgs.connectorCallName, trackingKey);
@@ -327,6 +336,8 @@ whether validateOut is set to true - in this case values will be filtered to fit
       },
     }, async ({ connectorName, callName, parameters }) => {
       return wrapToolResult(`test connector call ${connectorName}.${callName}`, async () => {
+        const trackingKey = trackingToolPrefix + toolNameConnectorCallTest
+        await assertConnectorSupportsCalls(simplifier, connectorName, trackingKey);
         const connectorParameters =
           (await simplifier.getConnectorCall(connectorName, callName))
             .connectorCallParameters
@@ -348,7 +359,6 @@ whether validateOut is set to true - in this case values will be filtered to fit
           parameters: testParameters
         };
 
-        const trackingKey = trackingToolPrefix + toolNameConnectorCallTest
         const result = await simplifier.testConnectorCall(connectorName, callName, testRequest, trackingKey);
 
         // Format the response nicely
@@ -390,6 +400,7 @@ whether validateOut is set to true - in this case values will be filtered to fit
     ({ connectorName, callName }) => {
       return wrapToolResult(`delete connector call ${connectorName}.${callName}`, async () => {
         const trackingKey = trackingToolPrefix + toolNameConnectorCallDelete
+        await assertConnectorSupportsCalls(simplifier, connectorName, trackingKey);
         return await simplifier.deleteConnectorCall(connectorName, callName, trackingKey);
       });
     });

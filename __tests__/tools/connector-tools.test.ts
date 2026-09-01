@@ -2872,6 +2872,38 @@ describe('registerConnectorTools', () => {
 
         await toolHandler(testParams);
       });
+
+      it('should reject testing connector calls for OData connectors', async () => {
+        const testParams = {
+          connectorName: "MyODataConnector",
+          callName: "testCall",
+          parameters: []
+        };
+
+        mockSimplifierClient.getConnector.mockResolvedValue({
+          connectorType: { technicalName: 'oDataProxy', i18n: 'OData', descriptionI18n: '' }
+        } as unknown as SimplifierConnectorDetails);
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            const result = await fn();
+            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+          } catch (error) {
+            return {
+              content: [{ type: "text", text: `Tool ${caption} failed: ${error}` }],
+              isError: true
+            };
+          }
+        });
+
+        const result = await toolHandler(testParams);
+
+        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("MyODataConnector", "MCP Tool: connector-call-test", false);
+        expect(mockSimplifierClient.getConnectorCall).not.toHaveBeenCalled();
+        expect(mockSimplifierClient.testConnectorCall).not.toHaveBeenCalled();
+        expect(result.isError).toBe(true);
+        expect(result.content[0].text).toContain("oDataProxy");
+      });
     });
   });
 
@@ -2983,6 +3015,36 @@ describe('registerConnectorTools', () => {
         await deleteCallToolHandler(testParams);
 
         expect(mockWrapToolResult).toHaveBeenCalled();
+      });
+
+      it('should reject deleting connector calls for OData connectors', async () => {
+        const testParams = {
+          connectorName: "MyODataConnector",
+          callName: "testCall"
+        };
+
+        mockSimplifierClient.getConnector.mockResolvedValue({
+          connectorType: { technicalName: 'oDataProxy', i18n: 'OData', descriptionI18n: '' }
+        } as unknown as SimplifierConnectorDetails);
+
+        mockWrapToolResult.mockImplementation(async (caption, fn) => {
+          try {
+            const result = await fn();
+            return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+          } catch (error) {
+            return {
+              content: [{ type: "text", text: `Tool ${caption} failed: ${error}` }],
+              isError: true
+            };
+          }
+        });
+
+        const result = await deleteCallToolHandler(testParams);
+
+        expect(mockSimplifierClient.getConnector).toHaveBeenCalledWith("MyODataConnector", "MCP Tool: connector-call-delete", false);
+        expect(mockSimplifierClient.deleteConnectorCall).not.toHaveBeenCalled();
+        expect(result.isError).toBe(true);
+        expect(result.content[0].text).toContain("oDataProxy");
       });
 
     });

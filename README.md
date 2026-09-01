@@ -33,6 +33,7 @@ Currently only the following connector types are fully supported:
 * SOAP
 * SQL
 * SAPRFC
+* OData (proxy-only; does not support Connector Calls)
 
 ### Client compatibility
 

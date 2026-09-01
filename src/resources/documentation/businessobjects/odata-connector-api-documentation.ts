@@ -224,17 +224,17 @@ Change tracking on the loaded record:
 \`\`\`javascript
 var entity = Simplifier.Connector.Cap_OData_V4.Authors;
 
-// Record holen (z.B. via query + filterBy)
+// load the record (e.g. via query + filterBy)
 var result = entity.query()
   .filterBy(entity.props.name.equals('abc'))
   .execute();
 
 var record = result.records[0];
 
-// Feld(er) ändern - wird automatisch getrackt
+// change field(s) - tracked automatically
 record.name = 'new-name';
 
-// update(record) sendet nur die geänderten Felder ("name") per PATCH
+// update(record) sends only the changed field(s) ("name") as a PATCH
 var updateResult = entity.update(record);
 \`\`\`
 
@@ -278,14 +278,14 @@ Deleting a record obtained from a query:
 \`\`\`javascript
 var entity = Simplifier.Connector.Cap_OData_V4.Authors;
 
-// Record holen (z.B. via query + filterBy)
+// load the record (e.g. via query + filterBy)
 var result = entity.query()
   .filterBy(entity.props.name.equals('abc'))
   .execute();
 
 var record = result.records[0];
 
-// löscht den Datensatz anhand der Key-Property/-Properties (+ ETag, falls vorhanden)
+// deletes the record by its key property/properties (+ ETag, if present)
 var deleteResult = entity.delete(record);
 
 // deleteResult.response.statusCode, deleteResult.response.body
