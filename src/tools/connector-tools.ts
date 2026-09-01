@@ -6,6 +6,8 @@ import type { ConnectorTestParameter, ConnectorTestRequest, RFCWizardCreateCalls
 import { SimplifierConnectorCallUpdate, SimplifierConnectorUpdate } from "../client/types.js";
 import { wrapToolResult } from "./toolresult.js";
 
+const ODATA_PROXY_CONNECTOR_TYPE = "oDataProxy";
+
 export function registerConnectorTools(server: McpServer, simplifier: SimplifierClient): void {
 
   const toolNameConnectorUpdate = "connector-update"
@@ -48,6 +50,7 @@ Each connector type requires different settings, check the corresponding resourc
 - SOAP: simplifier://documentation/connector-type/soap
 - SAP RFC: simplifier://documentation/connector-type/rfc
 - SQL: simplifier://documentation/connector-type/sql
+- OData: simplifier://documentation/connector-type/odata
 `
 
   server.registerTool(toolNameConnectorUpdate,
@@ -136,6 +139,10 @@ This tool allows to
 **Attention:** When updating a call, allways fetch the existing resource first to ensure operating on the latest version.
 Existing parameters have to be resent when doing an update - otherwise they would be cleared.
 
+**Not applicable to OData connectors:** OData connectors (connectorType \`oDataProxy\`) act as a proxy and do
+not support Connector Calls at all. Attempting to use this tool on an OData connector will fail.
+See simplifier://documentation/connector-type/odata for details on how OData connectors are used instead.
+
 Each connector type requires different call configuration, check the corresponding resource:
 
 - REST: simplifier://documentation/connector-type/rest
@@ -194,6 +201,13 @@ Each connector type requires different call configuration, check the correspondi
     async (oArgs) => {
       return wrapToolResult(`create or update Connector call ${oArgs.connectorName}.${oArgs.connectorCallName}`, async () => {
         const trackingKey = trackingToolPrefix + toolNameConnectorCallUpdate
+        const oConnector = await simplifier.getConnector(oArgs.connectorName, trackingKey, false);
+        if (oConnector.connectorType.technicalName === ODATA_PROXY_CONNECTOR_TYPE) {
+          throw new Error(
+            `Connector '${oArgs.connectorName}' is an OData connector (oDataProxy) and does not support Connector Calls. ` +
+            `See simplifier://documentation/connector-type/odata for how OData connectors are used instead.`
+          );
+        }
         let oExisting: any;
         try {
           oExisting = await simplifier.getConnectorCall(oArgs.connectorName, oArgs.connectorCallName, trackingKey);

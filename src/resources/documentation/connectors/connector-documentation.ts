@@ -31,4 +31,5 @@ export function registerConnectorDocumentation(server: McpServer): void {
   connectorResource(server, "SOAP", "resources/documentation/connectors/soap.md");
   connectorResource(server, "RFC", "resources/documentation/connectors/rfc.md");
   connectorResource(server, "SQL", "resources/documentation/connectors/sql.md");
+  connectorResource(server, "OData", "resources/documentation/connectors/odata.md");
 }
