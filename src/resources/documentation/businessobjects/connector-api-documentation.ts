@@ -9,8 +9,9 @@ The API consists of generated methods based on the available connectors.
 A connector call can be called with \`Simplifier.Connector.<connector-name>.<call-name>(payload)\`.
 The payload should be an object with all input parameters required by the connector call, or an empty object if no
 input parameters are required. Proxy and OData connectors cannot be called using this API, as they don't define connector
-calls. See simplifier://documentation/connector-type/odata for details on OData connector configuration; OData connectors
-are accessed via a separate Business Object API, not documented here yet.
+calls. See simplifier://documentation/connector-type/odata for details on OData connector configuration, and
+simplifier://documentation/server-businessobjects/api/ODataConnector for the fluent query API used to access
+OData connectors from Business Objects.
 
 The result of the call will be an object with the connector call's configured output parameters.
 If an error occurs, an exception will be thrown.

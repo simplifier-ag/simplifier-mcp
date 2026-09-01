@@ -10,6 +10,7 @@ import { registerUserApiDocumentation } from "./documentation/businessobjects/us
 import { registerLoggingApiDocumentation } from "./documentation/businessobjects/logging-api-documentation.js";
 import { registerUtilApiDocumentation } from "./documentation/businessobjects/utils-api-documentation.js";
 import { registerConnectorApiDocumentation } from "./documentation/businessobjects/connector-api-documentation.js";
+import { registerODataConnectorApiDocumentation } from "./documentation/businessobjects/odata-connector-api-documentation.js";
 import { registerServerEnvironmentResources } from "./server-environment-resources.js";
 import { registerSapSystemResources } from "./sapsystem-resources.js";
 import { registerConnectorDocumentation } from "./documentation/connectors/connector-documentation.js";
@@ -34,6 +35,7 @@ export function registerResources(server: McpServer, simplifier: SimplifierClien
   registerLoggingApiDocumentation(server);
   registerUtilApiDocumentation(server);
   registerConnectorApiDocumentation(server);
+  registerODataConnectorApiDocumentation(server);
 
   registerConnectorDocumentation(server);
   registerLoginMethodDocumentation(server);

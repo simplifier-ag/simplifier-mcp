@@ -6,6 +6,7 @@ import { USER_API_DOCUMENTATION_MARKDOWN } from "../resources/documentation/busi
 import { LOGGING_API_DOCUMENTATION_MARKDOWN } from "../resources/documentation/businessobjects/logging-api-documentation.js";
 import { UTIL_API_DOCUMENTATION_MARKDOWN } from "../resources/documentation/businessobjects/utils-api-documentation.js";
 import { CONNECTOR_API_DOCUMENTATION_MARKDOWN } from "../resources/documentation/businessobjects/connector-api-documentation.js";
+import { ODATA_CONNECTOR_API_DOCUMENTATION_MARKDOWN } from "../resources/documentation/businessobjects/odata-connector-api-documentation.js";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 /**
@@ -34,6 +35,10 @@ const DOCUMENTATION_TOPICS = {
     resource: "simplifier://documentation/server-businessobjects/api/Connector",
     get: (): string => CONNECTOR_API_DOCUMENTATION_MARKDOWN
   },
+  "odata-connector-api": {
+    resource: "simplifier://documentation/server-businessobjects/api/ODataConnector",
+    get: (): string => ODATA_CONNECTOR_API_DOCUMENTATION_MARKDOWN
+  },
   "connector/rest": {
     resource: "simplifier://documentation/connector-type/rest",
     get: (): string => readFile("resources/documentation/connectors/rest.md")
@@ -49,6 +54,10 @@ const DOCUMENTATION_TOPICS = {
   "connector/sql": {
     resource: "simplifier://documentation/connector-type/sql",
     get: (): string => readFile("resources/documentation/connectors/sql.md")
+  },
+  "connector/odata": {
+    resource: "simplifier://documentation/connector-type/odata",
+    get: (): string => readFile("resources/documentation/connectors/odata.md")
   },
   "loginmethod/usercredentials": {
     resource: "simplifier://documentation/loginmethod-type/usercredentials",
