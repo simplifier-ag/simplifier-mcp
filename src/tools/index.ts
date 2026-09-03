@@ -7,6 +7,7 @@ import {registerLoginMethodTools} from "./loginmethod-tools.js";
 import {registerLoggingTools} from "./logging-tools.js";
 import { registerSapSystemTools } from "./sap-system-tools.js";
 import { registerServerBusinessObjectReadTools } from "./server-businessobject-read-tools.js";
+import { registerServerBusinessObjectCompletionTools } from "./server-businessobject-completion-tools.js";
 import { registerConnectorReadTools } from "./connector-read-tools.js";
 import { registerServerDatatypeReadTools } from "./server-datatype-read-tools.js";
 import { registerLoginMethodReadTools } from "./loginmethod-read-tools.js";
@@ -33,6 +34,7 @@ export function registerTools(server: McpServer, simplifier: SimplifierClient) {
   // prefer `simplifier://...` resources — the tools below are equivalent
   // implementations that share the same underlying SimplifierClient calls.
   registerServerBusinessObjectReadTools(server, simplifier)
+  registerServerBusinessObjectCompletionTools(server, simplifier)
   registerConnectorReadTools(server, simplifier)
   registerServerDatatypeReadTools(server, simplifier)
   registerLoginMethodReadTools(server, simplifier)

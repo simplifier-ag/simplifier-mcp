@@ -7,6 +7,9 @@ OData connectors (connectorType \`oDataProxy\`, see simplifier://documentation/c
 Connector Calls. They are accessed from server-side Business Objects through a dedicated **fluent query API** instead
 of \`Simplifier.Connector.<connector-name>.<call-name>(payload)\`.
 
+Use the \`businessobject-completions\` MCP tool to discover the exact entity sets and their record/query-builder/
+create-payload fields for a given OData connector, instead of guessing from this reference alone.
+
 ## Querying entities
 
 ### Basic syntax
@@ -15,7 +18,7 @@ of \`Simplifier.Connector.<connector-name>.<call-name>(payload)\`.
 Simplifier.Connector.<ConnectorName>.<EntitySetName>.query().execute()
 \`\`\`
 
-\`<EntitySetName>\` is the name of an entity set exposed by the remote OData service (e.g. \`Authors\`).
+\`<EntitySetName>\` is the name of an entity set exposed by the remote OData service (e.g. \`Entity\`).
 \`.query()\` starts a query and is **required** before chaining any of the fluent query methods below.
 \`.execute()\` sends the request and returns the result; it is the only method that actually triggers the call.
 
@@ -107,7 +110,7 @@ The error message includes the entity set name, the connector name and the under
 
 \`\`\`json
 {
-  "message": "Unexpected Runtime exception: Error: OData BO query for entity 'Authors' on connector 'Cap_OData_V4' failed: Exception when sending request: GET http://localhost:4004/odata/v4/admin/Authors?$skip=0&$top=2&$count=true:\\nConnection to endpoint failed:\\nClosedChannelException",
+  "message": "Unexpected Runtime exception: Error: OData BO query for entity 'Entity' on connector 'ExampleService' failed: Exception when sending request: GET http://localhost:4004/odata/v4/admin/Entity?$skip=0&$top=2&$count=true:\\nConnection to endpoint failed:\\nClosedChannelException",
   "success": false
 }
 \`\`\`
@@ -115,15 +118,15 @@ The error message includes the entity set name, the connector name and the under
 ### Query example
 
 \`\`\`javascript
-var entity = Simplifier.Connector.Cap_OData_V4.Authors;
+var entity = Simplifier.Connector.ExampleService.Entity;
 
 var result = entity.query()
-  .filterBy(entity.props.name.equals('Emily Brontë'))
+  .filterBy(entity.props.name.equals('example-value'))
   .top(2)
   .skip(0)
   .execute();
 
-var authors = result.records;
+var entities = result.records;
 var totalCount = result.count;
 \`\`\`
 
@@ -166,7 +169,7 @@ Related entities can be created or linked to in the same \`.create()\` call:
   "response": {
     "body": {
       "ID": 101,
-      "name": "Emily Brontë",
+      "name": "example-value",
       "...": "further entity fields, as returned by the remote OData service"
     },
     "statusCode": 201
@@ -184,15 +187,13 @@ Note this differs from the \`count\`/\`records\`/\`response.statusCode\` shape r
 #### Create example
 
 \`\`\`javascript
-var result = Simplifier.Connector.Cap_OData_V4.Authors.create({
-  name: "Emily Brontë",
-  dateOfBirth: "1818-07-30",
-  dateOfDeath: "1848-12-19",
-  placeOfBirth: "Thornton, Yorkshire",
-  placeOfDeath: "Haworth, Yorkshire"
+var result = Simplifier.Connector.ExampleService.Entity.create({
+  name: "example-value",
+  field1: "value1",
+  field2: "value2"
 });
 
-var createdAuthor = result.response.body;
+var createdEntity = result.response.body;
 \`\`\`
 
 ## Updating entities
@@ -222,7 +223,7 @@ itself a terminal call - it sends the request immediately.
 
 Change tracking on the loaded record:
 \`\`\`javascript
-var entity = Simplifier.Connector.Cap_OData_V4.Authors;
+var entity = Simplifier.Connector.ExampleService.Entity;
 
 // load the record (e.g. via query + filterBy)
 var result = entity.query()
@@ -240,7 +241,7 @@ var updateResult = entity.update(record);
 
 Explicit patch object instead of change tracking:
 \`\`\`javascript
-var entity = Simplifier.Connector.Cap_OData_V4.Authors;
+var entity = Simplifier.Connector.ExampleService.Entity;
 
 var result = entity.query()
   .filterBy(entity.props.name.equals('abc'))
@@ -276,7 +277,7 @@ Deletes an existing record via the OData service. Unlike \`.update()\`, \`.delet
 
 Deleting a record obtained from a query:
 \`\`\`javascript
-var entity = Simplifier.Connector.Cap_OData_V4.Authors;
+var entity = Simplifier.Connector.ExampleService.Entity;
 
 // load the record (e.g. via query + filterBy)
 var result = entity.query()

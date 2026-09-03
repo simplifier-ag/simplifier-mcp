@@ -71,4 +71,6 @@ Complete example:
 Unlike REST, SOAP, SAP RFC and SQL connectors, an OData connector cannot be invoked
 via `Simplifier.Connector.<connector-name>.<call-name>(...)` from a Business Object
 function, since it defines no connector calls. It is accessed through a dedicated
-Business Object API instead.
+Business Object API instead - see simplifier://documentation/server-businessobjects/api/ODataConnector
+for the fluent query API, and use the `businessobject-completions` MCP tool to discover the exact
+entity sets and fields exposed by a given OData connector.

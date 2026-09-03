@@ -15,6 +15,7 @@ import {
   SAPSystem,
   SAPSystemListResponse,
   SimplifierApiResponse,
+  SimplifierBusinessObjectCompletions,
   SimplifierBusinessObjectDetails,
   SimplifierBusinessObjectFunction,
   SimplifierConnectorCallDetails,
@@ -232,6 +233,20 @@ export class SimplifierClient {
 
   async getServerBusinessObjectFunction(objectName: string, functionName: string, trackingKey?: string): Promise<SimplifierBusinessObjectFunction> {
     return this.makeRequest(`/UserInterface/api/businessobjects/server/${objectName}/functions/${functionName}?completions=false&dataTypes=true`, {
+      method: "GET",
+      headers: trackingHeader(trackingKey)
+    })
+  }
+
+  /**
+   * Fetches the code-completion tree for a Business Object: the `Simplifier.*` API surface
+   * (connectors, other Business Objects, plugins) available to its functions, scoped by the
+   * Business Object's declared dependencies, together with the type definitions (e.g. OData
+   * entity set records/query-builders, other connectors' and Business Objects' call
+   * parameters) referenced by that tree.
+   */
+  async getServerBusinessObjectCompletions(objectName: string, trackingKey: string): Promise<SimplifierBusinessObjectCompletions> {
+    return this.makeUnwrappedRequest(`/UserInterface/api/code-completion/businessobjects/${objectName}`, {
       method: "GET",
       headers: trackingHeader(trackingKey)
     })

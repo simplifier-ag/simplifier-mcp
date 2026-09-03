@@ -47,6 +47,51 @@ export interface SimplifierCallableParameter {
   isOptional: boolean;
 }
 
+/**
+ * Code-completion tree returned by `/UserInterface/api/code-completion/businessobjects/{name}`.
+ *
+ * `modules` describes the `Simplifier.*` API surface available to functions of the
+ * Business Object, scoped by its dependencies (connectors, other Business Objects, plugins).
+ * For OData connectors this includes one child module per entity set (query/update/create/delete),
+ * whose parameter and return types (e.g. `<EntitySet>Record`, `<EntitySet>NewRecord`,
+ * `<EntitySet>QueryBuilder`) are resolved via `definitions`, giving the full set of entity
+ * properties. `definitions` also holds the input/output types of the Business Object's own functions.
+ */
+export type SimplifierCompletionKind = 'module' | 'function' | 'property' | 'interface';
+
+export interface SimplifierCompletionParam {
+  name: string;
+  typeExpr: string;
+  optional: boolean;
+  doc?: string;
+}
+
+export interface SimplifierCompletionNode {
+  kind: SimplifierCompletionKind;
+  name: string;
+  doc?: string;
+  /** Present on 'module' (and 'interface') nodes — the nested/contained entries. */
+  children?: SimplifierCompletionNode[];
+  /** Present on 'function' nodes. */
+  params?: SimplifierCompletionParam[];
+  returnType?: string;
+  returnDoc?: string;
+  /** Present on 'property' nodes. */
+  typeExpr?: string;
+  optional?: boolean;
+  /** Present on 'interface' definitions (fields of a record/query-builder/etc. type). */
+  properties?: SimplifierCompletionNode[];
+}
+
+export interface SimplifierBusinessObjectCompletions {
+  name: string;
+  /** Named type declarations (records, query builders, own function input/output types, ...) referenced from `modules` via `typeExpr`/`returnType`. */
+  definitions: SimplifierCompletionNode[];
+  /** Root(s) of the `Simplifier.*` API tree; in practice a single "Simplifier" module. */
+  modules: SimplifierCompletionNode[];
+  globals: SimplifierCompletionNode[];
+}
+
 export type SimplifierApiResponse<T = unknown> =
   {
     success: true;

@@ -166,6 +166,37 @@ describe('SimplifierClient', () => {
 
   });
 
+  describe('get server business object completions', () => {
+    it('should call the code-completion endpoint with object name and return the unwrapped body', async () => {
+      const mockResponse = {
+        name: 'BusinessObject-Api',
+        definitions: [{ kind: 'interface', name: 'FooRecord', doc: '', properties: [] }],
+        modules: [{ kind: 'module', name: 'Simplifier', doc: '', children: [] }],
+        globals: []
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await client.getServerBusinessObjectCompletions('TestObject', 'test');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://some.test/UserInterface/api/code-completion/businessobjects/TestObject",
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'SimplifierToken': 'test-token',
+          }),
+        })
+      );
+
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
   describe('get server business object functions', () => {
     it('should call getBusinessObjectFunctions endpoint with object name', async () => {
       const mockResponse = {
