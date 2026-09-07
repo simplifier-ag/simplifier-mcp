@@ -61,16 +61,9 @@ Chaining or combining multiple conditions (e.g. \`name eq 'abc' and amount gt 10
 \`\`\`javascript
 var entity = Simplifier.Connector.myConnector.MyEntity;
 
-entity.query().filterBy(entity.props.name.equals('abc')).execute();
-entity.query().filterBy(entity.props.status.notEquals('inactive')).execute();
-entity.query().filterBy(entity.props.name.startsWith('Sim')).execute();
-entity.query().filterBy(entity.props.description.contains('urgent')).execute();
-entity.query().filterBy(entity.props.amount.greaterThan(100)).execute();
-entity.query().filterBy(entity.props.amount.greaterEquals(100)).execute();
-entity.query().filterBy(entity.props.amount.lessThan(50)).execute();
-entity.query().filterBy(entity.props.amount.lessEquals(50)).execute();
-entity.query().filterBy(entity.props.deletedAt.equals(null)).execute();
-entity.query().filterBy(entity.props.startDate.lessThan(entity.props.endDate)).execute();
+entity.query().filterBy(entity.props.name.equals('abc')).execute();                        // basic usage, see table above
+entity.query().filterBy(entity.props.deletedAt.equals(null)).execute();                    // null comparison
+entity.query().filterBy(entity.props.startDate.lessThan(entity.props.endDate)).execute();   // property-to-property
 \`\`\`
 
 #### \`.top(count)\`
@@ -103,6 +96,24 @@ Terminal call. Sends the request to the remote OData service and returns the res
 - **records**: array of returned entity objects for the current page (i.e. after \`.top()\`/\`.skip()\` have been applied).
 - **response.statusCode**: HTTP status code returned by the remote OData service.
 
+#### Version-specific differences in record shape
+
+The individual objects inside \`records\` (and the entity returned by \`.create()\`/\`.update()\`/\`.delete()\`, see below)
+are passed through from the remote service largely unchanged, so their shape depends on the connector's
+\`odataVersion\`:
+
+- **Per-entity metadata**: OData v2 entities carry \`__metadata: { type, uri }\`. OData v4 entities do not carry
+  any per-entity metadata field.
+- **Unexpanded navigation properties**: OData v2 represents a navigation property that was not \`$expand\`ed as a
+  stub, e.g. \`"books": { "__deferred": { "uri": "<EntitySet>(<key>)/books" } }\`. OData v4 omits the property
+  entirely in that case - it is simply not present on the object.
+- **Date/time fields**: OData v2 serializes both date-only and date-time fields using the Microsoft JSON date
+  format, e.g. \`"dateOfBirth": "/Date(-4778524800000)/"\` (milliseconds since epoch, optionally with a timezone
+  offset such as \`+0000\`). OData v4 uses ISO-8601: a plain \`"YYYY-MM-DD"\` string for \`Edm.Date\` fields (e.g.
+  \`"dateOfBirth": "1818-07-30"\`) and a full timestamp for \`Edm.DateTimeOffset\`/\`Edm.Timestamp\` fields (e.g.
+  \`"createdAt": "2026-02-23T13:05:28.974Z"\`). Business Object code that needs to parse dates must account for
+  this - \`new Date(value)\` does not work directly on the v2 \`/Date(...)/ \` format.
+
 ### Query error handling
 
 If the call fails (e.g. the remote service is unreachable or returns an HTTP error), an exception is thrown.
@@ -110,7 +121,7 @@ The error message includes the entity set name, the connector name and the under
 
 \`\`\`json
 {
-  "message": "Unexpected Runtime exception: Error: OData BO query for entity 'Entity' on connector 'ExampleService' failed: Exception when sending request: GET http://localhost:4004/odata/v4/admin/Entity?$skip=0&$top=2&$count=true:\\nConnection to endpoint failed:\\nClosedChannelException",
+  "message": "Unexpected Runtime exception: Error: OData BO query for entity 'Entity' on connector 'ExampleService' failed: <underlying error, e.g. a connection or HTTP failure>",
   "success": false
 }
 \`\`\`
@@ -164,25 +175,48 @@ Related entities can be created or linked to in the same \`.create()\` call:
 
 #### Create result shape
 
+\`response.body\` is passed through from the remote service largely unchanged, so its exact shape - notably
+whether the entity fields are wrapped in a \`d\` envelope - depends on the connector's \`odataVersion\`.
+
+**OData v4:**
 \`\`\`json
 {
   "response": {
     "body": {
       "ID": 101,
       "name": "example-value",
+      "@odata.context": "$metadata#Entity/$entity",
       "...": "further entity fields, as returned by the remote OData service"
     },
     "statusCode": 201
   }
 }
 \`\`\`
+Entity fields are on \`response.body\` directly, e.g. \`result.response.body.ID\`.
 
-- **response.body**: the created entity, exactly as returned by the remote OData service. This may include
-  service-generated fields (e.g. timestamps, audit fields such as \`createdAt\`/\`createdBy\`) or OData metadata
-  such as \`@odata.context\` - the exact fields depend on the entity type and the remote service.
+**OData v2:**
+\`\`\`json
+{
+  "response": {
+    "body": {
+      "d": {
+        "ID": 101,
+        "name": "example-value",
+        "__metadata": { "type": "...", "uri": "<EntitySet>(101)" },
+        "...": "further entity fields, as returned by the remote OData service"
+      }
+    },
+    "statusCode": 201
+  }
+}
+\`\`\`
+Entity fields are nested one level deeper under \`response.body.d\` - \`result.response.body.d.ID\`, **not**
+\`result.response.body.ID\` (see also "Version-specific differences in record shape" above for \`__metadata\` and
+date formatting).
+
 - **response.statusCode**: HTTP status code returned by the remote OData service (typically 201 on success).
-
-Note this differs from the \`count\`/\`records\`/\`response.statusCode\` shape returned by \`.execute()\` for queries.
+- This body shape (and its v2/v4 difference) also applies to \`.update()\`/\`.delete()\` results below, and differs
+  from the \`count\`/\`records\`/\`response.statusCode\` shape returned by \`.execute()\` for queries.
 
 #### Create example
 
@@ -219,37 +253,18 @@ itself a terminal call - it sends the request immediately.
 - **Result**: same shape as \`.create()\` - \`{ response: { body, statusCode } }\`.
 - **Errors**: throws a \`SimplifierApiError\` on failure, as with \`.create()\`.
 
-### Update examples
+### Update example
 
-Change tracking on the loaded record:
 \`\`\`javascript
 var entity = Simplifier.Connector.ExampleService.Entity;
+var record = entity.query().filterBy(entity.props.name.equals('abc')).execute().records[0];
 
-// load the record (e.g. via query + filterBy)
-var result = entity.query()
-  .filterBy(entity.props.name.equals('abc'))
-  .execute();
-
-var record = result.records[0];
-
-// change field(s) - tracked automatically
+// change tracking: only changed field(s) ("name") are sent as the PATCH body
 record.name = 'new-name';
-
-// update(record) sends only the changed field(s) ("name") as a PATCH
 var updateResult = entity.update(record);
-\`\`\`
 
-Explicit patch object instead of change tracking:
-\`\`\`javascript
-var entity = Simplifier.Connector.ExampleService.Entity;
-
-var result = entity.query()
-  .filterBy(entity.props.name.equals('abc'))
-  .execute();
-
-var record = result.records[0];
-
-var updateResult = entity.update(record, { name: 'new-name' });
+// equivalent, using an explicit patch object instead of change tracking:
+var updateResult2 = entity.update(record, { name: 'new-name' });
 \`\`\`
 
 ## Deleting entities
@@ -273,28 +288,17 @@ Deletes an existing record via the OData service. Unlike \`.update()\`, \`.delet
 - **Errors**: throws a \`SimplifierApiError\` on failure - including \`missing key value(s): ...\` if a required
   key property is missing from the given object.
 
-### Delete examples
+### Delete example
 
-Deleting a record obtained from a query:
 \`\`\`javascript
 var entity = Simplifier.Connector.ExampleService.Entity;
 
-// load the record (e.g. via query + filterBy)
-var result = entity.query()
-  .filterBy(entity.props.name.equals('abc'))
-  .execute();
-
-var record = result.records[0];
-
-// deletes the record by its key property/properties (+ ETag, if present)
+// from a queried record - key + ETag (if present) are used automatically
+var record = entity.query().filterBy(entity.props.name.equals('abc')).execute().records[0];
 var deleteResult = entity.delete(record);
 
-// deleteResult.response.statusCode, deleteResult.response.body
-\`\`\`
-
-Deleting by a known key, without a prior query:
-\`\`\`javascript
-var deleteResult = entity.delete({ id: 42 });
+// or by a known key, without a prior query:
+entity.delete({ id: 42 });
 \`\`\`
 
 ## Current limitations

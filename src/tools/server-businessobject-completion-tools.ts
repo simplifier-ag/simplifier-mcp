@@ -141,7 +141,7 @@ Own functions of this Business Object are available under the \`CurrentBusinessO
     {
       businessObjectName: z.string().describe("Business Object name"),
       paths: z.array(z.string()).optional().default([])
-        .describe(`Dot-separated paths into the outline to fetch full details for, e.g. "Connector.Cap_OData_V4.Books" or "BusinessObject.SomeBO.someFunction". Omit (or leave empty) to get just the compact outline.`)
+        .describe(`Dot-separated paths into the outline to fetch full details for, e.g. "Connector.OData_V4.Books" or "BusinessObject.SomeBO.someFunction". Omit (or leave empty) to get just the compact outline.`)
     },
     {
       title: "Get Business Object code completions",
