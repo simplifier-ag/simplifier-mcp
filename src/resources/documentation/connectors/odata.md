@@ -13,7 +13,7 @@ properties specific to OData connectors:
 
 * **endpoint** - string, base URL of the remote OData service (e.g. the service root,
   ending in a trailing slash).
-* **odataVersion** - string, OData protocol version of the remote service, e.g. `"2.0"`.
+* **odataVersion** - string, OData protocol version of the remote service, `"2.0"` or `"4.0"`.
 * **requestHeadersFilter** - array of header names to filter from incoming requests
   before forwarding them to the remote service.
 * **requestHeadersFilterType** - `"blacklist"` or `"whitelist"`, controls whether
@@ -52,7 +52,9 @@ Complete example:
       "responseHeadersFilterType": "blacklist",
       "requestCookiesFilter": ["TestCookie"],
       "requestCookiesFilterType": "blacklist",
-      "enforcedHeaders": {},
+      "enforcedHeaders": {
+        "exampleheader1": "examplevalue1"
+      },
       "sslSettings": {
         "trustType": 2
       }

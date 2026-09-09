@@ -24,9 +24,9 @@ Simplifier.Connector.<ConnectorName>.<EntitySetName>.query().execute()
 
 ### Fluent query methods
 
-\`.filterBy()\`, \`.top()\` and \`.skip()\` are all optional, can be used independently of each other, and may be
-entirely omitted - \`Simplifier.Connector.<ConnectorName>.<EntitySetName>.query().execute()\` alone is a valid call
-that returns all entities.
+\`.filterBy()\`, \`.filterExpression()\`, \`.top()\` and \`.skip()\` are all optional, can be used independently of
+each other, and may be entirely omitted - \`Simplifier.Connector.<ConnectorName>.<EntitySetName>.query().execute()\`
+alone is a valid call that returns all entities.
 
 #### \`.filterBy(filterExpression)\`
 Restricts the returned entities.
@@ -56,6 +56,7 @@ Restricts the returned entities.
 
 **No AND/OR support**: \`.filterBy()\` takes exactly one condition, and can only be called **once per query**.
 Chaining or combining multiple conditions (e.g. \`name eq 'abc' and amount gt 100\`) is not currently possible.
+Use \`.filterExpression()\` below if a raw expression (e.g. combining multiple conditions) is needed.
 
 **Examples:**
 \`\`\`javascript
@@ -66,9 +67,26 @@ entity.query().filterBy(entity.props.deletedAt.equals(null)).execute();         
 entity.query().filterBy(entity.props.startDate.lessThan(entity.props.endDate)).execute();   // property-to-property
 \`\`\`
 
+#### \`.filterExpression(filterExpression)\`
+Apply a raw OData filter expression to the query (\`$filter\` query option), e.g. \`"stock gt 3"\`.
+
+- **Input**: filterExpression (string) - passed to the OData service unchanged and is not validated, apart from
+  stripping leading and trailing whitespace.
+- **Can only be called once**, and only if \`.filterBy()\` was not used on the same query - \`.filterBy()\` and
+  \`.filterExpression()\` are mutually exclusive.
+
+**Example:**
+\`\`\`javascript
+var entity = Simplifier.Connector.myConnector.MyEntity;
+
+entity.query().filterExpression('stock gt 3').execute();
+\`\`\`
+
 #### \`.top(count)\`
 Limits the number of returned entities.
 - **Input**: count (number)
+- **Default limit**: if \`.top()\` is omitted, at most **1000** entities are returned. Use \`.top()\` with a value
+  greater than 1000 to retrieve more entities than this default limit in a single query.
 
 #### \`.skip(count)\`
 Skips the given number of entities, for use in paging together with \`.top(count)\`.
@@ -303,13 +321,14 @@ entity.delete({ id: 42 });
 
 ## Current limitations
 
-This API currently covers **reading entity sets** (filterBy/top/skip/execute), **creating records** (create,
-including deep-insert and binding of related entities), **updating records** (update) and **deleting records**
-(delete), as described above.
+This API currently covers **reading entity sets** (filterBy/filterExpression/top/skip/execute), **creating
+records** (create, including deep-insert and binding of related entities), **updating records** (update) and
+**deleting records** (delete), as described above.
 
 Known current limitations (not just missing documentation):
 - \`.filterBy()\` accepts exactly one condition and can only be called once per query - there is currently no
-  way to combine multiple conditions (AND/OR) in a single query.
+  way to combine multiple conditions (AND/OR) in a single query using \`.filterBy()\`. Use \`.filterExpression()\`
+  with a raw expression instead if this is needed.
 
 It is actively being extended (e.g. single-entity access by key); such extensions are not yet documented here.
 `;
