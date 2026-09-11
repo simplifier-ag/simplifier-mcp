@@ -329,8 +329,6 @@ Known current limitations (not just missing documentation):
 - \`.filterBy()\` accepts exactly one condition and can only be called once per query - there is currently no
   way to combine multiple conditions (AND/OR) in a single query using \`.filterBy()\`. Use \`.filterExpression()\`
   with a raw expression instead if this is needed.
-
-It is actively being extended (e.g. single-entity access by key); such extensions are not yet documented here.
 `;
 
 export function registerODataConnectorApiDocumentation(server: McpServer): void {
