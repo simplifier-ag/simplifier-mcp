@@ -43,7 +43,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 10
           run_install: false
 
       - name: Setup Node.js
@@ -98,7 +98,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 10
           run_install: false
 
       - name: Setup Node.js
@@ -107,13 +107,6 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Update npm (11.11.0)
-        # temporary workaround: see https://github.com/npm/cli/issues/9151
-        run: npm install -g npm@11.11.0
-
-      - name: Update npm (latest)
-        run: npm install -g npm@latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
