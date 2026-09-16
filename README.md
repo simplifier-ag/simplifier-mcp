@@ -49,7 +49,7 @@ protocol that client supports:
   Continue, Windsurf) get equivalent read access through tools named
   `*-list`, `*-get`, `documentation-get` and `connector-wizard-rfc-search`.
 
-Both surfaces share the same underlying implementation, so behaviour is
+Both surfaces share the same underlying implementation, so behavior is
 identical. Where both are available, clients should prefer resources.
 
 
