@@ -199,6 +199,7 @@ function generateErrorPage(error: ErrorDetails): string {
         <li>Verify your Simplifier server is running and accessible</li>
         <li>Check the SIMPLIFIER_BASE_URL environment variable, it should contain your server base address, e.g. "https://myinstance.simplifier.cloud"</li>
         <li>If using the SIMPLIFIER_TOKEN environment variable: check that it is correct and is not expired</li>
+        <li>If using the SIMPLIFIER_APITOKEN environment variable: check that the personal access token is correct, not expired and not revoked</li>
         <li>If using the SIMPLIFIER_CREDENTIALS_FILE environment variable: check the contents of the credentials file. It should look similar to this:
           <div class="code">
             {
@@ -218,6 +219,7 @@ function generateErrorPage(error: ErrorDetails): string {
         export SIMPLIFIER_BASE_URL=${process.env.SIMPLIFIER_BASE_URL}
         ${process.env.SIMPLIFIER_CREDENTIALS_FILE ? `export SIMPLIFIER_CREDENTIALS_FILE=${process.env.SIMPLIFIER_CREDENTIALS_FILE}` : "# SIMPLIFIER_CREDENTIALS_FILE is NOT set"}
         # SIMPLIFIER_TOKEN is ${process.env.SIMPLIFIER_TOKEN ? "" : "NOT "}set
+        # SIMPLIFIER_APITOKEN is ${process.env.SIMPLIFIER_APITOKEN ? "" : "NOT "}set
       </div>
     </div>
 

@@ -57,6 +57,7 @@ describe('SimplifierClient', () => {
           }),
         })
       );
+      expect(mockFetch.mock.calls[0]![1]!.headers).not.toHaveProperty('ApiToken');
 
       expect(result).toEqual(mockResponse.result);
     });

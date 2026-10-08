@@ -6,3 +6,6 @@ onlyBuiltDependencies:
 
 # 20160 minutes ~ 14 days
 minimumReleaseAge: 20160
+
+allowBuilds:
+  esbuild: true

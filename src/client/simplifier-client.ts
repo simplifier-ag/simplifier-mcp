@@ -38,14 +38,15 @@ import {
   UpdateLoginMethodRequest,
 } from './types.js';
 
+const REDACTED_HEADERS = new Set(['simplifiertoken', 'apitoken']);
+
 /**
  * Client for interacting with Simplifier Low Code Platform REST API
  *
- * This client will need to be enhanced with SimplifierToken.
- * The SimplifierToken acts as a session key that needs to be:
- * - Obtained daily by the user
- * - Configured in environment variables
- * - Included in API requests as authentication header
+ * Requests are authenticated with exactly one of:
+ * - a personal access token (SIMPLIFIER_APITOKEN), sent as `ApiToken` header
+ * - a SimplifierToken (SIMPLIFIER_TOKEN), sent as `SimplifierToken` header
+ * - a SimplifierToken obtained by logging in with SIMPLIFIER_CREDENTIALS_FILE, sent as `SimplifierToken` header
  */
 export class SimplifierClient {
   private baseUrl: string;
@@ -59,7 +60,7 @@ export class SimplifierClient {
 
   /**
    * Log HTTP request details to file if HTTP_REQUEST_LOG_FILE is configured
-   * Sanitizes sensitive information like SimplifierToken
+   * Sanitizes sensitive information like SimplifierToken and ApiToken
    */
   private async logRequest(url: string, options: RequestInit): Promise<void> {
     if (!config.httpRequestLogFile) {
@@ -70,12 +71,12 @@ export class SimplifierClient {
       const timestamp = new Date().toISOString();
       const method = options.method || 'GET';
 
-      // Sanitize headers to hide SimplifierToken
+      // Sanitize headers to hide SimplifierToken and ApiToken
       const sanitizedHeaders: Record<string, string> = {};
       if (options.headers) {
         const headers = options.headers as Record<string, string>;
         for (const [key, value] of Object.entries(headers)) {
-          if (key.toLowerCase() === 'simplifiertoken') {
+          if (REDACTED_HEADERS.has(key.toLowerCase())) {
             sanitizedHeaders[key] = '***REDACTED***';
           } else {
             sanitizedHeaders[key] = value;
@@ -106,7 +107,10 @@ export class SimplifierClient {
     }
   }
 
-  private async getSimplifierToken(): Promise<string> {
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    if (config.apiToken) {
+      return { 'ApiToken': config.apiToken };
+    }
     if (!this.simplifierToken) {
       if (config.simplifierToken) {
         this.simplifierToken = config.simplifierToken;
@@ -114,7 +118,7 @@ export class SimplifierClient {
         this.simplifierToken = await login();
       }
     }
-    return this.simplifierToken!;
+    return { 'SimplifierToken': this.simplifierToken! };
   }
 
   /**
@@ -123,13 +127,13 @@ export class SimplifierClient {
    */
   private async executeRequest(urlPath: string, options: RequestInit = {}): Promise<Response> {
     const url = `${this.baseUrl}${urlPath}`;
-    const simplifierToken = await this.getSimplifierToken();
+    const authHeaders = await this.getAuthHeaders();
 
     const data = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'SimplifierToken': simplifierToken,
+        ...authHeaders,
         ...options.headers,
       },
     }

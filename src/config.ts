@@ -5,6 +5,7 @@ dotenv.config();
 export interface Config {
   simplifierBaseUrl: string;
   simplifierToken?: string | undefined;
+  apiToken?: string | undefined;
   credentialsFile?: string | undefined;
   skipConnectionTest: boolean;
   httpRequestLogFile?: string | undefined;
@@ -29,17 +30,24 @@ export function validateConfig(): Config {
     throw new Error('SIMPLIFIER_BASE_URL must be a valid URL');
   }
 
-  if (!process.env.SIMPLIFIER_TOKEN && !process.env.SIMPLIFIER_CREDENTIALS_FILE) {
-    throw new Error('Either variable SIMPLIFIER_TOKEN with an actual token or SIMPLIFIER_CREDENTIALS_FILE pointing to a valid credentials file must be set!');
+  const authMethodCount = [
+    process.env.SIMPLIFIER_TOKEN,
+    process.env.SIMPLIFIER_APITOKEN,
+    process.env.SIMPLIFIER_CREDENTIALS_FILE,
+  ].filter(Boolean).length;
+
+  if (authMethodCount === 0) {
+    throw new Error('Either variable SIMPLIFIER_TOKEN with an actual token, SIMPLIFIER_APITOKEN with a personal access token or SIMPLIFIER_CREDENTIALS_FILE pointing to a valid credentials file must be set!');
   }
 
-  if (process.env.SIMPLIFIER_TOKEN && process.env.SIMPLIFIER_CREDENTIALS_FILE) {
-    throw new Error('Cannot set both SIMPLIFIER_TOKEN and SIMPLIFIER_CREDENTIALS_FILE. Please use only one authentication method.');
+  if (authMethodCount > 1) {
+    throw new Error('Only one of SIMPLIFIER_TOKEN, SIMPLIFIER_APITOKEN and SIMPLIFIER_CREDENTIALS_FILE may be set. Please use only one authentication method.');
   }
 
   return {
     simplifierBaseUrl,
     simplifierToken: process.env.SIMPLIFIER_TOKEN,
+    apiToken: process.env.SIMPLIFIER_APITOKEN,
     credentialsFile: process.env.SIMPLIFIER_CREDENTIALS_FILE,
     skipConnectionTest: process.env.SIMPLIFIER_SKIP_CONNECTION_TEST ? process.env.SIMPLIFIER_SKIP_CONNECTION_TEST !== "false" : false,
     httpRequestLogFile: process.env.HTTP_REQUEST_LOG_FILE,

@@ -3,6 +3,7 @@ process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
 process.env.SIMPLIFIER_TOKEN = 'test-token';
 // Clear credentials file if it exists in the environment
 delete process.env.SIMPLIFIER_CREDENTIALS_FILE;
+delete process.env.SIMPLIFIER_APITOKEN;
 
 // Don't use the global mock for this test
 jest.unmock('../src/config');
@@ -17,6 +18,8 @@ describe('Configuration', () => {
     process.env = { ...originalEnv };
     // Set required environment variables for tests
     process.env.SIMPLIFIER_TOKEN = 'test-token';
+    delete process.env.SIMPLIFIER_APITOKEN;
+    delete process.env.SIMPLIFIER_CREDENTIALS_FILE;
   });
 
   afterAll(() => {
@@ -57,13 +60,13 @@ describe('Configuration', () => {
       expect(config.simplifierBaseUrl).toBe('https://example.com/api');
     });
 
-    it('should require either SIMPLIFIER_TOKEN or SIMPLIFIER_CREDENTIALS_FILE', () => {
+    it('should require one of SIMPLIFIER_TOKEN, SIMPLIFIER_APITOKEN or SIMPLIFIER_CREDENTIALS_FILE', () => {
       process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
       delete process.env.SIMPLIFIER_TOKEN;
       delete process.env.SIMPLIFIER_CREDENTIALS_FILE;
 
       expect(() => validateConfig()).toThrow(
-        'Either variable SIMPLIFIER_TOKEN with an actual token or SIMPLIFIER_CREDENTIALS_FILE pointing to a valid credentials file must be set!'
+        'Either variable SIMPLIFIER_TOKEN with an actual token, SIMPLIFIER_APITOKEN with a personal access token or SIMPLIFIER_CREDENTIALS_FILE pointing to a valid credentials file must be set!'
       );
     });
 
@@ -95,7 +98,40 @@ describe('Configuration', () => {
       process.env.SIMPLIFIER_CREDENTIALS_FILE = '/path/to/credentials.json';
 
       expect(() => validateConfig()).toThrow(
-        'Cannot set both SIMPLIFIER_TOKEN and SIMPLIFIER_CREDENTIALS_FILE. Please use only one authentication method.'
+        'Only one of SIMPLIFIER_TOKEN, SIMPLIFIER_APITOKEN and SIMPLIFIER_CREDENTIALS_FILE may be set. Please use only one authentication method.'
+      );
+    });
+
+    it('should accept SIMPLIFIER_APITOKEN when set', () => {
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
+      delete process.env.SIMPLIFIER_TOKEN;
+      process.env.SIMPLIFIER_APITOKEN = 'test-pat';
+
+      const config = validateConfig();
+
+      expect(config.apiToken).toBe('test-pat');
+      expect(config.simplifierToken).toBeUndefined();
+      expect(config.credentialsFile).toBeUndefined();
+    });
+
+    it('should reject when both SIMPLIFIER_APITOKEN and SIMPLIFIER_TOKEN are set', () => {
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
+      process.env.SIMPLIFIER_TOKEN = 'test-token-123';
+      process.env.SIMPLIFIER_APITOKEN = 'test-pat';
+
+      expect(() => validateConfig()).toThrow(
+        'Only one of SIMPLIFIER_TOKEN, SIMPLIFIER_APITOKEN and SIMPLIFIER_CREDENTIALS_FILE may be set. Please use only one authentication method.'
+      );
+    });
+
+    it('should reject when both SIMPLIFIER_APITOKEN and SIMPLIFIER_CREDENTIALS_FILE are set', () => {
+      process.env.SIMPLIFIER_BASE_URL = 'http://localhost:8080';
+      delete process.env.SIMPLIFIER_TOKEN;
+      process.env.SIMPLIFIER_APITOKEN = 'test-pat';
+      process.env.SIMPLIFIER_CREDENTIALS_FILE = '/path/to/credentials.json';
+
+      expect(() => validateConfig()).toThrow(
+        'Only one of SIMPLIFIER_TOKEN, SIMPLIFIER_APITOKEN and SIMPLIFIER_CREDENTIALS_FILE may be set. Please use only one authentication method.'
       );
     });
 

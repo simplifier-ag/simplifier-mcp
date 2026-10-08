@@ -12,9 +12,10 @@ This is a Model Context Protocol (MCP) server for the Simplifier Low Code Platfo
 ## Key Implementation Details
 
 ### Authentication
-- Simplifier uses **SimplifierToken** (not API keys)
-- Token has session-like behavior and needs daily refresh (depending on token settings of Simplifier)
-- User must obtain token daily and configure it in environment variables
+Exactly one of the following environment variables must be set:
+- `SIMPLIFIER_TOKEN`: **SimplifierToken** with session-like behavior, needs daily refresh (depending on token settings of Simplifier); sent as `SimplifierToken` header
+- `SIMPLIFIER_CREDENTIALS_FILE`: JSON file with user/pass, used to obtain a SimplifierToken via `genToken`; sent as `SimplifierToken` header
+- `SIMPLIFIER_APITOKEN`: personal access token (PAT); sent as `ApiToken` header, no login performed
 
 ### Configuration
 - Base URL of Simplifiers REST API configured via `SIMPLIFIER_BASE_URL` environment variable
