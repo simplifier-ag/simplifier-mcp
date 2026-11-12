@@ -31,6 +31,8 @@ function outlineEntry(node: SimplifierCompletionNode): Record<string, unknown> {
     entry.returnType = node.returnType;
   } else if (node.kind === "property") {
     entry.typeExpr = node.typeExpr;
+  } else if (node.kind === "raw" && node.source) {
+    entry.sourceLength = node.source.length;
   }
   return entry;
 }
@@ -86,8 +88,10 @@ function collectReferencedTypeNames(value: unknown, into: Set<string>): void {
     const obj = value as Record<string, unknown>;
     if (typeof obj.typeExpr === "string") extractTypeTokens(obj.typeExpr, into);
     if (typeof obj.returnType === "string") extractTypeTokens(obj.returnType, into);
+    // 'raw' nodes (OData): TypeScript declaration text referencing further types by name
+    if (obj.kind === "raw" && typeof obj.source === "string") extractTypeTokens(obj.source, into);
     for (const [key, v] of Object.entries(obj)) {
-      if (key === "typeExpr" || key === "returnType") continue;
+      if (key === "typeExpr" || key === "returnType" || key === "source") continue;
       collectReferencedTypeNames(v, into);
     }
   }
@@ -95,23 +99,66 @@ function collectReferencedTypeNames(value: unknown, into: Set<string>): void {
 
 /** Resolves the transitive closure of type definitions reachable from the given seed names
  * (following typeExpr references inside each definition's properties). */
-function resolveDefinitionsClosure(definitions: SimplifierCompletionNode[], seedNames: Set<string>): SimplifierCompletionNode[] {
-  const byName = new Map(definitions.map(d => [d.name, d]));
-  const resolved = new Map<string, SimplifierCompletionNode>();
+function resolveDefinitionsClosure(definitions: SimplifierCompletionNode[], seedNames: Set<string>, rawRequested = false): SimplifierCompletionNode[] {
+  const byName = new Map<string, SimplifierCompletionNode[]>();
+  const addByName = (name: string, def: SimplifierCompletionNode) => {
+    const list = byName.get(name);
+    if (!list) byName.set(name, [def]);
+    else if (!list.includes(def)) list.push(def);
+  };
+  for (const d of definitions) {
+    addByName(d.name, d);
+    // A 'raw' definition (OData TypeScript text, e.g. "ODataSharedTypes") may declare several types;
+    // make each declared identifier resolvable to it.
+    if (d.kind === "raw" && d.source) {
+      for (const name of declaredIdentifiers(d.source)) addByName(name, d);
+    }
+  }
+  const resolved = new Set<SimplifierCompletionNode>();
+  const seen = new Set<string>();
   const queue = [...seedNames];
   while (queue.length > 0) {
     const name = queue.shift()!;
-    if (resolved.has(name)) continue;
-    const def = byName.get(name);
-    if (!def) continue;
-    resolved.set(name, def);
-    const refs = new Set<string>();
-    collectReferencedTypeNames(def.properties, refs);
-    for (const ref of refs) {
-      if (!resolved.has(ref)) queue.push(ref);
+    if (seen.has(name)) continue;
+    seen.add(name);
+    for (const def of byName.get(name) ?? []) {
+      if (resolved.has(def)) continue;
+      resolved.add(def);
+      const refs = new Set<string>();
+      collectReferencedTypeNames(def.properties, refs);
+      if (def.kind === "raw" && def.source) extractTypeTokens(def.source, refs);
+      for (const ref of refs) {
+        if (!seen.has(ref)) queue.push(ref);
+      }
     }
   }
-  return [...resolved.values()];
+  // Safety net: if raw text was requested but none of its references could be mapped to a raw definition
+  // (e.g. the TypeScript declaration style changed in a way `declaredIdentifiers` does not understand),
+  // return all raw definitions rather than silently dropping the types.
+  const rawDefs = definitions.filter(d => d.kind === "raw");
+  if (rawRequested && rawDefs.length > 0 && ![...resolved].some(d => d.kind === "raw")) {
+    rawDefs.forEach(d => resolved.add(d));
+  }
+  return [...resolved];
+}
+
+function containsRawNode(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(containsRawNode);
+  if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    return obj.kind === "raw" || Object.values(obj).some(containsRawNode);
+  }
+  return false;
+}
+
+/** Identifiers declared in a TypeScript declaration text. Deliberately lenient: not line-anchored, any
+ * amount of whitespace, optional `export`/`declare`, and a broad keyword set — a miss only means the
+ * definition is not found by that name (its own `name` always works as well). */
+function declaredIdentifiers(source: string): string[] {
+  const names: string[] = [];
+  const re = /\b(?:interface|type|class|enum|namespace|function|const|let|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)/g;
+  for (const m of source.matchAll(re)) names.push(m[1]);
+  return names;
 }
 
 export function registerServerBusinessObjectCompletionTools(server: McpServer, simplifier: SimplifierClient): void {
@@ -135,7 +182,8 @@ and types.
 2. Call again with \`paths\` — dot-separated paths into that outline, e.g.
    \`"Connector.<ConnectorName>.<EntitySetName>"\` or \`"BusinessObject.<Name>.<FunctionName>"\` — to get full
    signatures, parameter/property types and docs for exactly the entries needed, plus the referenced type
-   definitions (e.g. the OData entity's record/query-builder/create-payload types).
+   definitions (e.g. the OData entity's record/query-builder/create-payload types). For OData connectors both the
+entity sets and these types are delivered as TypeScript declaration text (nodes with \`kind: "raw"\`, field \`source\`).
 
 Own functions of this Business Object are available under the \`CurrentBusinessObject\` path.`,
     {
@@ -180,7 +228,7 @@ Own functions of this Business Object are available under the \`CurrentBusinessO
           collectReferencedTypeNames(detail, referencedTypeNames);
         }
 
-        const definitions = resolveDefinitionsClosure(completions.definitions, referencedTypeNames);
+        const definitions = resolveDefinitionsClosure(completions.definitions, referencedTypeNames, containsRawNode(details));
 
         return {
           businessObjectName,

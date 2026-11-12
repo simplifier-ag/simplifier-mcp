@@ -57,7 +57,7 @@ export interface SimplifierCallableParameter {
  * `<EntitySet>QueryBuilder`) are resolved via `definitions`, giving the full set of entity
  * properties. `definitions` also holds the input/output types of the Business Object's own functions.
  */
-export type SimplifierCompletionKind = 'module' | 'function' | 'property' | 'interface';
+export type SimplifierCompletionKind = 'module' | 'function' | 'property' | 'interface' | 'raw';
 
 export interface SimplifierCompletionParam {
   name: string;
@@ -81,6 +81,12 @@ export interface SimplifierCompletionNode {
   optional?: boolean;
   /** Present on 'interface' definitions (fields of a record/query-builder/etc. type). */
   properties?: SimplifierCompletionNode[];
+  /**
+   * Present on 'raw' nodes (OData connectors): ready-made TypeScript declarations as text.
+   * Raw nodes appear both in `modules` (e.g. the `entitySets` child of an OData connector) and in
+   * `definitions` (e.g. `ODataSharedTypes`, `BooksEntitySetTypes`, `BooksRecord`).
+   */
+  source?: string;
 }
 
 export interface SimplifierBusinessObjectCompletions {
