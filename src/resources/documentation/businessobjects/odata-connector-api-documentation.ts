@@ -24,9 +24,12 @@ Simplifier.Connector.<ConnectorName>.<EntitySetName>.query().execute()
 
 ### Fluent query methods
 
-\`.filterBy()\`, \`.filterExpression()\`, \`.top()\` and \`.skip()\` are all optional, can be used independently of
-each other, and may be entirely omitted - \`Simplifier.Connector.<ConnectorName>.<EntitySetName>.query().execute()\`
-alone is a valid call that returns all entities.
+\`.filterBy()\`, \`.filterExpression()\`, \`.orderBy()\`, \`.orderByMultiple()\`, \`.top()\` and \`.skip()\` are all optional,
+can be used independently of each other (in any order), and may be entirely omitted -
+\`Simplifier.Connector.<ConnectorName>.<EntitySetName>.query().execute()\` alone is a valid call that returns all entities.
+
+**Each of these methods can only be called once per query**. Some pairs are additionally mutually exclusive: 
+\`.filterBy()\`/\`.filterExpression()\` and \`.orderBy()\`/\`.orderByMultiple()\`.
 
 #### \`.filterBy(filterExpression)\`
 Restricts the returned entities.
@@ -35,16 +38,21 @@ Restricts the returned entities.
 
 **Available operators:**
 
-| Method | OData operator | Meaning |
-|---|---|---|
-| \`equals(value)\` | \`eq\` | Property = value |
-| \`notEquals(value)\` | \`ne\` | Property ≠ value |
-| \`startsWith(value)\` | \`startswith\` | Property starts with value |
-| \`contains(value)\` | \`contains\` (v4) / \`substringof\` (v2) | Property contains value |
-| \`greaterThan(value)\` | \`gt\` | Property > value |
-| \`greaterEquals(value)\` | \`ge\` | Property ≥ value |
-| \`lessThan(value)\` | \`lt\` | Property < value |
-| \`lessEquals(value)\` | \`le\` | Property ≤ value |
+| Method | OData operator | Meaning | Available on property types |
+|---|---|---|---|
+| \`equals(value)\` | \`eq\` | Property = value | all |
+| \`notEquals(value)\` | \`ne\` | Property ≠ value | all |
+| \`startsWith(value)\` | \`startswith\` | Property starts with value | string |
+| \`contains(value)\` | \`contains\` (v4) / \`substringof\` (v2) | Property contains value | string |
+| \`greaterThan(value)\` | \`gt\` | Property > value | number, date |
+| \`greaterEquals(value)\` | \`ge\` | Property ≥ value | number, date |
+| \`lessThan(value)\` | \`lt\` | Property < value | number, date |
+| \`lessEquals(value)\` | \`le\` | Property ≤ value | number, date |
+
+The operators offered by a property depend on its type (\`ODataStringProp\`, \`ODataNumberProp\`, \`ODataDateProp\`,
+\`ODataBoolProp\`, \`ODataGuidProp\`): string properties only have \`equals\`, \`notEquals\`, \`startsWith\` and \`contains\`
+(no \`greaterThan\` etc.); number and date properties only have \`equals\`, \`notEquals\` and the four comparison
+operators (no \`startsWith\`/\`contains\`); boolean and GUID properties only have \`equals\` and \`notEquals\`.
 
 **Special cases:**
 - **Comparing against \`null\`**: only allowed with \`equals\`/\`notEquals\`, e.g. \`entity.props.deletedAt.equals(null)\`.
@@ -82,6 +90,33 @@ var entity = Simplifier.Connector.myConnector.MyEntity;
 entity.query().filterExpression('stock gt 3').execute();
 \`\`\`
 
+#### \`.orderBy(property, direction?)\`
+Sorts the result by one property (\`$orderby\` query option).
+- **Input**: property - a property of the entity set's \`props\` (e.g. \`entity.props.name\`) or the property name as a
+  string. direction (optional) - \`"asc"\` or \`"desc"\`; defaults to \`"asc"\`.
+- **Can only be called once**, and only if \`.orderByMultiple()\` was not used on the same query - \`.orderBy()\` and
+  \`.orderByMultiple()\` are mutually exclusive.
+
+#### \`.orderByMultiple(items)\`
+Sorts the result by several properties (\`$orderby\` query option); the first item is the primary sort key.
+- **Input**: items - a non-empty array of \`{ name, direction? }\` objects. \`name\` is a property of the entity set's
+  \`props\` or a property name (string); \`direction\` is \`"asc"\` or \`"desc"\` and defaults to \`"asc"\`. A property must
+  not appear twice.
+- Add a key property as the last item to get a stable order across pages when using \`.top()\`/\`.skip()\`.
+- **Can only be called once**, and only if \`.orderBy()\` was not used on the same query.
+
+**Examples:**
+\`\`\`javascript
+var entity = Simplifier.Connector.myConnector.MyEntity;
+
+entity.query().orderBy(entity.props.name, 'desc').execute();
+entity.query().orderByMultiple([
+  { name: entity.props.category },
+  { name: entity.props.price, direction: 'desc' },
+  { name: 'ID' }                                  // key as last item for a stable order
+]).top(50).skip(100).execute();
+\`\`\`
+
 #### \`.top(count)\`
 Limits the number of returned entities.
 - **Input**: count (number)
@@ -110,7 +145,8 @@ Terminal call. Sends the request to the remote OData service and returns the res
 }
 \`\`\`
 
-- **count**: total number of entities matching the query, independent of \`.top()\`/\`.skip()\` paging.
+- **count**: total number of entities matching the query, independent of \`.top()\`/\`.skip()\` paging. It is
+  optional: it is \`undefined\` if the remote OData service did not report a total count, so do not rely on it being set.
 - **records**: array of returned entity objects for the current page (i.e. after \`.top()\`/\`.skip()\` have been applied).
 - **response.statusCode**: HTTP status code returned by the remote OData service.
 
@@ -134,8 +170,9 @@ are passed through from the remote service largely unchanged, so their shape dep
 
 ### Query error handling
 
-If the call fails (e.g. the remote service is unreachable or returns an HTTP error), an exception is thrown.
-The error message includes the entity set name, the connector name and the underlying failure:
+If the call fails (e.g. the remote service is unreachable or returns an HTTP error), \`.execute()\` throws a
+\`SimplifierApiError\` (see "Errors" below). Its message includes the entity set name, the connector name and the
+underlying failure. When not caught in the Business Object code, the function call fails with a message like:
 
 \`\`\`json
 {
@@ -190,6 +227,10 @@ Related entities can be created or linked to in the same \`.create()\` call:
   \`\`\`json
   { "<NavProp>": { "__metadata": { "uri": "<EntitySet>(<key>)" } } }
   \`\`\`
+- **Declaring the type of a nested object (OData v2)**: in a deep-insert payload, set \`__metadata.type\` to the
+  fully-qualified EDM type name of the nested entity, e.g.
+  \`{ "<NavProp>": { "__metadata": { "type": "Namespace.EntityType" }, "name": "..." } }\`. Some SAP OData v2 services
+  require this to recognize a deep-insert payload.
 
 #### Create result shape
 
@@ -232,8 +273,9 @@ Entity fields are nested one level deeper under \`response.body.d\` - \`result.r
 \`result.response.body.ID\` (see also "Version-specific differences in record shape" above for \`__metadata\` and
 date formatting).
 
-- **response.statusCode**: HTTP status code returned by the remote OData service (typically 201 on success).
-- This body shape (and its v2/v4 difference) also applies to \`.update()\`/\`.delete()\` results below, and differs
+- **response.statusCode**: HTTP status code returned by the remote OData service (typically 201 on success for \`.create()\`, 200 for \`.update()\`, and 204 for \`.delete()\`).
+- This body shape (and its v2/v4 difference) also applies to \`.update()\` results below (a successful OData v2 update
+  returns the updated entity wrapped in \`d\` with status 200; the \`.delete()\` result has no entity body, see below), and differs
   from the \`count\`/\`records\`/\`response.statusCode\` shape returned by \`.execute()\` for queries.
 
 #### Create example
@@ -267,7 +309,8 @@ itself a terminal call - it sends the request immediately.
   this is tracked automatically. Calling \`.update(record)\` without a second argument sends only the changed
   fields as the PATCH body.
 - **Second parameter (\`patch\`, optional)**: instead of relying on change tracking, an explicit object with the
-  fields to change can be passed as a second argument, e.g. \`.update(record, { name: 'new-name' })\`.
+  fields to change can be passed as a second argument, e.g. \`.update(record, { name: 'new-name' })\`. The key
+  value(s) and the ETag are always read from the first argument (\`record\`) - do **not** include them in \`patch\`.
 - **Result**: same shape as \`.create()\` - \`{ response: { body, statusCode } }\`.
 - **Errors**: throws a \`SimplifierApiError\` on failure, as with \`.create()\`.
 
@@ -302,7 +345,12 @@ Deletes an existing record via the OData service. Unlike \`.update()\`, \`.delet
   object for a known key without a prior query.
 - **ETag**: if present on the given object (\`@odata.etag\` for OData v4, \`__metadata.etag\` for OData v2), it is
   automatically sent as an \`If-Match\` header.
-- **Result**: same shape as \`.create()\`/\`.update()\` - \`{ response: { body, statusCode } }\`.
+- **Result**: \`{ response: { body, statusCode } }\`, but unlike \`.create()\`/\`.update()\` there is typically no entity
+  body: on success the remote service answers with status \`204 No Content\` and \`body\` is \`null\`:
+  \`\`\`json
+  { "response": { "body": null, "statusCode": 204 } }
+  \`\`\`
+  (A remote service may return the deleted entity with status 200 instead.)
 - **Errors**: throws a \`SimplifierApiError\` on failure - including \`missing key value(s): ...\` if a required
   key property is missing from the given object.
 
@@ -319,9 +367,18 @@ var deleteResult = entity.delete(record);
 entity.delete({ id: 42 });
 \`\`\`
 
+## Errors
+
+Failing OData calls (query, create, update, delete) throw a \`SimplifierApiError\`, which can be caught with
+\`try/catch\`. It has the following properties:
+
+- **errorMessage** (string): formatted error message; always present.
+- **response** (optional): present only when the remote OData service returned an HTTP response, i.e. **not** for
+  transport, login or parser failures. Check for its existence before accessing it.
+
 ## Current limitations
 
-This API currently covers **reading entity sets** (filterBy/filterExpression/top/skip/execute), **creating
+This API currently covers **reading entity sets** (filterBy/filterExpression/orderBy/orderByMultiple/top/skip/execute), **creating
 records** (create, including deep-insert and binding of related entities), **updating records** (update) and
 **deleting records** (delete), as described above.
 
