@@ -13,6 +13,7 @@ import {
   RFCWizardDetailsResponse,
   RFCWizardSearchOptions,
   SAPSystem,
+  AiAppDeployedSource,
   SAPSystemListResponse,
   SimplifierApiResponse,
   SimplifierBusinessObjectCompletions,
@@ -570,6 +571,26 @@ export class SimplifierClient {
       headers: trackingHeader(trackingKey),
     })
     return oResult.message;
+  }
+
+  async deployAiApp(appName: string, branch: string | undefined, deployToBtp: boolean, trackingKey: string): Promise<string> {
+    const body: { deployToBtp: boolean; branch?: string } = { deployToBtp };
+    if (branch) body.branch = branch;
+    const oResult = await this.makeUnwrappedRequest<{ message: string }>(`/ai/app/${encodeURIComponent(appName)}/deploy`, {
+      method: "POST",
+      headers: trackingHeader(trackingKey),
+      body: JSON.stringify(body),
+    });
+    if (oResult.message?.startsWith("deploy failed")) {
+      throw new Error(oResult.message);
+    }
+    return oResult.message;
+  }
+
+  async getAiAppDeployedSource(appName: string, trackingKey: string): Promise<AiAppDeployedSource> {
+    return this.makeUnwrappedRequest<AiAppDeployedSource>(`/ai/app/${encodeURIComponent(appName)}/deploy/source`, {
+      headers: trackingHeader(trackingKey),
+    });
   }
 
   // Logging API methods
