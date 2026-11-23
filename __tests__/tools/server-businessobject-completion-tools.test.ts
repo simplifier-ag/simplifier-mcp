@@ -216,5 +216,81 @@ describe("registerServerBusinessObjectCompletionTools", () => {
       });
       expect(body.details["Connector.MyODataConn.Books"]).toBeDefined();
     });
+
+    it("resolves 'raw' TypeScript definitions referenced from a raw entitySets node (OData)", async () => {
+      mockSimplifierClient.getServerBusinessObjectCompletions.mockResolvedValue({
+        name: "MyBO",
+        globals: [],
+        definitions: [
+          { kind: "raw", name: "ODataSharedTypes", source: "interface ODataStringProp {\n  equals(v: string): ODataCondition;\n}\ninterface ODataCondition {}" },
+          { kind: "raw", name: "BooksEntitySetTypes", source: "type BooksQueryBuilder = ODataQueryBuilder<BooksQueryResult>;\ninterface BooksQueryResult { records: BooksRecord[]; }" },
+          { kind: "raw", name: "BooksRecord", source: "interface BooksRecord { title: string; }" },
+          { kind: "raw", name: "UnrelatedRaw", source: "interface Unrelated {}" }
+        ],
+        modules: [{
+          kind: "module", name: "Simplifier", children: [{
+            kind: "module", name: "Connector", children: [{
+              kind: "module", name: "OData", children: [{
+                kind: "raw", name: "entitySets",
+                source: "const Books: { query(): BooksQueryBuilder; props: { title: ODataStringProp } };"
+              }]
+            }]
+          }]
+        }]
+      });
+      const handler = registerAndGetHandler();
+
+      const result = await handler({ businessObjectName: "MyBO", paths: ["Connector.OData"] });
+      const body = JSON.parse(result.content[0].text);
+
+      expect(body.details["Connector.OData"].children[0].source).toContain("const Books");
+      const defNames = body.definitions.map((d: any) => d.name);
+      expect(defNames).toEqual(expect.arrayContaining(["BooksEntitySetTypes", "BooksRecord", "ODataSharedTypes"]));
+      expect(defNames).not.toContain("UnrelatedRaw");
+    });
+
+    const rawFixture = (sharedSource: string): any => ({
+      name: "MyBO",
+      globals: [],
+      definitions: [
+        { kind: "raw", name: "SharedFile", source: sharedSource },
+        { kind: "raw", name: "Other", source: "interface Unrelated {}" }
+      ],
+      modules: [{
+        kind: "module", name: "Simplifier", children: [{
+          kind: "module", name: "Connector", children: [{
+            kind: "module", name: "OData", children: [{
+              kind: "raw", name: "entitySets", source: "const Books: { props: { title: ODataStringProp } };"
+            }]
+          }]
+        }]
+      }]
+    });
+
+    it.each([
+      ["export / indented declarations", "export interface ODataStringProp {\n  a(): void;\n}\n  declare type Other2 = string;"],
+      ["declare namespace style", "declare namespace X {}\ndeclare class ODataStringProp {}"],
+      ["single-line, several declarations", "interface A {} interface ODataStringProp { x: A }"]
+    ])("finds declared types despite a different declaration style (%s)", async (_label, shared) => {
+      mockSimplifierClient.getServerBusinessObjectCompletions.mockResolvedValue(rawFixture(shared));
+      const handler = registerAndGetHandler();
+
+      const result = await handler({ businessObjectName: "MyBO", paths: ["Connector.OData"] });
+      const defNames = JSON.parse(result.content[0].text).definitions.map((d: any) => d.name);
+
+      expect(defNames).toContain("SharedFile");
+      expect(defNames).not.toContain("Other");
+    });
+
+    it("falls back to all raw definitions if no declared name can be matched", async () => {
+      mockSimplifierClient.getServerBusinessObjectCompletions.mockResolvedValue(
+        rawFixture("/* completely different notation: ODataStringProp := {...} */"));
+      const handler = registerAndGetHandler();
+
+      const result = await handler({ businessObjectName: "MyBO", paths: ["Connector.OData"] });
+      const defNames = JSON.parse(result.content[0].text).definitions.map((d: any) => d.name);
+
+      expect(defNames).toEqual(expect.arrayContaining(["SharedFile", "Other"]));
+    });
   });
 });
