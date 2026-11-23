@@ -1036,3 +1036,15 @@ export type RFCWizardCreateCallsPayload = {
   descriptions: { [key: string]: string }
   newNames: { [key: string]: string }
 }
+
+export type AiAppDeployedSource = {
+  source: {
+    branch: string;
+    commit: string;
+    dirty: boolean;
+    origin: "editor" | "api" | "transport";
+    user?: string;
+    deployedAt: number;
+  } | null;
+  workingBranch: string | null;
+}

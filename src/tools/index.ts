@@ -14,6 +14,7 @@ import { registerLoginMethodReadTools } from "./loginmethod-read-tools.js";
 import { registerServerEnvironmentReadTools } from "./server-environment-read-tools.js";
 import { registerDocumentationTools } from "./documentation-tools.js";
 import { registerConnectorWizardTools } from "./connector-wizard-tools.js";
+import { registerAiAppTools } from "./ai-app-tools.js";
 
 /**
  * Register Tools for Simplifier Low Code Platform integration
@@ -26,6 +27,7 @@ export function registerTools(server: McpServer, simplifier: SimplifierClient) {
   registerLoginMethodTools(server, simplifier)
   registerLoggingTools(server, simplifier)
   registerSapSystemTools(server, simplifier)
+  registerAiAppTools(server, simplifier)
 
   // Read-only tool mirrors of resources. These exist so that MCP clients that do
   // not support the `resources/*` capability (e.g. OpenCode, Cursor, Cline,
